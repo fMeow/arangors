@@ -4,7 +4,7 @@
 //!
 
 use failure::{format_err, Error};
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 // use reqwest::r#async::Client;
 use reqwest::{
@@ -35,13 +35,13 @@ use super::result::Response;
 ///
 // TODO Connections' lifetimes should be longer than Databases' lifetimes
 #[derive(Debug)]
-pub struct Connection<'a> {
+pub struct Connection {
     session: Rc<Client>,
-    databases: HashMap<String, Database<'a>>,
+    databases: HashMap<String, Database>,
     arango_url: Url,
 }
 
-impl<'a> Connection<'a> {
+impl Connection {
     /// Validate the server at given arango url
     ///
     /// Cast `failure::Error` if
@@ -85,9 +85,9 @@ impl<'a> Connection<'a> {
     /// 1. set authentication in header
     /// 1. build a http client that holds authentication tokens
     /// 1. construct databases objects for later use
-    pub fn establish<S: Into<String>>(arango_url: S, auth: Auth) -> Result<Connection<'a>, Error> {
+    pub fn establish<S: Into<String>>(arango_url: S, auth: Auth) -> Result<Connection, Error> {
         let mut conn = Connection {
-            arango_url: Url::parse(arango_url.into().as_str())?,
+            arango_url: Url::parse(arango_url.into().as_str())?.join("/")?,
             ..Default::default()
         };
         conn.validate_server()?;
@@ -105,17 +105,20 @@ impl<'a> Connection<'a> {
             }
             Auth::None => {}
         };
-        conn.session = Client::builder()
-            .gzip(true)
-            .default_headers(headers)
-            .build()?;
+        conn.session = Rc::new(
+            Client::builder()
+                .gzip(true)
+                .default_headers(headers)
+                .build()?,
+        );
         conn.retrieve_databases()?;
-        Ok(Connection {
-            ..Default::default()
-        })
+        // Ok(Connection {
+        //     ..Default::default()
+        // })
+        Ok(conn)
     }
 
-    pub fn establish_without_auth<S: Into<String>>(arango_url: S) -> Result<Connection<'a>, Error> {
+    pub fn establish_without_auth<S: Into<String>>(arango_url: S) -> Result<Connection, Error> {
         Ok(Connection::establish(arango_url.into(), Auth::None)?)
     }
 
@@ -123,7 +126,7 @@ impl<'a> Connection<'a> {
         arango_url: S,
         username: S,
         password: S,
-    ) -> Result<Connection<'a>, Error> {
+    ) -> Result<Connection, Error> {
         Ok(Connection::establish(
             arango_url.into(),
             Auth::basic(username.into(), password.into()),
@@ -133,19 +136,19 @@ impl<'a> Connection<'a> {
         arango_url: S,
         username: S,
         password: S,
-    ) -> Result<Connection<'a>, Error> {
+    ) -> Result<Connection, Error> {
         Ok(Connection::establish(
             arango_url.into(),
             Auth::jwt(username.into(), password.into()),
         )?)
     }
 
-    pub fn get_url(&'a self) -> &'a Url {
+    pub fn get_url(&self) -> &Url {
         &self.arango_url
     }
 
-    pub fn get_session(&'a self) -> &'a Client {
-        &self.session
+    pub fn get_session(&self) -> Rc<Client> {
+        Rc::clone(&self.session)
     }
 
     /// There are different type of json object when requests to arangoDB
@@ -169,7 +172,7 @@ impl<'a> Connection<'a> {
     /// 1. retrieve the names of all the accessible databases
     /// 1. for each databases, construct a `Database` object and store them in
     /// `self.databases` for later use
-    fn retrieve_databases<'b>(&'a mut self) -> Result<&mut Connection, Error> {
+    fn retrieve_databases(&mut self) -> Result<&mut Connection, Error> {
         let url = self.arango_url.join("/_api/database/user")?;
         let resp = self.session.get(url).send()?;
         let result: Vec<String> = Connection::serialize_response(resp)?;
@@ -182,12 +185,12 @@ impl<'a> Connection<'a> {
         Ok(self)
     }
 }
-impl<'a> Default for Connection<'a> {
-    fn default() -> Connection<'a> {
+impl Default for Connection {
+    fn default() -> Connection {
         Connection {
             arango_url: Url::parse("http://127.0.0.1:8529").unwrap(),
             databases: HashMap::new(),
-            session: Client::new(),
+            session: Rc::new(Client::new()),
         }
     }
 }
