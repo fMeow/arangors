@@ -1,0 +1,16 @@
+version: "3.6"
+
+services:
+  arangodb:
+    image: arangodb:3.2.11
+    env_file: .env
+    ports:
+      - "8529:8529"
+    volumes:
+      - data:/var/lib/arangodb3
+    environment:
+      - ARANGO_STORAGE_ENGINE=rocksdb
+      - ARANGO_ROOT_PASSWORD=KWNngteTps7XjrNv
+
+volumes:
+  data:
