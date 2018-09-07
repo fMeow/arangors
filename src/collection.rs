@@ -16,15 +16,20 @@ pub struct Collection {
     session: Rc<Client>,
 }
 impl<'a, 'b: 'a> Collection {
+    ///
+    ///
+    ///  Base url should be like `http://localhost:8529/_db/mydb/_api/`
     pub fn new<T: Into<String>>(
         database: &'b Database,
         name: T,
         id: T,
         collection_type: CollectionType,
     ) -> Result<Collection, Error> {
-        let url = database.get_url().join("collection")?;
+        let name = name.into();
+        let path = format!("collection/{}/", name.as_str());
+        let url = database.get_url().join(path.as_str())?;
         Ok(Collection {
-            name: name.into(),
+            name: name,
             id: id.into(),
             session: database.get_session(),
             base_url: url,
@@ -35,7 +40,8 @@ impl<'a, 'b: 'a> Collection {
         database: &'b Database,
         collection: &CollectionResponse,
     ) -> Result<Collection, Error> {
-        let url = database.get_url().join("collection")?;
+        let path = format!("collection/{}/", collection.name);
+        let url = database.get_url().join(path.as_str())?;
         Ok(Collection {
             id: collection.id.to_owned(),
             name: collection.name.to_owned(),
