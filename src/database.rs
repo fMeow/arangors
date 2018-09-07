@@ -9,7 +9,7 @@ use super::connection::Connection;
 pub struct Database {
     name: String,
     base_url: Url,
-    connection: Rc<Client>,
+    session: Rc<Client>,
 }
 impl<'a, 'b: 'a> Database {
     pub fn new<T: Into<String>>(conn: &'b Connection, name: T) -> Result<Database, Error> {
@@ -18,7 +18,7 @@ impl<'a, 'b: 'a> Database {
         let url = Url::parse(conn.get_url().as_str())?.join(path.as_str())?;
         Ok(Database {
             name,
-            connection: conn.get_session(),
+            session: conn.get_session(),
             base_url: url,
         })
     }
