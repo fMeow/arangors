@@ -29,7 +29,7 @@ use super::result::Response;
 /// There is two way to initialize `Connection`
 /// - Default value
 /// ```rust
-/// use arango_rs::connection::Connection;
+/// use arangors::connection::Connection;
 /// let conn: Connection = Default::default();
 /// ```
 ///
@@ -172,8 +172,15 @@ impl Connection {
     /// 1. retrieve the names of all the accessible databases
     /// 1. for each databases, construct a `Database` object and store them in
     /// `self.databases` for later use
+    ///
+    /// This function uses the API that is used to retrieve a list of
+    /// all databases the current user can access.
     fn retrieve_databases(&mut self) -> Result<&mut Connection, Error> {
-        let url = self.arango_url.join("/_api/database/user")?;
+        // an invalid arango_url should never running through initialization
+        // so we assume arango_url is a valid url
+        // When we pass an invalid path, it should panic to eliminate the bug
+        // in development.
+        let url = self.arango_url.join("/_api/database/user").unwrap();
         let resp = self.session.get(url).send()?;
         let result: Vec<String> = Connection::serialize_response(resp)?;
         for database_name in result.iter() {
@@ -183,6 +190,24 @@ impl Connection {
             );
         }
         Ok(self)
+    }
+
+    /// Create a database via HTTP request and add it into `self.databases`.
+    ///
+    /// Return a database object if success.
+    pub fn create_database(&self) -> Result<&Database, Error> {
+        unimplemented!();
+    }
+
+    /// List all existing databases in server. As clients may not has the
+    /// permission to access all the databases, this function only return
+    /// a `Vec<String>` instead of a hash map of databases.
+    pub fn list_all_database(&self) -> Result<Vec<String>, Error> {
+        unimplemented!()
+    }
+
+    pub fn current_database(&self)->Result<&Database,Error>{
+        unimplemented!()
     }
 }
 impl Default for Connection {
