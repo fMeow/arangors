@@ -1,7 +1,7 @@
 cargo-features = ["edition"]
 
 [package]
-name = "arango_rs"
+name = "arangors"
 version = "0.1.0"
 authors = ["Guoli Lyu <guoli-lv@hotmail.com>"]
 readme = "README.md"
