@@ -2,12 +2,12 @@ use failure::Error;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use log::trace;
 use reqwest::{Client, Url};
-use serde_derive::Deserialize;
 
 use super::collection::{Collection, CollectionResponse};
 use super::connection::Connection;
-use super::response::{serialize_response, Response};
+use super::response::{serialize_response};
 
 #[derive(Debug)]
 pub struct Database {
@@ -47,14 +47,24 @@ impl<'a, 'b: 'a> Database {
         // When we pass an invalid path, it should panic to eliminate the bug
         // in development.
         let url = self.base_url.join("collection").unwrap();
+        trace!(
+            "Retrieving collections from {:?}: {}",
+            self.name,
+            url.as_str()
+        );
         let resp = self.session.get(url).send()?;
-        let result: Vec<CollectionResponse> = serialize_response(resp)?;
+        let result: Vec<CollectionResponse> =
+            serialize_response(resp).expect("Failed to serialize Collection response");
+        trace!("Collections retrieved");
+
         for coll in result.iter() {
             let collection = Collection::from_response(self, coll)?;
             if coll.is_system {
+                // trace!("System collection: {:?}", coll.name);
                 self.system_collections
                     .insert(coll.name.to_owned(), collection);
             } else {
+                trace!("Collection: {:?}", coll.name);
                 self.system_collections
                     .insert(coll.name.to_owned(), collection);
             }
