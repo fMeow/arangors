@@ -63,17 +63,20 @@ impl<'a, 'b: 'a> Collection {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct CollectionResponse {
     pub id: String,
     pub name: String,
     pub status: CollectionStatus,
     #[serde(rename = "type")]
     pub collection_type: CollectionType,
-    #[serde(rename = "type")]
+    #[serde(rename = "isSystem")]
     pub is_system: bool,
+    // #[serde(rename = "globallyUniqueId")]
+    // pub global_unique_id: String,
 }
 
+#[derive(Debug)]
 pub enum CollectionStatus {
     NewBorn,
     Unloaded,
