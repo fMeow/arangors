@@ -69,6 +69,7 @@ impl Connection {
         let jwt: JWT = client.post(url).json(&map).send()?.json()?;
         Ok(jwt.jwt)
     }
+
     // -------------------- methods for initialization --------------------
     /// The most trivial way to establish a connection to arangoDB server.
     /// Users have to build a `Auth` object themselves.
@@ -153,6 +154,29 @@ impl Connection {
         Rc::clone(&self.session)
     }
 
+    /// Get database object with name.
+    ///
+    /// This function look up accessible database in cache hash map,
+    /// and return a reference of database if found.
+    pub fn get_database(&self, name: &str) -> Option<&Database> {
+        match self.databases.get(name) {
+            Some(database) => Some(&database),
+            None => {
+                info!("Database {} not found.", name);
+                None
+            }
+        }
+    }
+
+    /// Get a hashmap of name-reference for all database.
+    pub fn get_all_database(&self) -> HashMap<String, &Database> {
+        let databases: HashMap<String, &Database> = HashMap::new();
+        self.databases
+            .iter()
+            .map(|(name, database)| databases.insert(name.to_owned(), &database));
+        databases
+    }
+
     /// The last steps of connection establishment is to query the accessible
     /// databases and cache them in a hashmap of `Databases` objects.
     ///
@@ -179,8 +203,9 @@ impl Connection {
         }
         Ok(self)
     }
+
     pub fn retrieve_arango_version(&self) -> &str {
-        unimplemented!()
+        unimplemented!();
     }
 
     /// Create a database via HTTP request and add it into `self.databases`.
@@ -194,7 +219,7 @@ impl Connection {
     /// permission to access all the databases, this function only return
     /// a `Vec<String>` instead of a hash map of databases.
     pub fn list_all_database(&self) -> Result<Vec<String>, Error> {
-        unimplemented!()
+        unimplemented!();
     }
 
     /// Get a pointer of current database.
@@ -243,6 +268,7 @@ impl Default for Connection {
         }
     }
 }
+
 /// Validate the server at given arango url
 /// return false if
 /// - Connection failed
