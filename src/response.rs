@@ -1,5 +1,8 @@
-use failure::{Error,format_err};
+use std::fmt::Debug;
 
+use failure::{format_err, Error};
+
+use log::{error, trace};
 use serde::de::DeserializeOwned;
 use serde_derive::Deserialize;
 
@@ -8,10 +11,11 @@ use serde_derive::Deserialize;
 pub enum Response<T> {
     Success {
         error: bool,
-        code: u16,
+        code: u8,
         result: T,
     },
 
+    // TODO implement error trait
     Error {
         error: bool,
         code: u8,
@@ -28,9 +32,16 @@ pub enum Response<T> {
 /// TODO more intuitive response error enum
 pub fn serialize_response<T>(mut resp: reqwest::Response) -> Result<T, Error>
 where
-    T: DeserializeOwned,
+    T: DeserializeOwned + Debug,
 {
-    let response: Response<T> = resp.json()?;
+    let response_text = resp.text()?;
+    let response: Response<T> = serde_json::from_str(response_text.as_str()).map_err(|err| {
+        error!(
+            "Failed to serialize.\n\tResponse: {:?} \n\tText: {:?}",
+            resp, response_text
+        );
+        err
+    })?;
     match response {
         Response::Success { result, .. } => Ok(result),
         Response::Error { message, .. } => Err(format_err!("{}", message)),
