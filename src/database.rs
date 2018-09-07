@@ -20,7 +20,7 @@ pub struct Database {
 impl<'a, 'b: 'a> Database {
     pub fn new<T: Into<String>>(conn: &'b Connection, name: T) -> Result<Database, Error> {
         let name = name.into();
-        let path = format!("/_db/{}/_api", name.as_str());
+        let path = format!("/_db/{}/_api/", name.as_str());
         let url = conn.get_url().join(path.as_str())?;
         let mut database = Database {
             name,
