@@ -1,5 +1,7 @@
+use failure::{Error,format_err};
+
+use serde::de::DeserializeOwned;
 use serde_derive::Deserialize;
-use std::fmt;
 
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
@@ -20,6 +22,20 @@ pub enum Response<T> {
     },
 }
 
+/// There are different type of json object when requests to arangoDB
+/// server is accepted or not. Here provides an abstraction for
+/// response of success and failure.
+/// TODO more intuitive response error enum
+pub fn serialize_response<T>(mut resp: reqwest::Response) -> Result<T, Error>
+where
+    T: DeserializeOwned,
+{
+    let response: Response<T> = resp.json()?;
+    match response {
+        Response::Success { result, .. } => Ok(result),
+        Response::Error { message, .. } => Err(format_err!("{}", message)),
+    }
+}
 // impl Error {
 //     /// Construct an Error.
 //     pub fn new<T: Into<String>>(status_code: u16, error_code: ErrorCode, message: T) -> Self {
