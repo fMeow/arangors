@@ -11,7 +11,7 @@ edition = '2018'
 
 [dependencies]
 failure = "0.1.2"
-futures = "0.1.23"
+futures = "0.1.24"
 hyper = "0.12.9"
 regex = "1.0.4"
 reqwest = "0.8.8"
