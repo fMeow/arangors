@@ -5,6 +5,7 @@
 //!
 
 use failure::{format_err, Error};
+use log::{error, info, trace};
 use std::{collections::HashMap, rc::Rc};
 
 // use reqwest::r#async::Client;
@@ -112,13 +113,12 @@ impl Connection {
                 .build()?,
         );
         conn.retrieve_databases()?;
-        // Ok(Connection {
-        //     ..Default::default()
-        // })
+        info!("Established");
         Ok(conn)
     }
 
     pub fn establish_without_auth<S: Into<String>>(arango_url: S) -> Result<Connection, Error> {
+        trace!("Establish without auth");
         Ok(Connection::establish(arango_url.into(), Auth::None)?)
     }
 
@@ -127,6 +127,7 @@ impl Connection {
         username: S,
         password: S,
     ) -> Result<Connection, Error> {
+        trace!("Establish with basic auth");
         Ok(Connection::establish(
             arango_url.into(),
             Auth::basic(username.into(), password.into()),
@@ -137,6 +138,7 @@ impl Connection {
         username: S,
         password: S,
     ) -> Result<Connection, Error> {
+        trace!("Establish with jwt");
         Ok(Connection::establish(
             arango_url.into(),
             Auth::jwt(username.into(), password.into()),
@@ -168,6 +170,7 @@ impl Connection {
         let url = self.arango_url.join("/_api/database/user").unwrap();
         let resp = self.session.get(url).send()?;
         let result: Vec<String> = serialize_response(resp)?;
+        trace!("Retrieved databases.");
         for database_name in result.iter() {
             self.databases.insert(
                 database_name.to_owned(),
@@ -175,6 +178,9 @@ impl Connection {
             );
         }
         Ok(self)
+    }
+    pub fn retrieve_arango_version(&self) -> &str {
+        unimplemented!()
     }
 
     /// Create a database via HTTP request and add it into `self.databases`.
@@ -253,7 +259,12 @@ pub fn validate_server<'b>(arango_url: &'b str) -> Result<(), Error> {
             // value of `Server` is `ArangoDB`
             if server.eq_ignore_ascii_case("ArangoDB") {
                 result = true;
+                info!("Validate arangoDB server done.");
+            } else {
+                error!("In HTTP header, Server is {}", server);
             }
+        } else {
+            error!("Fail to find Server in HTTP header");
         }
     }
     if result == true {
