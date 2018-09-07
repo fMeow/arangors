@@ -2,12 +2,12 @@ use failure::Error;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use log::trace;
+use log::{info, trace};
 use reqwest::{Client, Url};
 
 use super::collection::{Collection, CollectionResponse};
 use super::connection::Connection;
-use super::response::{serialize_response};
+use super::response::serialize_response;
 
 #[derive(Debug)]
 pub struct Database {
@@ -18,6 +18,10 @@ pub struct Database {
     system_collections: HashMap<String, Collection>,
 }
 impl<'a, 'b: 'a> Database {
+    ///
+    ///
+    ///
+    ///  Base url should be like `http://localhost:8529/`
     pub fn new<T: Into<String>>(conn: &'b Connection, name: T) -> Result<Database, Error> {
         let name = name.into();
         let path = format!("/_db/{}/_api/", name.as_str());
@@ -32,15 +36,14 @@ impl<'a, 'b: 'a> Database {
         database.retrieve_collections()?;
         Ok(database)
     }
-    /// The last steps of connection establishment is to query the accessible
-    /// databases and cache them in a hashmap of `Databases` objects.
+    /// Retrieve all collections of this database.
     ///
-    /// 1. retrieve the names of all the accessible databases
-    /// 1. for each databases, construct a `Database` object and store them in
-    /// `self.databases` for later use
-    ///
-    /// This function uses the API that is used to retrieve a list of
-    /// all databases the current user can access.
+    /// 1. retrieve the names of all collections
+    /// 1. cache colelctions
+    ///     - for user collection, construct a `Collection` object and store them in
+    /// `self.collections` for later use
+    ///     - for system collection, construct a `Collection` object and store them in
+    /// `self.system_collections` for later use
     fn retrieve_collections(&mut self) -> Result<&mut Database, Error> {
         // an invalid arango_url should never running through initialization
         // so we assume arango_url is a valid url
@@ -78,5 +81,32 @@ impl<'a, 'b: 'a> Database {
 
     pub fn get_session(&self) -> Rc<Client> {
         Rc::clone(&self.session)
+    }
+
+    /// Get collection object with name.
+    ///
+    /// This function look up user collections in cache hash map,
+    /// and return a reference of collection if found.
+    pub fn get_collection(&self, name: &str) -> Option<&Collection> {
+        match self.collections.get(name) {
+            Some(database) => Some(&database),
+            None => {
+                info!("User collection {} not found.", name);
+                None
+            }
+        }
+    }
+    /// Get system collection object with name.
+    ///
+    /// This function look up system collections in cache hash map,
+    /// and return a reference of collection if found.
+    pub fn get_system_collection(&self, name: &str) -> Option<&Collection> {
+        match self.system_collections.get(name) {
+            Some(database) => Some(&database),
+            None => {
+                info!("User collection {} not found.", name);
+                None
+            }
+        }
     }
 }
