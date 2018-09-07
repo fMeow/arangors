@@ -5,9 +5,9 @@
 /// - JWT
 /// - no auth
 ///
-/// And this enum provides an abstracton to these methods.
+/// And this enum provides an abstraction to these methods.
 ///
-/// Auth is then used when intialize `Conenction`.
+/// Auth is then used when initialize `Connection`.
 ///
 /// # Example
 /// ```rust,ignore
