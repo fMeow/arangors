@@ -7,5 +7,5 @@ pub mod connection;
 pub mod database;
 pub mod document;
 pub mod query;
-pub mod result;
-pub mod users;
+pub mod response;
+pub mod user;
