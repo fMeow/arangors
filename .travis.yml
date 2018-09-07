@@ -8,9 +8,25 @@ matrix:
     - rust: nightly
   fast_finish: true
 cache: cargo
+
+sudo: required
+
+services:
+  - docker
+
+addons:
+  apt:
+    packages:
+      - docker-ce
+
+before_install:
+  - docker --version
+  - docker-compose up -d
+
 before_script:
-    - rustup component add rustfmt-preview
+  - rustup component add rustfmt-preview
+
 script:
-    - cargo fmt --all -- --check
-    - cargo build
-    - cargo test
+  - cargo fmt --all -- --check
+  - cargo build --verbose --all
+  - cargo test --versbose --all
