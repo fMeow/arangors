@@ -1,6 +1,7 @@
 //! Top level connection object that hold a http client (either synchronous or
-//! asynchronous), user authentication information, and buffers databases object.
+//! asynchronous), arango URL, and buffered accessible databases object.
 //!
+//! For now, the http client is **synchronous** only.
 //!
 
 use failure::{format_err, Error};
@@ -11,7 +12,6 @@ use reqwest::{
     header::{Authorization, Basic, Bearer, Headers, Server},
     Client, Url,
 };
-use serde::de::DeserializeOwned;
 use serde_derive::Deserialize;
 
 mod auth;
@@ -19,7 +19,7 @@ mod auth;
 mod tests;
 use self::auth::Auth;
 use super::database::Database;
-use super::result::Response;
+use super::response::{serialize_response, Response};
 
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about auth, arangodb url, and a hash map
@@ -151,21 +151,6 @@ impl Connection {
         Rc::clone(&self.session)
     }
 
-    /// There are different type of json object when requests to arangoDB
-    /// server is accepted or not. Here provides an abstraction for
-    /// response of success and failure.
-    /// TODO more intuitive response error enum
-    fn serialize_response<T>(mut resp: reqwest::Response) -> Result<T, Error>
-    where
-        T: DeserializeOwned,
-    {
-        let response: Response<T> = resp.json()?;
-        match response {
-            Response::Success { result, .. } => Ok(result),
-            Response::Error { message, .. } => Err(format_err!("{}", message)),
-        }
-    }
-
     /// The last steps of connection establishment is to query the accessible
     /// databases and cache them in a hashmap of `Databases` objects.
     ///
@@ -182,7 +167,7 @@ impl Connection {
         // in development.
         let url = self.arango_url.join("/_api/database/user").unwrap();
         let resp = self.session.get(url).send()?;
-        let result: Vec<String> = Connection::serialize_response(resp)?;
+        let result: Vec<String> = serialize_response(resp)?;
         for database_name in result.iter() {
             self.databases.insert(
                 database_name.to_owned(),
@@ -206,8 +191,41 @@ impl Connection {
         unimplemented!()
     }
 
-    pub fn current_database(&self)->Result<&Database,Error>{
+    /// Get a pointer of current database.
+    /// Note that this function would make a request to arango server.
+    ///
+    /// Personally speaking, I don't know why we need to know the current database.
+    /// As we never need to know the database as long as we get the id of collections.
+    pub fn current_database(&self) -> Result<&Database, Error> {
         unimplemented!()
+    }
+
+    /// Drop database with name.
+    ///
+    /// If the database is successfully dropped, return the dropped database.
+    /// The ownership of the dropped database would be moved out. And the dropped database
+    /// can no longer be found at `self.databases`.
+    pub fn drop_database<T: Into<String>>(&self, name: T) -> Result<Database, Error> {
+        unimplemented!()
+    }
+
+    /// Refresh the hierarchy of all accessible databases.
+    ///
+    /// This is a expensive method, and all the cached information about
+    /// this server would be refreshed.
+    ///
+    /// Refresh is done in the following steps:
+    /// 1. retrieve the names of all the accessible databases
+    /// 1. for each databases, construct a `Database` object and store them in
+    /// `self.databases` for later use
+    ///
+    /// Note that a `Database` object caches all the accessible collections.
+    ///
+    /// This function uses the API that is used to retrieve a list of
+    /// all databases the current user can access to refresh databases.
+    /// Then each database retrieve a list of available collections.
+    pub fn refresh(&mut self) -> Result<&mut Connection, Error> {
+        self.retrieve_databases()
     }
 }
 impl Default for Connection {
