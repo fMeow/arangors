@@ -10,8 +10,8 @@ matrix:
   fast_finish: true
 cache:
   cargo: true
-  directories:
-    - /var/lib/docker
+  # directories:
+  #   - /var/lib/docker
 
 sudo: required
 
