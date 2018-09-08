@@ -43,9 +43,10 @@ before_install:
   - docker-compose up -d
 
 before_script:
+  - sleep 15
   - rustup component add rustfmt-preview
 
 script:
   - cargo fmt --all -- --check
   - cargo build --verbose --all
-  - cargo test --verbose --all
+  - RUST_LOG=arangors=trace cargo test --verbose --all
