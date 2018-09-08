@@ -12,8 +12,8 @@
 /// # Example
 /// ```rust,ignore
 /// use arango_rs::connection::auth::Auth;
-/// let basic_auth = Auth::basic("user","123456");
-/// let jwt_auth = Auth::jwt("user","123456");
+/// let basic_auth = Auth::basic("user", "123456");
+/// let jwt_auth = Auth::jwt("user", "123456");
 ///
 /// let no_auth = Auth::None;
 /// let no_auth = Auth::default();
