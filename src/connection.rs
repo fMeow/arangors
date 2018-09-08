@@ -169,10 +169,10 @@ impl Connection {
 
     /// Get a hashmap of name-reference for all database.
     pub fn get_all_database(&self) -> HashMap<String, &Database> {
-        let databases: HashMap<String, &Database> = HashMap::new();
-        self.databases
-            .iter()
-            .map(|(name, database)| databases.insert(name.to_owned(), &database));
+        let mut databases: HashMap<String, &Database> = HashMap::new();
+        for (name, database) in self.databases.iter() {
+            databases.insert(name.to_owned(), &database);
+        }
         databases
     }
 
