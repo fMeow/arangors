@@ -16,8 +16,6 @@ pub struct Collection {
     session: Rc<Client>,
 }
 impl<'a, 'b: 'a> Collection {
-    ///
-    ///
     ///  Base url should be like `http://localhost:8529/_db/mydb/_api/`
     pub fn new<T: Into<String>>(
         database: &'b Database,
@@ -78,8 +76,8 @@ pub struct CollectionResponse {
     pub collection_type: CollectionType,
     #[serde(rename = "isSystem")]
     pub is_system: bool,
-    // #[serde(rename = "globallyUniqueId")]
-    // pub global_unique_id: String,
+    /* #[serde(rename = "globallyUniqueId")]
+     * pub global_unique_id: String, */
 }
 
 #[derive(Debug)]
