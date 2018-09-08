@@ -2,5 +2,5 @@ edition = "Edition2018"
 reorder_imports = true
 normalize_comments = true
 wrap_comments = true
-report_todo = "Always"
-report_fixme = "Always"
+# report_todo = "Always"
+# report_fixme = "Always"
