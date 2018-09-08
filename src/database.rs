@@ -109,4 +109,30 @@ impl<'a, 'b: 'a> Database {
             }
         }
     }
+
+    pub fn has_collection(&self, name: &str) -> bool {
+        let system = match self.get_system_collection(name) {
+            Some(_) => true,
+            None => false,
+        };
+        let user = match self.get_collection(name) {
+            Some(_) => true,
+            None => false,
+        };
+        user | system
+    }
+
+    pub fn has_user_collection(&self, name: &str) -> bool {
+        match self.get_collection(name) {
+            Some(_) => true,
+            None => false,
+        }
+    }
+
+    pub fn has_system_collection(&self, name: &str) -> bool {
+        match self.get_system_collection(name) {
+            Some(_) => true,
+            None => false,
+        }
+    }
 }
