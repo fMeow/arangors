@@ -33,7 +33,6 @@ use super::response::{get_result, Response};
 /// use arangors::connection::Connection;
 /// let conn: Connection = Default::default();
 /// ```
-///
 // TODO Connections' lifetimes should be longer than Databases' lifetimes
 #[derive(Debug)]
 pub struct Connection {

@@ -1,3 +1,6 @@
+/// This module contains structures to deserialize responses from arangoDB
+/// server via HTTP request, as well as convenient functions to deserialize
+/// `Response`.
 use std::fmt;
 use std::fmt::Debug;
 
@@ -58,12 +61,19 @@ where
     Ok(result)
 }
 
+/// A enum of response contains all the case clients will encounter:
+/// - Query result (Cursor)
+/// - Error
+/// - successful request but not query result
+///
+/// Never transpose the order of `Query` and `Success` as serde deserialize
+/// response in order. And `Query` is just a super set of `Success`
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Response<T> {
+    Query(Query<T>),
     Success(Success<T>),
     Error(Error),
-    Query(Query<T>),
 }
 
 #[derive(Deserialize, Debug)]

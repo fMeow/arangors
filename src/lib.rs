@@ -1,6 +1,5 @@
 //! A intuitive rust client for [arangoDB](https://www.arangodb.com/),
 //! inspired by [pyArango](https://github.com/tariqdaouda/pyArango).
-//!
 
 pub mod aql;
 pub mod collection;
