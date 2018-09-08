@@ -20,12 +20,12 @@ mod auth;
 mod tests;
 use self::auth::Auth;
 use super::database::Database;
-use super::response::{serialize_response, Response};
+use super::response::{get_result, Response};
 
 /// Connection is the top level API for this crate.
-/// It contains a http client, information about auth, arangodb url, and a hash map
-/// of the databases Object. The `databases` Hashmap is construct once connections
-/// succeed.
+/// It contains a http client, information about auth, arangodb url, and a hash
+/// map of the databases Object. The `databases` Hashmap is construct once
+/// connections succeed.
 /// ## Initialization
 /// There is two way to initialize `Connection`
 /// - Default value
@@ -193,7 +193,7 @@ impl Connection {
         // in development.
         let url = self.arango_url.join("/_api/database/user").unwrap();
         let resp = self.session.get(url).send()?;
-        let result: Vec<String> = serialize_response(resp)?;
+        let result: Vec<String> = get_result(resp)?;
         trace!("Retrieved databases.");
         for database_name in result.iter() {
             self.databases.insert(
@@ -225,8 +225,9 @@ impl Connection {
     /// Get a pointer of current database.
     /// Note that this function would make a request to arango server.
     ///
-    /// Personally speaking, I don't know why we need to know the current database.
-    /// As we never need to know the database as long as we get the id of collections.
+    /// Personally speaking, I don't know why we need to know the current
+    /// database. As we never need to know the database as long as we get
+    /// the id of collections.
     pub fn current_database(&self) -> Result<&Database, Error> {
         unimplemented!()
     }
@@ -234,8 +235,8 @@ impl Connection {
     /// Drop database with name.
     ///
     /// If the database is successfully dropped, return the dropped database.
-    /// The ownership of the dropped database would be moved out. And the dropped database
-    /// can no longer be found at `self.databases`.
+    /// The ownership of the dropped database would be moved out. And the
+    /// dropped database can no longer be found at `self.databases`.
     pub fn drop_database<T: Into<String>>(&self, name: T) -> Result<Database, Error> {
         unimplemented!()
     }

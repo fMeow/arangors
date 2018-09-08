@@ -1,90 +1,155 @@
+use std::fmt;
 use std::fmt::Debug;
 
-use failure::{format_err, Error};
+use failure::{format_err, Error as FailureError};
 
 use log::{error, trace};
 use serde::de::DeserializeOwned;
 use serde_derive::Deserialize;
+use serde_json::value::Value;
 
-#[derive(Deserialize, Debug)]
-#[serde(untagged)]
-pub enum Response<T> {
-    Success {
-        error: bool,
-        code: u8,
-        result: T,
-    },
+use super::aql::QueryStats;
 
-    // TODO implement error trait
-    Error {
-        error: bool,
-        code: u8,
-        #[serde(rename = "errorNum")]
-        error_num: u16,
-        #[serde(rename = "errorMessage")]
-        message: String,
-    },
+pub(crate) fn get_cursor<T>(resp: reqwest::Response) -> Result<Query<T>, FailureError>
+where
+    T: DeserializeOwned + Debug,
+{
+    let response = serialize(resp)?;
+    match response {
+        // TODO handling AQL query result
+        Response::Query(resp) => Ok(resp),
+        Response::Error(error) => Err(format_err!("{}", error.message)),
+        Response::Success(resp) => {
+            error!("Response success but expect cursor: {:?}", resp);
+            panic!("Use get_result instead method when not performing query request")
+        }
+    }
 }
 
 /// There are different type of json object when requests to arangoDB
 /// server is accepted or not. Here provides an abstraction for
 /// response of success and failure.
 /// TODO more intuitive response error enum
-pub fn serialize_response<T>(mut resp: reqwest::Response) -> Result<T, Error>
+pub(crate) fn get_result<T>(resp: reqwest::Response) -> Result<T, FailureError>
+where
+    T: DeserializeOwned + Debug,
+{
+    let response = serialize(resp)?;
+    match response {
+        Response::Success(resp) => Ok(resp.result),
+        Response::Error(error) => Err(format_err!("{}", error.message)),
+        // TODO handling AQL query result
+        Response::Query(resp) => Ok(resp.result),
+    }
+}
+
+fn serialize<T>(mut resp: reqwest::Response) -> Result<Response<T>, FailureError>
 where
     T: DeserializeOwned + Debug,
 {
     let response_text = resp.text()?;
-    let response: Response<T> = serde_json::from_str(response_text.as_str()).map_err(|err| {
+    let result: Response<T> = serde_json::from_str(response_text.as_str()).map_err(|err| {
         error!(
             "Failed to serialize.\n\tResponse: {:?} \n\tText: {:?}",
             resp, response_text
         );
         err
     })?;
-    match response {
-        Response::Success { result, .. } => Ok(result),
-        Response::Error { message, .. } => Err(format_err!("{}", message)),
+    Ok(result)
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub enum Response<T> {
+    Success(Success<T>),
+    Error(Error),
+    Query(Query<T>),
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Success<T> {
+    error: bool,
+    code: u8,
+    result: T,
+}
+impl<T: fmt::Display> fmt::Display for Success<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(format!("Response {} (Status: {})", &self.result, &self.code).as_str())
     }
 }
-// impl Error {
-//     /// Construct an Error.
-//     pub fn new<T: Into<String>>(status_code: u16, error_code: ErrorCode, message: T) -> Self {
-//         Error {
-//             code,
-//             error_num,
-//             message: message.into(),
-//         }
-//     }
 
-//     /// Get the HTTP status code of an error response.
-//     pub fn get_code(&self) -> u16 {
-//         self.code
-//     }
+#[derive(Deserialize, Debug)]
+pub struct Error {
+    error: bool,
+    code: u8,
+    #[serde(rename = "errorNum")]
+    error_num: u16,
+    #[serde(rename = "errorMessage")]
+    message: String,
+}
 
-//     pub fn get_error_num(&self) -> u16 {
-//         self.error_num
-//     }
+impl Error {
+    /// Get the HTTP status code of an error response.
+    pub fn get_code(&self) -> u8 {
+        self.code
+    }
 
-//     pub fn get_message(&self) -> &str {
-//         &self.message
-//     }
-// }
+    pub fn get_error_num(&self) -> u16 {
+        self.error_num
+    }
 
-// impl<T: fmt::Display> fmt::Display for Response<T> {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         match self {
-//             Response::Success { code, result, .. } => {
-//                 f.write_str(format!("Response {} (Status: {})", &result, &code).as_str())
-//             }
-//             Response::Error {
-//                 code,
-//                 error_num,
-//                 message,
-//                 ..
-//             } => f.write_str(
-//                 format!("Error {}: {} (Status: {})", &error_num, &message, &code).as_str(),
-//             ),
-//         }
-//     }
-// }
+    pub fn get_message(&self) -> &str {
+        &self.message
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Query<T> {
+    error: bool,
+    code: u8,
+
+    /// the total number of result documents available
+    ///
+    ///  only available if the query was executed with the count attribute
+    /// set
+    count: Option<usize>,
+    /// a boolean flag indicating whether the query result was served from
+    /// the query cache or not.
+    ///
+    /// If the query result is served from the query cache, the extra
+    /// return attribute will not contain any stats sub-attribute
+    /// and no profile sub-attribute.,
+    cached: bool,
+    /// A boolean indicator whether there are more results available for
+    /// the cursor on the server
+    #[serde(rename = "hasMore")]
+    more: bool,
+
+    /// (anonymous json object): an array of result documents (might be
+    /// empty if query has no results)
+    result: T,
+    ///  id of temporary cursor created on the server
+    id: Option<String>,
+
+    /// an optional JSON object with extra information about the query
+    /// result contained in its stats sub-attribute. For
+    /// data-modification queries, the extra.stats sub-attribute
+    /// will contain the number of
+    /// modified documents and the number of documents that could
+    /// not be modified due to an error if ignoreErrors query
+    /// option is specified.
+    extra: Option<Extra>,
+}
+impl<T: fmt::Display> fmt::Display for Query<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(format!("Response {} (Status: {})", &self.result, &self.code).as_str())
+    }
+}
+
+#[derive(Deserialize, Debug)]
+struct Extra {
+    // TODO
+    stats: Option<QueryStats>,
+    // TODO
+    warnings: Option<Vec<Value>>,
+}

@@ -7,7 +7,8 @@ use reqwest::{Client, Url};
 
 use super::collection::{Collection, CollectionResponse};
 use super::connection::Connection;
-use super::response::serialize_response;
+use super::response::Query;
+use super::response::{get_cursor, get_result};
 
 #[derive(Debug)]
 pub struct Database {
