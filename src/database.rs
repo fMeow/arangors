@@ -1,10 +1,14 @@
 use failure::Error;
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::rc::Rc;
 
 use log::{info, trace};
 use reqwest::{Client, Url};
+use serde::de::DeserializeOwned;
+use serde_json::value::Value;
 
+use super::aql::AqlQuery;
 use super::collection::{Collection, CollectionResponse};
 use super::connection::Connection;
 use super::response::Query;
@@ -19,9 +23,6 @@ pub struct Database {
     system_collections: HashMap<String, Collection>,
 }
 impl<'a, 'b: 'a> Database {
-    ///
-    ///
-    ///
     ///  Base url should be like `http://localhost:8529/`
     pub fn new<T: Into<String>>(conn: &'b Connection, name: T) -> Result<Database, Error> {
         let name = name.into();
@@ -41,10 +42,10 @@ impl<'a, 'b: 'a> Database {
     ///
     /// 1. retrieve the names of all collections
     /// 1. cache colelctions
-    ///     - for user collection, construct a `Collection` object and store them in
-    /// `self.collections` for later use
-    ///     - for system collection, construct a `Collection` object and store them in
-    /// `self.system_collections` for later use
+    ///     - for user collection, construct a `Collection` object and store
+    /// them in `self.collections` for later use
+    ///     - for system collection, construct a `Collection` object and store
+    /// them in `self.system_collections` for later use
     fn retrieve_collections(&mut self) -> Result<&mut Database, Error> {
         // an invalid arango_url should never running through initialization
         // so we assume arango_url is a valid url
@@ -58,7 +59,7 @@ impl<'a, 'b: 'a> Database {
         );
         let resp = self.session.get(url).send()?;
         let result: Vec<CollectionResponse> =
-            serialize_response(resp).expect("Failed to serialize Collection response");
+            get_result(resp).expect("Failed to serialize Collection response");
         trace!("Collections retrieved");
 
         for coll in result.iter() {
@@ -135,5 +136,40 @@ impl<'a, 'b: 'a> Database {
             Some(_) => true,
             None => false,
         }
+    }
+
+    pub fn aql_query<R>(&self, aql: AqlQuery) -> Result<Query<R>, Error>
+    where
+        R: DeserializeOwned + Debug,
+    {
+        let url = self.base_url.join("cursor").unwrap();
+        let resp = self.session.post(url).json(&aql).send()?;
+        Ok(get_cursor(resp)?)
+    }
+    pub fn aql_str<R>(&self, query: &str) -> Result<Query<R>, Error>
+    where
+        R: DeserializeOwned + Debug,
+    {
+        let aql = AqlQuery {
+            query,
+            ..Default::default()
+        };
+        self.aql_query(aql)
+    }
+
+    pub fn aql_bind_vars<R>(
+        &self,
+        query: &str,
+        bind_vars: HashMap<String, Value>,
+    ) -> Result<Query<R>, Error>
+    where
+        R: DeserializeOwned + Debug,
+    {
+        let aql = AqlQuery {
+            query,
+            bind_vars: Some(bind_vars),
+            ..Default::default()
+        };
+        self.aql_query(aql)
     }
 }
