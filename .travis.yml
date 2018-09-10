@@ -41,9 +41,11 @@ before_install:
   - docker --version
   - docker-compose --version
   - docker-compose up -d
+  - sleep 30
+  - docker container ls
+  - docker-compose logs
 
 before_script:
-  - sleep 15
   - sh tests/init_db.sh
   - rustup component add rustfmt-preview
 
