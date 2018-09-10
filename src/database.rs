@@ -5,9 +5,9 @@ use std::rc::Rc;
 
 use log::{info, trace};
 use reqwest::Client;
-use url::Url;
-use serde::{de::DeserializeOwned,ser::Serialize};
+use serde::{de::DeserializeOwned, ser::Serialize};
 use serde_json::value::Value;
+use url::Url;
 
 use super::aql::AqlQuery;
 use super::collection::{Collection, CollectionResponse};
@@ -139,64 +139,62 @@ impl<'a, 'b: 'a> Database {
         }
     }
 
-    pub fn aql_query_batch<R,T>(&self, aql: AqlQuery<T>) -> Result<Cursor<R>, Error>
+    pub fn aql_query_batch<R, T>(&self, aql: AqlQuery<T>) -> Result<Cursor<R>, Error>
     where
         R: DeserializeOwned + Debug,
-        T: Serialize+Debug
+        T: Serialize + Debug,
     {
         let url = self.base_url.join("cursor").unwrap();
         let resp = self.session.post(url).json(&aql).send()?;
-        trace!("{:?}",serde_json::to_string(&aql));
+        trace!("{:?}", serde_json::to_string(&aql));
         serialize_query_response(resp)
     }
-    fn aql_retrieve_all<R>(&self, response:Cursor<R>) -> Result<Vec<R>,Error>
-    where R:DeserializeOwned+Debug{
+    fn aql_retrieve_all<R>(&self, response: Cursor<R>) -> Result<Vec<R>, Error>
+    where
+        R: DeserializeOwned + Debug,
+    {
         let mut response_cursor = response;
-        let mut results:Vec<R> = Vec::new();
+        let mut results: Vec<R> = Vec::new();
         loop {
-            if response_cursor.more{
+            if response_cursor.more {
                 let id = response_cursor.id.unwrap().clone();
                 results.extend(response_cursor.result.into_iter());
                 response_cursor = self.aql_next_batch(id.as_str())?;
+            } else {
+                break;
             }
-                else{
-                    break;
-                }
         }
         Ok(results)
-
     }
 
-    pub fn aql_query<R,T>(&self, aql: AqlQuery<T>) -> Result<Vec<R>, Error>
-        where
-            R: DeserializeOwned + Debug,
-            T: Serialize+Debug,
+    pub fn aql_query<R, T>(&self, aql: AqlQuery<T>) -> Result<Vec<R>, Error>
+    where
+        R: DeserializeOwned + Debug,
+        T: Serialize + Debug,
     {
         let response = self.aql_query_batch(aql)?;
         self.aql_retrieve_all(response)
-
-
     }
 
     pub fn aql_str<R>(&self, query: &str) -> Result<Cursor<R>, Error>
     where
         R: DeserializeOwned + Debug,
     {
-        let aql :AqlQuery<Value> = AqlQuery {
+        let aql: AqlQuery<Value> = AqlQuery {
             query,
             ..Default::default()
         };
         self.aql_query_batch(aql)
     }
 
-    pub fn aql_bind_vars<R,T>(
+    pub fn aql_bind_vars<R, T>(
         &self,
         query: &str,
         bind_vars: HashMap<String, T>,
     ) -> Result<Cursor<R>, Error>
     where
         R: DeserializeOwned + Debug,
-        T:Serialize+Debug
+        T: Serialize + Debug,
     {
         let aql = AqlQuery {
             query,
@@ -206,14 +204,15 @@ impl<'a, 'b: 'a> Database {
         self.aql_query_batch(aql)
     }
 
-    pub fn aql_next_batch<R>(&self,cursor_id: &str) -> Result<Cursor<R>,Error>
-    where R:DeserializeOwned+Debug{
-
-        let url = self.base_url.join(&format!("cursor/{}",cursor_id)).unwrap();
+    pub fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, Error>
+    where
+        R: DeserializeOwned + Debug,
+    {
+        let url = self
+            .base_url
+            .join(&format!("cursor/{}", cursor_id))
+            .unwrap();
         let resp = self.session.put(url).send()?;
         serialize_query_response(resp)
     }
-
 }
-
-

@@ -13,14 +13,16 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 
 use regex::Regex;
-use serde_derive::{Deserialize, Serialize};
 use serde::ser::Serialize as SerializeTrait;
+use serde_derive::{Deserialize, Serialize};
 use serde_json::value::Value;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AqlQuery<'a, T>
-    where T: SerializeTrait + Debug {
+where
+    T: SerializeTrait + Debug,
+{
     /// Indicates whether this query is valid.
     ///
     /// Note that the validation is performed locally.
@@ -88,8 +90,8 @@ pub struct AqlQuery<'a, T>
 }
 
 impl<'a, T> Default for AqlQuery<'a, T>
-    where T: SerializeTrait + Debug
-
+where
+    T: SerializeTrait + Debug,
 {
     fn default() -> AqlQuery<'a, T> {
         AqlQuery {
@@ -107,8 +109,9 @@ impl<'a, T> Default for AqlQuery<'a, T>
 }
 
 impl<'a, T> AqlQuery<'a, T>
-    where
-        T: SerializeTrait + Debug {
+where
+    T: SerializeTrait + Debug,
+{
     // fn is_valid(&self) -> bool {
     //     match self.valid{
     //         Some(valid)=>valid,

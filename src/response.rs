@@ -7,28 +7,31 @@ use std::rc::Rc;
 
 use failure::{format_err, Error as FailureError};
 
-use url::Url;
 use log::{error, trace};
+use reqwest::Client;
 use serde::de::DeserializeOwned;
 use serde_derive::Deserialize;
 use serde_json::value::Value;
-use reqwest::Client;
+use url::Url;
 
 use super::aql::QueryStats;
 use super::database::Database;
 
-pub(crate) fn serialize_query_response<T>(mut resp: reqwest::Response) -> Result<Cursor<T>, FailureError>
-    where
-        T: DeserializeOwned + Debug,
+pub(crate) fn serialize_query_response<T>(
+    mut resp: reqwest::Response,
+) -> Result<Cursor<T>, FailureError>
+where
+    T: DeserializeOwned + Debug,
 {
     let response_text = resp.text()?;
-    let response: QueryResponse<T> = serde_json::from_str(response_text.as_str()).map_err(|err| {
-        error!(
-            "Failed to serialize.\n\tResponse: {:?} \n\tText: {:?}",
-            resp, response_text
-        );
-        err
-    })?;
+    let response: QueryResponse<T> =
+        serde_json::from_str(response_text.as_str()).map_err(|err| {
+            error!(
+                "Failed to serialize.\n\tResponse: {:?} \n\tText: {:?}",
+                resp, response_text
+            );
+            err
+        })?;
     match response {
         QueryResponse::Success(resp) => Ok(resp),
         QueryResponse::Error(error) => Err(format_err!("{}", error.message)),
@@ -40,8 +43,8 @@ pub(crate) fn serialize_query_response<T>(mut resp: reqwest::Response) -> Result
 /// response of success and failure.
 /// TODO more intuitive response error enum
 pub(crate) fn serialize_response<T>(mut resp: reqwest::Response) -> Result<T, FailureError>
-    where
-        T: DeserializeOwned + Debug,
+where
+    T: DeserializeOwned + Debug,
 {
     let response_text = resp.text()?;
     let response: Response<T> = serde_json::from_str(response_text.as_str()).map_err(|err| {

@@ -12,8 +12,8 @@ pub use crate::collection::Collection;
 pub use crate::connection::Connection;
 pub use crate::database::Database;
 
-pub use crate::response::Error;
 pub use crate::response::Cursor;
+pub use crate::response::Error;
 pub use crate::response::Response;
 pub use crate::response::Success;
 
