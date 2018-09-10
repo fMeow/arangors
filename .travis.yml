@@ -53,3 +53,7 @@ script:
   - cargo fmt --all -- --check
   - cargo build --verbose --all
   - RUST_LOG=arangors=trace cargo test --verbose --all
+
+notifications:
+  email:
+    on_success: never
