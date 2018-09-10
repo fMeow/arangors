@@ -149,6 +149,18 @@ impl<'a, 'b: 'a> Database {
         serialize_query_response(resp)
     }
 
+    pub fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, Error>
+    where
+        R: DeserializeOwned + Debug,
+    {
+        let url = self
+            .base_url
+            .join(&format!("cursor/{}", cursor_id))
+            .unwrap();
+        let resp = self.session.put(url).send()?;
+        serialize_query_response(resp)
+    }
+
     fn aql_retrieve_all<R>(&self, response: Cursor<R>) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,
@@ -178,7 +190,6 @@ impl<'a, 'b: 'a> Database {
             Ok(response.result)
         }
     }
-
     pub fn aql_str<R>(&self, query: &str) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,
@@ -200,17 +211,5 @@ impl<'a, 'b: 'a> Database {
             aql.bind_var(key, value);
         }
         self.aql_query(aql)
-    }
-
-    pub fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, Error>
-    where
-        R: DeserializeOwned + Debug,
-    {
-        let url = self
-            .base_url
-            .join(&format!("cursor/{}", cursor_id))
-            .unwrap();
-        let resp = self.session.put(url).send()?;
-        serialize_query_response(resp)
     }
 }
