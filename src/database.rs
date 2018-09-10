@@ -139,10 +139,9 @@ impl<'a, 'b: 'a> Database {
         }
     }
 
-    pub fn aql_query_batch<R, T>(&self, aql: AqlQuery<T>) -> Result<Cursor<R>, Error>
+    pub fn aql_query_batch<R>(&self, aql: AqlQuery) -> Result<Cursor<R>, Error>
     where
         R: DeserializeOwned + Debug,
-        T: Serialize + Debug,
     {
         let url = self.base_url.join("cursor").unwrap();
         let resp = self.session.post(url).json(&aql).send()?;
@@ -168,42 +167,41 @@ impl<'a, 'b: 'a> Database {
         Ok(results)
     }
 
-    pub fn aql_query<R, T>(&self, aql: AqlQuery<T>) -> Result<Vec<R>, Error>
+    pub fn aql_query<R>(&self, aql: AqlQuery) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,
-        T: Serialize + Debug,
     {
         let response = self.aql_query_batch(aql)?;
-        self.aql_retrieve_all(response)
+        if response.more {
+            self.aql_retrieve_all(response)
+        } else {
+            Ok(response.result)
+        }
     }
 
     pub fn aql_str<R>(&self, query: &str) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,
     {
-        let aql: AqlQuery<Value> = AqlQuery {
-            query,
-            ..Default::default()
-        };
+        let aql = AqlQuery::new(query);
         self.aql_query(aql)
     }
 
-    pub fn aql_bind_vars<R, T>(
-        &self,
-        query: &str,
-        bind_vars: HashMap<String, T>,
-    ) -> Result<Vec<R>, Error>
-    where
-        R: DeserializeOwned + Debug,
-        T: Serialize + Debug,
-    {
-        let aql = AqlQuery {
-            query,
-            bind_vars: Some(bind_vars),
-            ..Default::default()
-        };
-        self.aql_query(aql)
-    }
+    //    pub fn aql_bind_vars<R>(
+    //        &self,
+    //        query: &str,
+    //        bind_vars: HashMap<String, Value>,
+    //    ) -> Result<Vec<R>, Error>
+    //    where
+    //        R: DeserializeOwned + Debug,
+    //    {
+    //        let aql = AqlQuery {
+    //            query,
+    //            bind_vars: Some(bind_vars),
+    //            ..Default::default()
+    //        };
+    //        self.aql_query(aql)
+    //    }
 
     pub fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, Error>
     where

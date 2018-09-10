@@ -19,22 +19,19 @@ use serde_json::value::Value;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct AqlQuery<'a, T>
-where
-    T: SerializeTrait + Debug,
-{
+pub struct AqlQuery<'a> {
     /// Indicates whether this query is valid.
     ///
     /// Note that the validation is performed locally.
     #[serde(skip_serializing)]
-    pub valid: Option<bool>,
+    valid: Option<bool>,
 
     /// query string to be executed
-    pub query: &'a str,
+    query: &'a str,
 
     /// bind parameters to substitute in query string
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bind_vars: Option<HashMap<String, T>>,
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    bind_vars: HashMap<String, Value>,
 
     /// Indicates whether the number of documents in the result set should be
     /// returned in the "count" attribute of the result.
@@ -43,7 +40,7 @@ where
     /// for some queries in the future so this option is turned off by default,
     /// and 'count' is only returned when requested.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub count: Option<bool>,
+    count: Option<bool>,
 
     /// Maximum number of result documents to be transferred from the server to
     /// the client in one round-trip.
@@ -53,7 +50,7 @@ where
     ///
     /// A batchSize value of 0 is disallowed.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub batch_size: Option<u32>,
+    batch_size: Option<u32>,
 
     /// A flag to determine whether the AQL query cache shall be used.
     ///
@@ -62,7 +59,7 @@ where
     /// checked for the query if the query cache mode is either on or
     /// demand.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cache: Option<bool>,
+    cache: Option<bool>,
 
     /// The maximum number of memory (measured in bytes) that the query is
     /// allowed to use.
@@ -72,7 +69,7 @@ where
     ///
     /// A value of 0 indicates that there is no memory limit.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub memory_limit: Option<u64>,
+    memory_limit: Option<u64>,
 
     /// The time-to-live for the cursor (in seconds).
     ///
@@ -82,22 +79,19 @@ where
     ///
     /// If not set, a server-defined value will be used.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub ttl: Option<u32>,
+    ttl: Option<u32>,
 
     /// Options
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub options: Option<AqlOption>,
+    options: Option<AqlOption>,
 }
 
-impl<'a, T> Default for AqlQuery<'a, T>
-where
-    T: SerializeTrait + Debug,
-{
-    fn default() -> AqlQuery<'a, T> {
+impl<'a> Default for AqlQuery<'a> {
+    fn default() -> AqlQuery<'a> {
         AqlQuery {
             query: "",
             valid: Some(false),
-            bind_vars: None,
+            bind_vars: HashMap::new(),
             count: None,
             batch_size: None,
             cache: None,
@@ -108,10 +102,46 @@ where
     }
 }
 
-impl<'a, T> AqlQuery<'a, T>
-where
-    T: SerializeTrait + Debug,
-{
+impl<'a> AqlQuery<'a> {
+    pub fn new(query: &'a str) -> Self {
+        Self {
+            query,
+            ..Default::default()
+        }
+    }
+
+    pub fn bind_vars<K, V>(&mut self, key: K, value: V)
+    where
+        K: Into<String>,
+        V: Into<Value>,
+    {
+        self.bind_vars.insert(key.into(), value.into());
+    }
+
+    pub fn count(&mut self, option: bool) {
+        self.count = Some(option)
+    }
+
+    pub fn batch_size(mut self, option: u32) {
+        self.batch_size = Some(option)
+    }
+
+    pub fn cache(&mut self, option: bool) {
+        self.cache = Some(option)
+    }
+
+    pub fn memory_limit(&mut self, option: u64) {
+        self.memory_limit = Some(option)
+    }
+
+    pub fn ttl(&mut self, option: u32) {
+        self.ttl = Some(option)
+    }
+
+    pub fn options(&mut self, option: AqlOption) {
+        self.options = Some(option)
+    }
+
     // fn is_valid(&self) -> bool {
     //     match self.valid{
     //         Some(valid)=>valid,
@@ -152,20 +182,20 @@ pub struct AqlOption {
     ///  for setting the default value for `fail_on_warning` so it does not
     /// need to be set on a per-query level.
     #[serde(skip_serializing_if = "Option::is_none")]
-    fail_on_warning: Option<bool>,
+    pub fail_on_warning: Option<bool>,
 
     /// If set to true, then the additional query profiling information will
     /// be returned in the sub-attribute profile of the extra return attribute
     /// if the query result is not served from the query cache.
     #[serde(skip_serializing_if = "Option::is_none")]
-    profile: Option<bool>,
+    pub profile: Option<bool>,
 
     /// Limits the maximum number of warnings a query will return.
     ///
     /// The number of warnings a query will return is limited to 10 by default,
     /// but that number can be increased or decreased by setting this attribute.
     #[serde(skip_serializing_if = "Option::is_none")]
-    max_warning_count: Option<u32>,
+    pub max_warning_count: Option<u32>,
 
     /// If set to true and the query contains a LIMIT clause, then the result
     /// will have an extra attribute with the sub-attributes stats and
@@ -182,12 +212,12 @@ pub struct AqlOption {
     /// will only be present in the result if the query has a LIMIT clause
     /// and the LIMIT clause is actually used in the query.
     #[serde(skip_serializing_if = "Option::is_none")]
-    full_count: Option<bool>,
+    pub full_count: Option<bool>,
 
     /// Limits the maximum number of plans that are created by the AQL query
     /// optimizer.
     #[serde(skip_serializing_if = "Option::is_none")]
-    max_plans: Option<u32>,
+    pub max_plans: Option<u32>,
 
     /// A list string indicating to-be-included or to-be-excluded optimizer
     /// rules can be put into this attribute, telling the optimizer to
@@ -199,8 +229,8 @@ pub struct AqlOption {
     ///
     /// There is also a pseudo-rule `"all"`, which will match all optimizer
     /// rules.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    optimizer: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub optimizer: Vec<String>,
 
     /// Maximum number of operations after which an intermediate commit is
     /// performed automatically.
@@ -208,7 +238,7 @@ pub struct AqlOption {
     /// Honored by the RocksDB storage engine only.
     #[cfg(feature = "rocksdb")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    intermediate_commit_count: Option<u32>,
+    pub intermediate_commit_count: Option<u32>,
 
     /// Maximum total size of operations after which an intermediate commit is
     /// performed automatically.
@@ -216,14 +246,14 @@ pub struct AqlOption {
     /// Honored by the RocksDB storage engine only.
     #[cfg(feature = "rocksdb")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    intermediate_commit_size: Option<u32>,
+    pub intermediate_commit_size: Option<u32>,
 
     /// Transaction size limit in bytes.
     ///
     /// Honored by the RocksDB storage engine only.
     #[cfg(feature = "rocksdb")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    max_transaction_size: Option<u32>,
+    pub max_transaction_size: Option<u32>,
 
     /// This enterprise parameter allows to configure how long a DBServer will
     /// have time to bring the satellite collections involved in the query into
@@ -233,7 +263,7 @@ pub struct AqlOption {
     /// reached the query will be stopped.
     #[cfg(feature = "enterprise")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    satellite_sync_wait: Option<bool>,
+    pub satellite_sync_wait: Option<bool>,
 }
 
 impl Default for AqlOption {
@@ -244,7 +274,7 @@ impl Default for AqlOption {
             max_warning_count: None,
             full_count: None,
             max_plans: None,
-            optimizer: None,
+            optimizer: Vec::new(),
             #[cfg(feature = "rocksdb")]
             intermediate_commit_count: None,
             #[cfg(feature = "rocksdb")]
@@ -254,6 +284,11 @@ impl Default for AqlOption {
             #[cfg(feature = "enterprise")]
             satellite_sync_wait: None,
         }
+    }
+}
+impl AqlOption {
+    pub fn set_optimizer(&mut self, optimizer: String) {
+        self.optimizer.push(optimizer)
     }
 }
 
