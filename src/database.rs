@@ -72,8 +72,7 @@ impl<'a, 'b: 'a> Database {
                     .insert(coll.name.to_owned(), collection);
             } else {
                 trace!("Collection: {:?}", coll.name);
-                self.collections
-                    .insert(coll.name.to_owned(), collection);
+                self.collections.insert(coll.name.to_owned(), collection);
             }
         }
         Ok(self)
