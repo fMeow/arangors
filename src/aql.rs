@@ -110,7 +110,7 @@ impl<'a> AqlQuery<'a> {
         }
     }
 
-    pub fn bind_vars<K, V>(&mut self, key: K, value: V)
+    pub fn bind_var<K, V>(&mut self, key: K, value: V)
     where
         K: Into<String>,
         V: Into<Value>,

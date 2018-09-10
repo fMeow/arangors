@@ -187,21 +187,20 @@ impl<'a, 'b: 'a> Database {
         self.aql_query(aql)
     }
 
-    //    pub fn aql_bind_vars<R>(
-    //        &self,
-    //        query: &str,
-    //        bind_vars: HashMap<String, Value>,
-    //    ) -> Result<Vec<R>, Error>
-    //    where
-    //        R: DeserializeOwned + Debug,
-    //    {
-    //        let aql = AqlQuery {
-    //            query,
-    //            bind_vars: Some(bind_vars),
-    //            ..Default::default()
-    //        };
-    //        self.aql_query(aql)
-    //    }
+    pub fn aql_bind_vars<R>(
+        &self,
+        query: &str,
+        bind_vars: Vec<(String, Value)>,
+    ) -> Result<Vec<R>, Error>
+    where
+        R: DeserializeOwned + Debug,
+    {
+        let mut aql = AqlQuery::new(query);
+        for (key, value) in bind_vars {
+            aql.bind_var(key, value);
+        }
+        self.aql_query(aql)
+    }
 
     pub fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, Error>
     where
