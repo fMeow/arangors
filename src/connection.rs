@@ -20,7 +20,7 @@ mod auth;
 mod tests;
 use self::auth::Auth;
 use super::database::Database;
-use super::response::{get_result, Response};
+use super::response::{serialize_response, Response};
 
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about auth, arangodb url, and a hash
@@ -192,7 +192,7 @@ impl Connection {
         // in development.
         let url = self.arango_url.join("/_api/database/user").unwrap();
         let resp = self.session.get(url).send()?;
-        let result: Vec<String> = get_result(resp)?;
+        let result: Vec<String> = serialize_response(resp)?;
         trace!("Retrieved databases.");
         for database_name in result.iter() {
             self.databases.insert(
