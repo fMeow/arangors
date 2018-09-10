@@ -23,6 +23,7 @@ pub struct Database {
     collections: HashMap<String, Collection>,
     system_collections: HashMap<String, Collection>,
 }
+
 impl<'a, 'b: 'a> Database {
     ///  Base url should be like `http://localhost:8529/`
     pub fn new<T: Into<String>>(conn: &'b Connection, name: T) -> Result<Database, Error> {
@@ -125,11 +126,29 @@ impl<'a, 'b: 'a> Database {
         user | system
     }
 
+    pub fn list_collections(&self) -> Vec<String> {
+        let mut vec = Vec::new();
+        for (name, _) in self.collections.iter() {
+            vec.push(name.clone())
+        }
+        for (name, _) in self.system_collections.iter() {
+            vec.push(name.clone())
+        }
+        vec
+    }
+
     pub fn has_user_collection(&self, name: &str) -> bool {
         match self.get_collection(name) {
             Some(_) => true,
             None => false,
         }
+    }
+    pub fn list_user_collections(&self) -> Vec<String> {
+        let mut vec = Vec::new();
+        for (name, _) in self.collections.iter() {
+            vec.push(name.clone())
+        }
+        vec
     }
 
     pub fn has_system_collection(&self, name: &str) -> bool {
@@ -137,6 +156,14 @@ impl<'a, 'b: 'a> Database {
             Some(_) => true,
             None => false,
         }
+    }
+
+    pub fn list_system_collections(&self) -> Vec<String> {
+        let mut vec = Vec::new();
+        for (name, _) in self.system_collections.iter() {
+            vec.push(name.clone())
+        }
+        vec
     }
 
     pub fn aql_query_batch<R>(&self, aql: AqlQuery) -> Result<Cursor<R>, Error>
@@ -190,6 +217,7 @@ impl<'a, 'b: 'a> Database {
             Ok(response.result)
         }
     }
+
     pub fn aql_str<R>(&self, query: &str) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,
