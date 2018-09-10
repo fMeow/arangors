@@ -54,7 +54,7 @@ impl Auth {
 #[derive(Debug, Clone, Hash)]
 pub struct Credential {
     /// username
-    pub username: String,
+    pub(crate) username: String,
     /// password
-    pub password: String,
+    pub(crate) password: String,
 }

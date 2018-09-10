@@ -149,6 +149,7 @@ impl<'a, 'b: 'a> Database {
         trace!("{:?}", serde_json::to_string(&aql));
         serialize_query_response(resp)
     }
+
     fn aql_retrieve_all<R>(&self, response: Cursor<R>) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,
@@ -176,7 +177,7 @@ impl<'a, 'b: 'a> Database {
         self.aql_retrieve_all(response)
     }
 
-    pub fn aql_str<R>(&self, query: &str) -> Result<Cursor<R>, Error>
+    pub fn aql_str<R>(&self, query: &str) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,
     {
@@ -184,14 +185,14 @@ impl<'a, 'b: 'a> Database {
             query,
             ..Default::default()
         };
-        self.aql_query_batch(aql)
+        self.aql_query(aql)
     }
 
     pub fn aql_bind_vars<R, T>(
         &self,
         query: &str,
         bind_vars: HashMap<String, T>,
-    ) -> Result<Cursor<R>, Error>
+    ) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,
         T: Serialize + Debug,
@@ -201,7 +202,7 @@ impl<'a, 'b: 'a> Database {
             bind_vars: Some(bind_vars),
             ..Default::default()
         };
-        self.aql_query_batch(aql)
+        self.aql_query(aql)
     }
 
     pub fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, Error>

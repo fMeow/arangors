@@ -16,8 +16,9 @@ pub struct Collection {
     session: Rc<Client>,
 }
 impl<'a, 'b: 'a> Collection {
+    /// Construct Collection given
     ///  Base url should be like `http://localhost:8529/_db/mydb/_api/`
-    pub fn new<T: Into<String>>(
+    pub(crate) fn new<T: Into<String>>(
         database: &'b Database,
         name: T,
         id: T,
@@ -34,26 +35,27 @@ impl<'a, 'b: 'a> Collection {
             collection_type,
         })
     }
-    pub fn from_response(
+
+    pub(crate) fn from_response(
         database: &'b Database,
         collection: &CollectionResponse,
     ) -> Result<Collection, Error> {
-        let path = format!("collection/{}/", collection.name);
-        let url = database.get_url().join(path.as_str())?;
-        Ok(Collection {
-            id: collection.id.to_owned(),
-            name: collection.name.to_owned(),
-            collection_type: collection.collection_type.clone(),
-            session: database.get_session(),
-            base_url: url,
-        })
+        Self::new(
+            database,
+            collection.name.to_owned(),
+            collection.id.to_owned(),
+            collection.collection_type.clone(),
+        )
     }
+
     pub fn get_collection_type(&self) -> &CollectionType {
         &self.collection_type
     }
+
     pub fn get_id(&self) -> &str {
         self.id.as_str()
     }
+
     pub fn get_name(&self) -> &str {
         self.name.as_str()
     }
