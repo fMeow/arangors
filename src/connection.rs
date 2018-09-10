@@ -1,7 +1,36 @@
 //! Top level connection object that hold a http client (either synchronous or
 //! asynchronous), arango URL, and buffered accessible databases object.
 //!
-//! For now, the http client is **synchronous** only.
+//! ## Establishing connections
+//! There is three way to establish connections:
+//! - jwt
+//! - basic auth
+//! - no authentication
+//!
+//! So are the `arangors` API:
+//! Example:
+//!
+//! ```rust,ignore
+//! use arangors::{connection::auth::Auth, Connection};
+//!
+//! // Basic auth
+//! let auth = Auth::basic(username.into(), password.into());
+//! let conn = Connection::establish("http://localhost:8529", auth).unwrap();
+//!
+//! // JWT Auth
+//! let auth = Auth::jwt(username.into(), password.into());
+//! let conn = Connection::establish("http://localhost:8529", auth).unwrap();
+//!
+//! // Without Auth
+//! let conn = Connection::establish("http://localhost:8529", Auth::None).unwrap();
+//!
+//! // (Recommended) Handy functions
+//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
+//! let conn =
+//!     Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
+//! let conn = Connection::establish_without_auth("http://localhost:8529", "username", "password")
+//!     .unwrap();
+//! ```
 //!
 
 use failure::{format_err, Error};
