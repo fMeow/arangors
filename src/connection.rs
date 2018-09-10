@@ -217,8 +217,14 @@ impl Connection {
     /// List all existing databases in server. As clients may not has the
     /// permission to access all the databases, this function only return
     /// a `Vec<String>` instead of a hash map of databases.
-    pub fn list_all_database(&self) -> Result<Vec<String>, Error> {
-        unimplemented!();
+    pub fn list_all_database(&self) -> Result<Vec<&String>, Error> {
+        let mut vec: Vec<&String> = Vec::new();
+
+        for key in self.databases.keys() {
+            vec.push(key);
+        }
+
+        Ok(vec)
     }
 
     /// Get a pointer of current database.
