@@ -4,8 +4,9 @@ use std::fmt::Debug;
 use std::rc::Rc;
 
 use log::{info, trace};
-use reqwest::{Client, Url};
-use serde::de::DeserializeOwned;
+use reqwest::Client;
+use url::Url;
+use serde::{de::DeserializeOwned,ser::Serialize};
 use serde_json::value::Value;
 
 use super::aql::AqlQuery;

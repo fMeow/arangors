@@ -6,6 +6,7 @@ use std::fmt::Debug;
 
 use failure::{format_err, Error as FailureError};
 
+use url::Url;
 use log::{error, trace};
 use serde::de::DeserializeOwned;
 use serde_derive::Deserialize;
