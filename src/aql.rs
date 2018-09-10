@@ -10,25 +10,29 @@
 /// 1. perform AQL query via `self.session`.
 use failure::{format_err, Error};
 use std::collections::HashMap;
+use std::fmt::Debug;
 
 use regex::Regex;
 use serde_derive::{Deserialize, Serialize};
+use serde::ser::Serialize as SerializeTrait;
 use serde_json::value::Value;
 
 #[derive(Debug, Serialize)]
-pub struct AqlQuery<'a> {
+#[serde(rename_all = "camelCase")]
+pub struct AqlQuery<'a, T>
+    where T: SerializeTrait + Debug {
     /// Indicates whether this query is valid.
     ///
     /// Note that the validation is performed locally.
     #[serde(skip_serializing)]
-    pub(crate) valid: Option<bool>,
+    pub valid: Option<bool>,
 
     /// query string to be executed
-    pub(crate) query: &'a str,
+    pub query: &'a str,
 
     /// bind parameters to substitute in query string
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) bind_vars: Option<HashMap<String, Value>>,
+    pub bind_vars: Option<HashMap<String, T>>,
 
     /// Indicates whether the number of documents in the result set should be
     /// returned in the "count" attribute of the result.
@@ -37,7 +41,7 @@ pub struct AqlQuery<'a> {
     /// for some queries in the future so this option is turned off by default,
     /// and 'count' is only returned when requested.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) count: Option<bool>,
+    pub count: Option<bool>,
 
     /// Maximum number of result documents to be transferred from the server to
     /// the client in one round-trip.
@@ -47,7 +51,7 @@ pub struct AqlQuery<'a> {
     ///
     /// A batchSize value of 0 is disallowed.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) batch_size: Option<u32>,
+    pub batch_size: Option<u32>,
 
     /// A flag to determine whether the AQL query cache shall be used.
     ///
@@ -56,7 +60,7 @@ pub struct AqlQuery<'a> {
     /// checked for the query if the query cache mode is either on or
     /// demand.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) cache: Option<bool>,
+    pub cache: Option<bool>,
 
     /// The maximum number of memory (measured in bytes) that the query is
     /// allowed to use.
@@ -66,7 +70,7 @@ pub struct AqlQuery<'a> {
     ///
     /// A value of 0 indicates that there is no memory limit.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) memory_limit: Option<u64>,
+    pub memory_limit: Option<u64>,
 
     /// The time-to-live for the cursor (in seconds).
     ///
@@ -76,14 +80,18 @@ pub struct AqlQuery<'a> {
     ///
     /// If not set, a server-defined value will be used.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) ttl: Option<u32>,
+    pub ttl: Option<u32>,
 
     /// Options
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) options: Option<AqlOption>,
+    pub options: Option<AqlOption>,
 }
-impl<'a> Default for AqlQuery<'a> {
-    fn default() -> AqlQuery<'a> {
+
+impl<'a, T> Default for AqlQuery<'a, T>
+    where T: SerializeTrait + Debug
+
+{
+    fn default() -> AqlQuery<'a, T> {
         AqlQuery {
             query: "",
             valid: Some(false),
@@ -98,7 +106,9 @@ impl<'a> Default for AqlQuery<'a> {
     }
 }
 
-impl<'a> AqlQuery<'a> {
+impl<'a, T> AqlQuery<'a, T>
+    where
+        T: SerializeTrait + Debug {
     // fn is_valid(&self) -> bool {
     //     match self.valid{
     //         Some(valid)=>valid,
@@ -221,6 +231,27 @@ pub struct AqlOption {
     #[cfg(feature = "enterprise")]
     #[serde(skip_serializing_if = "Option::is_none")]
     satellite_sync_wait: Option<bool>,
+}
+
+impl Default for AqlOption {
+    fn default() -> AqlOption {
+        AqlOption {
+            fail_on_warning: None,
+            profile: None,
+            max_warning_count: None,
+            full_count: None,
+            max_plans: None,
+            optimizer: None,
+            #[cfg(feature = "rocksdb")]
+            intermediate_commit_count: None,
+            #[cfg(feature = "rocksdb")]
+            intermediate_commit_size: None,
+            #[cfg(feature = "rocksdb")]
+            max_transaction_size: None,
+            #[cfg(feature = "enterprise")]
+            satellite_sync_wait: None,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
