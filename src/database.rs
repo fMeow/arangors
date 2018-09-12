@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::rc::Rc;
 
-use log::{info, trace};
+use log::{debug, info, trace};
 use reqwest::Client;
 use serde::{de::DeserializeOwned, ser::Serialize};
 use serde_json::value::Value;
@@ -184,6 +184,7 @@ impl<'a, 'b: 'a> Database {
             .join(&format!("cursor/{}", cursor_id))
             .unwrap();
         let resp = self.session.put(url).send()?;
+
         serialize_query_response(resp)
     }
 
@@ -210,6 +211,7 @@ impl<'a, 'b: 'a> Database {
         R: DeserializeOwned + Debug,
     {
         let response = self.aql_query_batch(aql)?;
+        trace!("AQL query response: {:?}", response);
         if response.more {
             self.aql_retrieve_all(response)
         } else {
