@@ -116,12 +116,12 @@ pub enum Response<T> {
 }
 
 impl<'de, T> Deserialize<'de> for Response<T>
-    where
-        T: Deserialize<'de>,
+where
+    T: Deserialize<'de>,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let mut map = serde_json::Map::deserialize(deserializer)?;
         trace!("Deserialize normal Response: {:?}", map);
