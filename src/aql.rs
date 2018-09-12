@@ -110,36 +110,43 @@ impl<'a> AqlQuery<'a> {
         }
     }
 
-    pub fn bind_var<K, V>(&mut self, key: K, value: V)
+    pub fn bind_var<K, V>(mut self, key: K, value: V) -> Self
     where
         K: Into<String>,
         V: Into<Value>,
     {
         self.bind_vars.insert(key.into(), value.into());
+        self
     }
 
-    pub fn count(&mut self, option: bool) {
-        self.count = Some(option)
+    pub fn count(mut self, option: bool) -> Self {
+        self.count = Some(option);
+        self
     }
 
-    pub fn batch_size(mut self, option: u32) {
-        self.batch_size = Some(option)
+    pub fn batch_size(mut self, option: u32) -> Self {
+        self.batch_size = Some(option);
+        self
     }
 
-    pub fn cache(&mut self, option: bool) {
-        self.cache = Some(option)
+    pub fn cache(mut self, option: bool) -> Self {
+        self.cache = Some(option);
+        self
     }
 
-    pub fn memory_limit(&mut self, option: u64) {
-        self.memory_limit = Some(option)
+    pub fn memory_limit(mut self, option: u64) -> Self {
+        self.memory_limit = Some(option);
+        self
     }
 
-    pub fn ttl(&mut self, option: u32) {
-        self.ttl = Some(option)
+    pub fn ttl(mut self, option: u32) -> Self {
+        self.ttl = Some(option);
+        self
     }
 
-    pub fn options(&mut self, option: AqlOption) {
-        self.options = Some(option)
+    pub fn options(mut self, option: AqlOption) -> Self {
+        self.options = Some(option);
+        self
     }
 
     // fn is_valid(&self) -> bool {

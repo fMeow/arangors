@@ -237,7 +237,7 @@ impl<'a, 'b: 'a> Database {
     {
         let mut aql = AqlQuery::new(query);
         for (key, value) in bind_vars {
-            aql.bind_var(key, value);
+            aql = aql.bind_var(key, value);
         }
         self.aql_query(aql)
     }
