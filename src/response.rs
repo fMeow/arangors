@@ -9,7 +9,7 @@ use failure::{format_err, Error as FailureError};
 
 use log::{error, trace};
 use reqwest::Client;
-use serde::de::DeserializeOwned;
+use serde::de::{self, Deserialize, DeserializeOwned, Deserializer};
 use serde_derive::Deserialize;
 use serde_json::value::Value;
 use url::Url;
@@ -33,8 +33,8 @@ where
             err
         })?;
     match response {
-        QueryResponse::Success(resp) => Ok(resp),
-        QueryResponse::Error(error) => Err(format_err!("{}", error.message)),
+        QueryResponse::Ok(resp) => Ok(resp),
+        QueryResponse::Err(error) => Err(format_err!("{}", error.message)),
     }
 }
 
@@ -55,8 +55,8 @@ where
         err
     })?;
     match response {
-        Response::Success(resp) => Ok(resp.result),
-        Response::Error(error) => Err(format_err!("{}", error.message)),
+        Response::Ok(resp) => Ok(resp.result),
+        Response::Err(error) => Err(format_err!("{}", error.message)),
     }
 }
 
@@ -67,11 +67,39 @@ where
 ///
 /// Never transpose the order of `Query` and `Success` as serde deserialize
 /// response in order. And `Query` is just a super set of `Success`
-#[derive(Deserialize, Debug)]
-#[serde(untagged)]
+#[derive(Debug)]
 pub enum QueryResponse<T> {
-    Success(Cursor<T>),
-    Error(Error),
+    Ok(Cursor<T>),
+    Err(Error),
+}
+
+impl<'de, T> Deserialize<'de> for QueryResponse<T>
+where
+    T: Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let mut map = serde_json::Map::deserialize(deserializer)?;
+        trace!("Deserialize QueryResponse: {:?}", map);
+        let error = map
+            .get("error")
+            .ok_or_else(|| de::Error::missing_field("error"))
+            .map(Deserialize::deserialize)?
+            .map_err(de::Error::custom)?;
+        let rest = Value::Object(map);
+
+        if error {
+            Error::deserialize(rest)
+                .map(QueryResponse::Err)
+                .map_err(de::Error::custom)
+        } else {
+            Cursor::<T>::deserialize(rest)
+                .map(QueryResponse::Ok)
+                .map_err(de::Error::custom)
+        }
+    }
 }
 
 /// A enum of response contains all the case clients will encounter:
@@ -81,17 +109,44 @@ pub enum QueryResponse<T> {
 ///
 /// Never transpose the order of `Query` and `Success` as serde deserialize
 /// response in order. And `Query` is just a super set of `Success`
-#[derive(Deserialize, Debug)]
-#[serde(untagged)]
+#[derive(Debug)]
 pub enum Response<T> {
-    Success(Success<T>),
-    Error(Error),
+    Ok(Success<T>),
+    Err(Error),
 }
 
+impl<'de, T> Deserialize<'de> for Response<T>
+    where
+        T: Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+    {
+        let mut map = serde_json::Map::deserialize(deserializer)?;
+        trace!("Deserialize normal Response: {:?}", map);
+        let error = map
+            .get("error")
+            .ok_or_else(|| de::Error::missing_field("error"))
+            .map(Deserialize::deserialize)?
+            .map_err(de::Error::custom)?;
+        let rest = Value::Object(map);
+
+        if error {
+            Error::deserialize(rest)
+                .map(Response::Err)
+                .map_err(de::Error::custom)
+        } else {
+            Success::<T>::deserialize(rest)
+                .map(Response::Ok)
+                .map_err(de::Error::custom)
+        }
+    }
+}
 #[derive(Deserialize, Debug)]
 pub struct Success<T> {
     error: bool,
-    code: u8,
+    code: u16,
     result: T,
 }
 
@@ -104,7 +159,7 @@ impl<T: fmt::Display> fmt::Display for Success<T> {
 #[derive(Deserialize, Debug)]
 pub struct Error {
     error: bool,
-    code: u8,
+    code: u16,
     #[serde(rename = "errorNum")]
     error_num: u16,
     #[serde(rename = "errorMessage")]
@@ -113,7 +168,7 @@ pub struct Error {
 
 impl Error {
     /// Get the HTTP status code of an error response.
-    pub fn get_code(&self) -> u8 {
+    pub fn get_code(&self) -> u16 {
         self.code
     }
 
@@ -131,7 +186,7 @@ pub struct Cursor<T> {
     pub error: bool,
 
     /// HTTP status code
-    pub code: u8,
+    pub code: u16,
 
     /// the total number of result documents available
     ///
