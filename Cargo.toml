@@ -3,11 +3,14 @@ cargo-features = ["edition"]
 [package]
 name = "arangors"
 version = "0.1.0"
+edition = '2018'
 authors = ["Guoli Lyu <guoli-lv@hotmail.com>"]
 readme = "README.md"
-keywords = ["nosql", "database", "client", "driver", "arangoDB","graph databse"]
 license = "MIT"
-edition = '2018'
+description = "Rust driver for ArangoDB"
+repository = "https://github.com/Guoli-Lyu/arangors"
+documentation = "https://docs.rs/arangors"
+keywords = ["nosql", "database", "client", "driver", "arangoDB","graph databse"]
 
 [badges]
 travis-ci = { repository = "Guoli-Lyu/arangors", branch = "master" }
