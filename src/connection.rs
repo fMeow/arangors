@@ -47,6 +47,7 @@ use serde_derive::Deserialize;
 mod auth;
 #[cfg(test)]
 mod tests;
+
 use self::auth::Auth;
 use super::database::Database;
 use super::response::{serialize_response, Response};
@@ -87,7 +88,7 @@ impl Connection {
         struct JWT {
             pub jwt: String,
         }
-        let url = self.arango_url.join("/_open/auth")?;
+        let url = self.arango_url.join("/_open/auth").unwrap();
 
         let mut map = HashMap::new();
         map.insert("username", username.into());
@@ -117,7 +118,7 @@ impl Connection {
     /// 1. construct databases objects for later use
     pub fn establish<S: Into<String>>(arango_url: S, auth: Auth) -> Result<Connection, Error> {
         let mut conn = Connection {
-            arango_url: Url::parse(arango_url.into().as_str())?.join("/")?,
+            arango_url: Url::parse(arango_url.into().as_str())?.join("/").unwrap(),
             ..Default::default()
         };
         conn.validate_server()?;
@@ -232,14 +233,14 @@ impl Connection {
         Ok(self)
     }
 
-    pub fn retrieve_arango_version(&self) -> &str {
+    pub fn featch_arango_version(&self) -> Result<String, Error> {
         unimplemented!();
     }
 
     /// Create a database via HTTP request and add it into `self.databases`.
     ///
     /// Return a database object if success.
-    pub fn create_database(&self) -> Result<&Database, Error> {
+    pub fn create_database(&self, name: &str) -> Result<&Database, Error> {
         unimplemented!();
     }
 
@@ -294,6 +295,7 @@ impl Connection {
         self.retrieve_databases()
     }
 }
+
 impl Default for Connection {
     fn default() -> Connection {
         Connection {

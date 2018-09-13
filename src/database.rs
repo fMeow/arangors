@@ -1,3 +1,6 @@
+//! database contains all struct and enum pertain to arangoDB "database" level.
+//!
+//! AQL query are all executed in database level, so Database offers AQL query.
 use failure::Error;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -165,6 +168,24 @@ impl<'a, 'b: 'a> Database {
         vec
     }
 
+    pub fn create_edge_collection(&self, name: &str) -> Collection {
+        unimplemented!()
+    }
+
+    pub fn create_collection(&self, name: &str) -> Collection {
+        unimplemented!()
+    }
+
+    /// Drops a collection
+    pub fn drop_collection(&self, name: &str) -> Collection {
+        unimplemented!()
+    }
+
+    /// Execute aql query, return a cursor if succeed. The major advantage of
+    /// batch query is that cursors contain more information and stats
+    /// about the AQL query, and users can
+    /// fetch results in batch to save memory
+    /// resources on clients.
     pub fn aql_query_batch<R>(&self, aql: AqlQuery) -> Result<Cursor<R>, Error>
     where
         R: DeserializeOwned + Debug,
@@ -175,6 +196,7 @@ impl<'a, 'b: 'a> Database {
         serialize_query_response(resp)
     }
 
+    /// Get next batch given the cursor id.
     pub fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, Error>
     where
         R: DeserializeOwned + Debug,
@@ -206,6 +228,13 @@ impl<'a, 'b: 'a> Database {
         Ok(results)
     }
 
+    /// Execute AQL query fetch all results.
+    ///
+    /// DO NOT do this when the count of results is too large that network or
+    /// memory resources cannot afford.
+    ///
+    /// DO NOT set a small batch size, otherwise clients will have to make many
+    /// HTTP requests.
     pub fn aql_query<R>(&self, aql: AqlQuery) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,
@@ -219,6 +248,8 @@ impl<'a, 'b: 'a> Database {
         }
     }
 
+    /// Similar to `aql_query`, except that this method only accept a string of
+    /// AQL query.
     pub fn aql_str<R>(&self, query: &str) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,
@@ -227,6 +258,8 @@ impl<'a, 'b: 'a> Database {
         self.aql_query(aql)
     }
 
+    /// Similar to `aql_query`, except that this method only accept a string of
+    /// AQL query, with additional bind vars.
     pub fn aql_bind_vars<R>(
         &self,
         query: &str,
