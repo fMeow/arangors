@@ -1,6 +1,6 @@
 # arangors
 
-[![Build Status](https://travis-ci.com/Guoli-Lyu/arangors.svg?token=WSHqSm6F65Fza985QMqn&branch=master)](https://travis-ci.com/Guoli-Lyu/arangors)
+[![Build Status](https://travis-ci.org/Guoli-Lyu/arangors.svg?branch=master)](https://travis-ci.org/Guoli-Lyu/arangors)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 `arangors` is an intuitive rust client for [arangoDB](https://www.arangodb.com/),
