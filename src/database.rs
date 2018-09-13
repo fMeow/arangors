@@ -29,7 +29,7 @@ impl<'a, 'b: 'a> Database {
     pub fn new<T: Into<String>>(conn: &'b Connection, name: T) -> Result<Database, Error> {
         let name = name.into();
         let path = format!("/_db/{}/_api/", name.as_str());
-        let url = conn.get_url().join(path.as_str())?;
+        let url = conn.get_url().join(path.as_str()).unwrap();
         let mut database = Database {
             name,
             session: conn.get_session(),
@@ -37,7 +37,7 @@ impl<'a, 'b: 'a> Database {
             collections: HashMap::new(),
             system_collections: HashMap::new(),
         };
-        database.retrieve_collections()?;
+        database.fetch_collections()?;
         Ok(database)
     }
     /// Retrieve all collections of this database.
@@ -48,7 +48,7 @@ impl<'a, 'b: 'a> Database {
     /// them in `self.collections` for later use
     ///     - for system collection, construct a `Collection` object and store
     /// them in `self.system_collections` for later use
-    fn retrieve_collections(&mut self) -> Result<&mut Database, Error> {
+    fn fetch_collections(&mut self) -> Result<&mut Database, Error> {
         // an invalid arango_url should never running through initialization
         // so we assume arango_url is a valid url
         // When we pass an invalid path, it should panic to eliminate the bug
@@ -188,7 +188,7 @@ impl<'a, 'b: 'a> Database {
         serialize_query_response(resp)
     }
 
-    fn aql_retrieve_all<R>(&self, response: Cursor<R>) -> Result<Vec<R>, Error>
+    fn aql_fetch_all<R>(&self, response: Cursor<R>) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,
     {
@@ -213,7 +213,7 @@ impl<'a, 'b: 'a> Database {
         let response = self.aql_query_batch(aql)?;
         trace!("AQL query response: {:?}", response);
         if response.more {
-            self.aql_retrieve_all(response)
+            self.aql_fetch_all(response)
         } else {
             Ok(response.result)
         }
