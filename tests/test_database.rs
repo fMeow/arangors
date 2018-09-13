@@ -5,6 +5,11 @@ use arangors::{AqlQuery, Connection, Cursor, Database};
 const URL: &str = "http://localhost:8529/";
 
 #[test]
+fn setup() {
+    let _ = pretty_env_logger::try_init();
+}
+
+#[test]
 fn test_list_databases() {
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
     let databases = conn.list_all_database().unwrap();
