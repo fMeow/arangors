@@ -23,7 +23,7 @@ both top level and low level.
 
 Overall architecture of arangoDB:
 
-    databases -> collections -> collections -> documents/edges
+> databases -> collections -> collections -> documents/edges
 
 And we would like the structure of our top level of client object just like
 this.
@@ -157,7 +157,7 @@ fn main() {
 ```
 
 Strong typed Query result with `aql_str`:
-```
+```rust, ignore
 use serde_derive::Deserialize;
 #[derive(Deserialize, Debug)]
 struct User {
