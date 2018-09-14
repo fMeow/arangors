@@ -28,7 +28,7 @@
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
 //! let conn =
 //!     Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
-//! let conn = Connection::establish_without_auth("http://localhost:8529", "username", "password")
+//! let conn = Connection::establish_without_auth("http://localhost:8529")
 //!     .unwrap();
 //! ```
 //!

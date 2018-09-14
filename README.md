@@ -73,7 +73,7 @@ use arangors::Connection;
 let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
 let conn =
     Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
-let conn = Connection::establish_without_auth("http://localhost:8529", "username", "password")
+let conn = Connection::establish_without_auth("http://localhost:8529")
     .unwrap();
 ```
 
@@ -95,7 +95,7 @@ All aql query related functions are associated with database, as AQL query
 is performed at database level.
 
 There are several way to execute AQL query, and can be categorized into two
-class:
+classes:
 
 - batch query
     - `aql_query_batch`
@@ -147,11 +147,8 @@ fn main() {
         Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
     let database = conn.get_database("database").unwrap();
 
-    let aql: AqlQuery<Value> = AqlQuery {
-        query: "FOR u IN Collection LIMIT 3 RETURN u",
-        batch_size: Some(1),
-        ..Default::default()
-    };
+    let aql = AqlQuery::new("FOR u IN @@collection LIMIT 3 RETURN u").batch_size(1).count(true).bind_var("collection","test_collection");
+
     let resp: Vec<Value> = database.aql_query(aql).unwrap();
     println!("{:?}", resp);
 }
