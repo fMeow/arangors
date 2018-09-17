@@ -13,3 +13,4 @@ services:
 
 volumes:
   data_arangors:
+    driver: local
