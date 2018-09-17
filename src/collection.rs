@@ -1,5 +1,5 @@
 use failure::Error;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use reqwest::{Client, Url};
 use serde::de::{Deserialize, Deserializer, Error as DeError};
@@ -13,7 +13,7 @@ pub struct Collection {
     name: String,
     collection_type: CollectionType,
     base_url: Url,
-    session: Rc<Client>,
+    session: Arc<Client>,
 }
 impl<'a, 'b: 'a> Collection {
     /// Construct Collection given
@@ -64,8 +64,8 @@ impl<'a, 'b: 'a> Collection {
         &self.base_url
     }
 
-    pub fn get_session(&self) -> Rc<Client> {
-        Rc::clone(&self.session)
+    pub fn get_session(&self) -> Arc<Client> {
+        Arc::clone(&self.session)
     }
 
     pub fn truncate(&self) {

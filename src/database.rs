@@ -4,7 +4,7 @@
 use failure::Error;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use log::{debug, info, trace};
 use reqwest::Client;
@@ -22,7 +22,7 @@ use super::response::{serialize_query_response, serialize_response};
 pub struct Database {
     name: String,
     base_url: Url,
-    session: Rc<Client>,
+    session: Arc<Client>,
     collections: HashMap<String, Collection>,
     system_collections: HashMap<String, Collection>,
 }
@@ -85,8 +85,8 @@ impl<'a, 'b: 'a> Database {
         &self.base_url
     }
 
-    pub fn get_session(&self) -> Rc<Client> {
-        Rc::clone(&self.session)
+    pub fn get_session(&self) -> Arc<Client> {
+        Arc::clone(&self.session)
     }
 
     /// Get collection object with name.

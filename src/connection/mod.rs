@@ -33,9 +33,14 @@
 //! ```
 //!
 
+mod auth;
+#[cfg(test)]
+mod tests;
+//mod session;
+
 use failure::{format_err, Error};
 use log::{error, info, trace};
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap, sync::Arc};
 
 // use reqwest::r#async::Client;
 use reqwest::{
@@ -44,13 +49,9 @@ use reqwest::{
 };
 use serde_derive::Deserialize;
 
-mod auth;
-#[cfg(test)]
-mod tests;
-
-use self::auth::Auth;
 use super::database::Database;
 use super::response::{serialize_response, Response};
+use self::auth::Auth;
 
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about auth, arangodb url, and a hash
@@ -66,7 +67,7 @@ use super::response::{serialize_response, Response};
 // TODO Connections' lifetimes should be longer than Databases' lifetimes
 #[derive(Debug)]
 pub struct Connection {
-    session: Rc<Client>,
+    session: Arc<Client>,
     databases: HashMap<String, Database>,
     arango_url: Url,
 }
@@ -122,6 +123,7 @@ impl Connection {
             ..Default::default()
         };
         conn.validate_server()?;
+
         let mut headers = Headers::new();
         match auth {
             Auth::Basic(credential) => headers.set(Authorization(Basic {
@@ -136,7 +138,8 @@ impl Connection {
             }
             Auth::None => {}
         };
-        conn.session = Rc::new(
+
+        conn.session = Arc::new(
             Client::builder()
                 .gzip(true)
                 .default_headers(headers)
@@ -179,8 +182,8 @@ impl Connection {
         &self.arango_url
     }
 
-    pub fn get_session(&self) -> Rc<Client> {
-        Rc::clone(&self.session)
+    pub fn get_session(&self) -> Arc<Client> {
+        Arc::clone(&self.session)
     }
 
     /// Get database object with name.
@@ -301,7 +304,7 @@ impl Default for Connection {
         Connection {
             arango_url: Url::parse("http://127.0.0.1:8529").unwrap(),
             databases: HashMap::new(),
-            session: Rc::new(Client::new()),
+            session: Arc::new(Client::new()),
         }
     }
 }
