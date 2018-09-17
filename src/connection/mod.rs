@@ -28,15 +28,14 @@
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
 //! let conn =
 //!     Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
-//! let conn = Connection::establish_without_auth("http://localhost:8529")
-//!     .unwrap();
+//! let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
 //! ```
 //!
 
 mod auth;
 #[cfg(test)]
 mod tests;
-//mod session;
+// mod session;
 
 use failure::{format_err, Error};
 use log::{error, info, trace};
@@ -49,9 +48,9 @@ use reqwest::{
 };
 use serde_derive::Deserialize;
 
+use self::auth::Auth;
 use super::database::Database;
 use super::response::{serialize_response, Response};
-use self::auth::Auth;
 
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about auth, arangodb url, and a hash
