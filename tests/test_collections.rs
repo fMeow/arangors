@@ -12,7 +12,7 @@ fn setup() {
 #[test]
 fn test_has_collection() {
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
-    let database = conn.get_database("test_db").unwrap();
+    let database = conn.db("test_db").unwrap();
     println!("{:?}", database.list_user_collections());
     let coll = database.has_collection("test_collection");
     assert_eq!(coll, true);
@@ -27,7 +27,7 @@ fn test_has_collection() {
 #[test]
 fn test_get_collection() {
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
-    let database = conn.get_database("test_db").unwrap();
+    let database = conn.db("test_db").unwrap();
     println!("{:?}", database.list_user_collections());
     let coll = database.get_collection("test_collection");
     assert_eq!(coll.is_none(), false);

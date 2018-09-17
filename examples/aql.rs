@@ -9,7 +9,7 @@ fn main() {
     let databases = conn.list_all_database().unwrap();
     println!("{:?}", databases);
 
-    let database = conn.get_database("test_db").unwrap();
+    let database = conn.db("test_db").unwrap();
     let aql = AqlQuery::new("FOR u IN test_collection LIMIT 3 RETURN u");
     println!("{:?}", aql);
     println!("{:?}", serde_json::to_string(&aql).unwrap());

@@ -187,7 +187,7 @@ impl Connection {
     ///
     /// This function look up accessible database in cache hash map,
     /// and return a reference of database if found.
-    pub fn get_database(&self, name: &str) -> Option<&Database> {
+    pub fn db(&self, name: &str) -> Option<&Database> {
         match self.databases.get(name) {
             Some(database) => Some(&database),
             None => {
@@ -198,10 +198,10 @@ impl Connection {
     }
 
     /// Get a hashmap of name-reference for all database.
-    pub fn get_all_database(&self) -> HashMap<String, &Database> {
+    pub fn get_all_db(&self) -> HashMap<String, &Database> {
         let mut databases: HashMap<String, &Database> = HashMap::new();
         for (name, database) in self.databases.iter() {
-            databases.insert(name.to_owned(), &database);
+            databases.insert(name.to_owned(), database);
         }
         databases
     }
@@ -233,7 +233,7 @@ impl Connection {
         Ok(self)
     }
 
-    pub fn featch_arango_version(&self) -> Result<String, Error> {
+    pub fn fetch_arango_version(&self) -> Result<String, Error> {
         unimplemented!();
     }
 

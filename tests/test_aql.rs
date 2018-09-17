@@ -19,7 +19,7 @@ fn setup() {
 #[test]
 fn test_aql_str() {
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
-    let db = conn.get_database("test_db").unwrap();
+    let db = conn.db("test_db").unwrap();
     let result: Vec<Document<User>> = db
         .aql_str(r#"FOR i in test_collection FILTER i.username=="test2" return i"#)
         .unwrap();
@@ -30,7 +30,7 @@ fn test_aql_str() {
 #[test]
 fn test_aql() {
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
-    let db = conn.get_database("test_db").unwrap();
+    let db = conn.db("test_db").unwrap();
     let aql = AqlQuery::new(r#"FOR i in test_collection FILTER i.username=="test2" return i"#);
     let result: Vec<Document<User>> = db.aql_query(aql).unwrap();
     assert_eq!(result.len(), 1);
@@ -40,7 +40,7 @@ fn test_aql() {
 #[test]
 fn test_aql_bind_vars() {
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
-    let db = conn.get_database("test_db").unwrap();
+    let db = conn.db("test_db").unwrap();
     let aql = AqlQuery::new(r#"FOR i in test_collection FILTER i.username==@username return i"#)
         .bind_var("username", "test2");
     let result: Vec<Document<User>> = db.aql_query(aql).unwrap();

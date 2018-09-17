@@ -35,8 +35,8 @@ fn test_refresh() {
 #[test]
 fn test_get_database() {
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
-    let database = conn.get_database("test_db");
+    let database = conn.db("test_db");
     assert_eq!(database.is_none(), false);
-    let database = conn.get_database("test_db_non_exist");
+    let database = conn.db("test_db_non_exist");
     assert_eq!(database.is_none(), true);
 }
