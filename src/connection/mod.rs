@@ -41,9 +41,9 @@ use failure::{format_err, Error};
 use log::{error, info, trace};
 use std::{collections::HashMap, sync::Arc};
 
-// use reqwest::r#async::Client;
+// use reqwest::unstable::r#async::Client;
 use reqwest::{
-    header::{Authorization, Basic, Bearer, Headers, Server},
+    header::{HeaderMap, AUTHORIZATION, SERVER},
     Client, Url,
 };
 use serde_derive::Deserialize;
@@ -123,20 +123,23 @@ impl Connection {
         };
         conn.validate_server()?;
 
-        let mut headers = Headers::new();
-        match auth {
-            Auth::Basic(credential) => headers.set(Authorization(Basic {
-                username: credential.username.to_owned(),
-                password: Some(credential.password.to_owned()),
-            })),
+        let authorization = match auth {
+            Auth::Basic(credential) => {
+                let token =
+                    base64::encode(&format!("{}:{}", credential.username, credential.password));
+                Some(format!("Basic {}", token))
+            }
             Auth::Jwt(credential) => {
                 let token = conn.jwt_login(credential.username, credential.password)?;
-                headers.set(Authorization(Bearer {
-                    token: token.to_owned(),
-                }))
+                Some(format!("Bearer {}", token))
             }
-            Auth::None => {}
+            Auth::None => None,
         };
+
+        let mut headers = HeaderMap::new();
+        if let Some(value) = authorization {
+            headers.insert(AUTHORIZATION, value.parse().unwrap());
+        }
 
         conn.session = Arc::new(
             Client::builder()
@@ -320,13 +323,14 @@ pub fn validate_server<'b>(arango_url: &'b str) -> Result<(), Error> {
     // HTTP code 200
     if resp.status().is_success() {
         // have `Server` in header
-        if let Some(server) = resp.headers().get::<Server>() {
+        if let Some(server) = resp.headers().get(SERVER) {
             // value of `Server` is `ArangoDB`
-            if server.eq_ignore_ascii_case("ArangoDB") {
+            let server_value = server.to_str().unwrap();
+            if server_value.eq_ignore_ascii_case("ArangoDB") {
                 result = true;
                 info!("Validate arangoDB server done.");
             } else {
-                error!("In HTTP header, Server is {}", server);
+                error!("In HTTP header, Server is {}", server_value);
             }
         } else {
             error!("Fail to find Server in HTTP header");

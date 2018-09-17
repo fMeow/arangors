@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use log::{debug, info};
 use pretty_assertions::{assert_eq, assert_ne};
-use reqwest::{header::Basic, Url};
+use reqwest::Url;
 
 use super::Connection;
 
