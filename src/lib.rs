@@ -8,7 +8,6 @@ pub mod database;
 pub mod document;
 mod query;
 pub mod response;
-mod session;
 
 pub use crate::collection::Collection;
 pub use crate::connection::Connection;
