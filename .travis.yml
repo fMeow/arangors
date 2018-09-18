@@ -8,6 +8,11 @@ matrix:
     - rust: stable
     - rust: beta
   fast_finish: true
+  include:
+    - name: cargo doc
+      rust: nightly
+      script:
+        - RUSTDOCFLAGS=-Dwarnings cargo doc --all
 cache:
   cargo: true
   # directories:
