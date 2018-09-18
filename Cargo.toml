@@ -7,7 +7,7 @@ readme = "README.md"
 license = "MIT"
 description = "Rust driver for ArangoDB"
 repository = "https://github.com/Guoli-Lyu/arangors"
-documentation = "https://docs.rs/arangors"
+documentation = "https://guoli-lyu.github.io/arangors/"
 keywords = ["nosql", "database", "client", "driver", "arangoDB"]
 
 [badges]
