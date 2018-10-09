@@ -10,6 +10,7 @@ inspired by [pyArango](https://github.com/tariqdaouda/pyArango).
 execute AQL query, manage arangoDB in an easy and intuitive way.
 
 ## NOTICE
+
 `arangors` is targeted at `Rust 2018`, so this driver would remain in
 nightly channel until the release of `Rust 2018`.
 
@@ -20,7 +21,6 @@ Also, `arangors` will stay **synchronous** until the `futures` crate reach
 
 `arangors` is targeted at ergonomic, intuitive and OOP alike API for arangoDB,
 both top level and low level.
-
 
 Overall architecture of arangoDB:
 
@@ -36,12 +36,15 @@ authentication information in HTTP headers, so I would rather call a client
 session.
 
 ## Features
+
 By now, the available features of arangors are:
+
 - make connection with arangors
 - get list of databases and collections
 - full features AQL query
 
 ## TODO
+
 The next step is to fill the unimplemented API in `Connection`, `Database`,
  `Collection` and `Document`.
 
@@ -52,8 +55,11 @@ Personally speaking, with connection and AQL query,
 
 
 ## Glance
+
 ### Connection
+
 There is three way to establish connections:
+
 - jwt
 - basic auth
 - no authentication
@@ -100,6 +106,7 @@ classes:
 - batch query
     - `aql_query_batch`
     - `aql_next_batch`
+
 - query to fetch all result
     - `aql_str`
     - `aql_bind_vars`
@@ -112,6 +119,7 @@ Note that results can be strong typed given deserializable struct, or
 arbitrary JSON object with `serde::Value`.
 
 - Arbitrary JSON object
+
 ```rust, ignore
 let resp: Vec<Value> = database
     .aql_str("FOR u IN Collection LIMIT 3 RETURN u")
@@ -119,6 +127,7 @@ let resp: Vec<Value> = database
 ```
 
 - Strong typed result
+
 ```rust, ignore
 use serde_derive::Deserialize;
 
@@ -155,6 +164,7 @@ fn main() {
 ```
 
 Strong typed Query result with `aql_str`:
+
 ```rust, ignore
 use serde_derive::Deserialize;
 #[derive(Deserialize, Debug)]
@@ -179,4 +189,3 @@ Contributions and feed back are welcome following Github workflow.
 ### License
 
 `arangors` is provided under the MIT license. See [LICENSE](./LICENSE).
-
