@@ -30,12 +30,10 @@
 //!     Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
 //! let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
 //! ```
-//!
 
 mod auth;
 #[cfg(test)]
 mod tests;
-// mod session;
 
 use failure::{format_err, Error};
 use log::{error, info, trace};
@@ -94,8 +92,7 @@ impl Connection {
         map.insert("username", username.into());
         map.insert("password", password.into());
 
-        let client = reqwest::Client::new();
-        let jwt: JWT = client.post(url).json(&map).send()?.json()?;
+        let jwt: JWT = self.session.post(url).json(&map).send()?.json()?;
         Ok(jwt.jwt)
     }
 
