@@ -45,14 +45,24 @@ By now, the available features of arangors are:
 
 ## TODO
 
-The next step is to fill the unimplemented API in `Connection`, `Database`,
- `Collection` and `Document`.
+- (Done) Milestone 0.1.x
 
-And then the API related to graph, index and user management.
+Synchronous connection based on `reqwest` and full features AQL query.
 
-Personally speaking, with connection and AQL query,
-`arangors` can satisfy most users.
+- (WIP) Milestone 0.2.x
 
+Fill the unimplemented API in `Connection`, `Database`, `Collection` and `Document`.
+
+In this stage, all operations available for database, collection and document should be implemented.
+
+- Milestone 0.3.x
+
+Provides the API related to graph, index and user management.
+
+- Milestone 0.4.x
+
+Abandon `reqwest` and implement asynchronous version using `hyper`.
+And the synchronous version is just a wrapper around async version just like the design of `reqwest`.
 
 ## Glance
 
@@ -104,13 +114,14 @@ There are several way to execute AQL query, and can be categorized into two
 classes:
 
 - batch query
-    - `aql_query_batch`
-    - `aql_next_batch`
+
+  - `aql_query_batch`
+  - `aql_next_batch`
 
 - query to fetch all result
-    - `aql_str`
-    - `aql_bind_vars`
-    - `aql_query`
+  - `aql_str`
+  - `aql_bind_vars`
+  - `aql_query`
 
 This later category provides a convenient high level API, whereas batch
 query offers more control.
