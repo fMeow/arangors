@@ -81,7 +81,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        let mut map = serde_json::Map::deserialize(deserializer)?;
+        let map = serde_json::Map::deserialize(deserializer)?;
         trace!("Deserialize QueryResponse: {:?}", map);
         let error = map
             .get("error")
@@ -123,7 +123,7 @@ where
     where
         D: Deserializer<'de>,
     {
-        let mut map = serde_json::Map::deserialize(deserializer)?;
+        let map = serde_json::Map::deserialize(deserializer)?;
         trace!("Deserialize normal Response: {:?}", map);
         let error = map
             .get("error")
