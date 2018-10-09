@@ -22,13 +22,10 @@ mmfiles = []
 rocksdb = []
 
 [dependencies]
-hyper = "^0.12"
-hyper-tls = "^0.3"
-futures-preview = { version = "^0.3.0-alpha.6", features = ["tokio-compat","compat"] }
 base64 = "^0.9"
 failure = "^0.1"
 regex = "^1.0"
-reqwest = { git="https://github.com/seanmonstar/reqwest",  branch= "master"}
+reqwest = "^0.9"
 serde = "^1.0"
 serde_json = "^1.0"
 serde_derive = "^1.0"
