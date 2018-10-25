@@ -41,23 +41,36 @@ where
 /// There are different type of json object when requests to arangoDB
 /// server is accepted or not. Here provides an abstraction for
 /// response of success and failure.
-/// TODO more intuitive response error enum
+///
+/// When ArangoDB server response error code, then an error would be cast.
 pub(crate) fn serialize_response<T>(mut resp: reqwest::Response) -> Result<T, FailureError>
 where
     T: DeserializeOwned + Debug,
 {
-    let response_text = resp.text()?;
+    let response = try_serialize_response(resp);
+    match response {
+        Response::Ok(resp) => Ok(resp.result),
+        Response::Err(error) => Err(format_err!("{}", error.message)),
+    }
+}
+
+/// There are different type of json object when requests to arangoDB
+/// server is accepted or not.
+/// It would return error if response error code.
+/// TODO more intuitive response error enum
+pub(crate) fn try_serialize_response<T>(mut resp: reqwest::Response) -> Response<T>
+    where
+        T: DeserializeOwned + Debug,
+{
+    let response_text = resp.text().unwrap();
     let response: Response<T> = serde_json::from_str(response_text.as_str()).map_err(|err| {
         error!(
             "Failed to serialize.\n\tResponse: {:?} \n\tText: {:?}",
             resp, response_text
         );
         err
-    })?;
-    match response {
-        Response::Ok(resp) => Ok(resp.result),
-        Response::Err(error) => Err(format_err!("{}", error.message)),
-    }
+    }).unwrap();
+    response
 }
 
 /// A enum of response contains all the case clients will encounter:
@@ -145,9 +158,9 @@ where
 }
 #[derive(Deserialize, Debug)]
 pub struct Success<T> {
-    error: bool,
-    code: u16,
-    result: T,
+    pub(crate) error: bool,
+    pub(crate) code: u16,
+    pub(crate) result: T,
 }
 
 impl<T: fmt::Display> fmt::Display for Success<T> {
@@ -158,12 +171,12 @@ impl<T: fmt::Display> fmt::Display for Success<T> {
 
 #[derive(Deserialize, Debug)]
 pub struct Error {
-    error: bool,
-    code: u16,
+    pub(crate) error: bool,
+    pub(crate) code: u16,
     #[serde(rename = "errorNum")]
-    error_num: u16,
+    pub(crate) error_num: u16,
     #[serde(rename = "errorMessage")]
-    message: String,
+    pub(crate) message: String,
 }
 
 impl Error {

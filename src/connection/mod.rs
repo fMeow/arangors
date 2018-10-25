@@ -34,6 +34,7 @@
 mod auth;
 #[cfg(test)]
 mod tests;
+mod model;
 
 use failure::{format_err, Error};
 use log::{error, info, trace};
@@ -48,7 +49,8 @@ use serde_derive::Deserialize;
 
 use self::auth::Auth;
 use super::database::Database;
-use super::response::{serialize_response, Response};
+use super::response::{try_serialize_response, serialize_response, Response};
+use self::model::{DatabaseInfo, Version};
 
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about auth, arangodb url, and a hash
@@ -144,7 +146,7 @@ impl Connection {
                 .default_headers(headers)
                 .build()?,
         );
-        conn.retrieve_databases()?;
+        conn.fetch_databases()?;
         info!("Established");
         Ok(conn)
     }
@@ -217,7 +219,7 @@ impl Connection {
     ///
     /// This function uses the API that is used to retrieve a list of
     /// all databases the current user can access.
-    fn retrieve_databases(&mut self) -> Result<&mut Connection, Error> {
+    fn fetch_databases(&mut self) -> Result<&mut Connection, Error> {
         // an invalid arango_url should never running through initialization
         // so we assume arango_url is a valid url
         // When we pass an invalid path, it should panic to eliminate the bug
@@ -235,15 +237,10 @@ impl Connection {
         Ok(self)
     }
 
-    pub fn fetch_arango_version(&self) -> Result<String, Error> {
-        unimplemented!();
-    }
-
-    /// Create a database via HTTP request and add it into `self.databases`.
-    ///
-    /// Return a database object if success.
-    pub fn create_database(&self, name: &str) -> Result<&Database, Error> {
-        unimplemented!();
+    pub fn fetch_arango_version(&self) -> Result<Version, Error> {
+        let url = self.arango_url.join("/_api/version").unwrap();
+        let version: Version = self.session.get(url).send()?.json()?;
+        Ok(version)
     }
 
     /// List all existing databases in server. As clients may not has the
@@ -265,17 +262,43 @@ impl Connection {
     /// Personally speaking, I don't know why we need to know the current
     /// database. As we never need to know the database as long as we get
     /// the id of collections.
-    pub fn current_database(&self) -> Result<&Database, Error> {
-        unimplemented!()
+    pub fn fetch_current_database(&self) -> Result<DatabaseInfo, Error> {
+        let url = self.arango_url.join("/_api/database/current").unwrap();
+        let resp = self.session.get(url).send()?;
+        let result: DatabaseInfo = serialize_response(resp)?;
+        Ok(result)
     }
+
+    /// Create a database via HTTP request and add it into `self.databases`.
+    ///
+    /// Return a database object if success.
+    pub fn create_database(&self, name: &str) -> Result<bool, Error> {
+        let mut map = HashMap::new();
+        map.insert("name", name);
+        let url = self.arango_url.join("/_api/database").unwrap();
+        let resp = self.session.post(url).json(&map).send()?;
+        let result: Response<bool> = try_serialize_response(resp);
+        match result {
+            Response::Ok(resp) => Ok(resp.result),
+            Response::Err(error) => Err(format_err!("{}", error.message)),
+        }
+    }
+
 
     /// Drop database with name.
     ///
     /// If the database is successfully dropped, return the dropped database.
     /// The ownership of the dropped database would be moved out. And the
     /// dropped database can no longer be found at `self.databases`.
-    pub fn drop_database<T: Into<String>>(&self, name: T) -> Result<Database, Error> {
-        unimplemented!()
+    pub fn drop_database(&self, name: &str) -> Result<bool, Error> {
+        let url_path = format!("/_api/database/{}", name);
+        let url = self.arango_url.join(&url_path).unwrap();
+        let resp = self.session.delete(url).send()?;
+        let result: Response<bool> = try_serialize_response(resp);
+        match result {
+            Response::Ok(resp) => Ok(resp.result),
+            Response::Err(error) => Err(format_err!("{}", error.message)),
+        }
     }
 
     /// Refresh the hierarchy of all accessible databases.
@@ -294,7 +317,7 @@ impl Connection {
     /// all databases the current user can access to refresh databases.
     /// Then each database retrieve a list of available collections.
     pub fn refresh(&mut self) -> Result<&mut Connection, Error> {
-        self.retrieve_databases()
+        self.fetch_databases()
     }
 }
 
