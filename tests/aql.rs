@@ -13,7 +13,7 @@ struct User {
 
 #[test]
 fn setup() {
-    let _ = pretty_env_logger::try_init();
+    env_logger::init();
 }
 
 #[test]

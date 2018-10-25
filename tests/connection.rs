@@ -6,7 +6,7 @@ const URL: &str = "http://localhost:8529/";
 
 #[test]
 fn setup() {
-    let _ = pretty_env_logger::try_init();
+    env_logger::init();
 }
 
 #[test]

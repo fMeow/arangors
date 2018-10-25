@@ -3,7 +3,7 @@ use serde_json::value::Value;
 const URL: &str = "http://localhost:8529";
 
 fn main() {
-    pretty_env_logger::init();
+    env_logger::init();
 
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
     let databases = conn.list_all_database().unwrap();

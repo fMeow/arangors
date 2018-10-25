@@ -10,7 +10,7 @@ const URL: &str = "http://localhost:8529";
 
 #[test]
 fn test_setup() {
-    let _ = pretty_env_logger::try_init();
+    env_logger::init();
 }
 #[test]
 fn test_basic_auth() {
