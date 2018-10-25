@@ -1,6 +1,6 @@
+use log::info;
 use pretty_assertions::{assert_eq, assert_ne};
 use serde_json::value::Value;
-use log::info;
 
 use arangors::{AqlQuery, Connection, Cursor, Database};
 
@@ -50,7 +50,7 @@ fn test_get_version() {
     let version = conn.fetch_arango_version().unwrap();
     assert_eq!(version.license, "community");
     assert_eq!(version.server, "arango");
-//    assert_eq!(version.version,"3.3.19");
+    //    assert_eq!(version.version,"3.3.19");
     assert_eq!(version.version.starts_with("3.3."), true);
 }
 

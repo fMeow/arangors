@@ -59,17 +59,19 @@ where
 /// It would return error if response error code.
 /// TODO more intuitive response error enum
 pub(crate) fn try_serialize_response<T>(mut resp: reqwest::Response) -> Response<T>
-    where
-        T: DeserializeOwned + Debug,
+where
+    T: DeserializeOwned + Debug,
 {
     let response_text = resp.text().unwrap();
-    let response: Response<T> = serde_json::from_str(response_text.as_str()).map_err(|err| {
-        error!(
-            "Failed to serialize.\n\tResponse: {:?} \n\tText: {:?}",
-            resp, response_text
-        );
-        err
-    }).unwrap();
+    let response: Response<T> = serde_json::from_str(response_text.as_str())
+        .map_err(|err| {
+            error!(
+                "Failed to serialize.\n\tResponse: {:?} \n\tText: {:?}",
+                resp, response_text
+            );
+            err
+        })
+        .unwrap();
     response
 }
 

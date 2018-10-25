@@ -32,9 +32,9 @@
 //! ```
 
 mod auth;
+mod model;
 #[cfg(test)]
 mod tests;
-mod model;
 
 use failure::{format_err, Error};
 use log::{error, info, trace};
@@ -48,9 +48,9 @@ use reqwest::{
 use serde_derive::Deserialize;
 
 use self::auth::Auth;
-use super::database::Database;
-use super::response::{try_serialize_response, serialize_response, Response};
 use self::model::{DatabaseInfo, Version};
+use super::database::Database;
+use super::response::{serialize_response, try_serialize_response, Response};
 
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about auth, arangodb url, and a hash
@@ -283,7 +283,6 @@ impl Connection {
             Response::Err(error) => Err(format_err!("{}", error.message)),
         }
     }
-
 
     /// Drop database with name.
     ///
