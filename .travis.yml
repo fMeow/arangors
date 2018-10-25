@@ -25,7 +25,6 @@ services:
 
 env:
   - DOCKER_COMPOSE_VERSION=1.22.0
-  - secure: JM/YsyVdzZ3g8OXLBHp5gnPOTPwZebZmeoFypydLQ3ttN6EldRW7r7y4hRgrU00cjj7gNXTzU0Rud1BR8NzZmnrqdWN6WUYYhIq2bBYP9uVdPpXOS6FB2+g/3HQcfSbxsaCOwxhE5bmocIYpLOhGqeUf1YHrEeE+Wq79BFopHLSs1RF/eDIjXkLnBkIjij0LGIrhR8dJg/CWw6qAU9oymucgWDjzXviVl5MCmQSiOG6RxXYC6D+K4wmMoure+R1HGgxUzZ+qlVVxaZ2/qMKt9XlKdxa0cGGwprjnVDp7geafSd+JuxoJz7qor2jJL7BSDcgUuEQnOCbxJvZey67hVSmg/6tk91rmFN32NSSJW2cmSOLTntvfstiRGg2JMT3CidxStvF8KrePPDtYMdIGZyPUfmgS35ce0dq7l5ZwWs+eHHjCdlIXXmbBlJfVfDlylnJuP6ZDJqUgZzoMIngJ66GQmsdQKZy3XczkC2diTGKWddNxyqVaRUbr7yCdCIq0QbSL35hIips4r1Uw0quOBTC3SgQSZMUmc3GpIISNXAYmeAYv34drsgqSMxq+5Ts3nDR5nJW/sW5RMDz0c6UpSGi999ApQuBEGKmnT9RGQ/Zzxli/JNYz8ijRbu2HBgRB34bHZKsPjzI4vFoeJBlEAf49UbOO8bNGmgU9edBueZE=
 
 addons:
   apt:
@@ -64,10 +63,3 @@ notifications:
   email:
     on_success: never
 
-deploy:
-  provider: script
-  script: cargo publish --token $CARGO_TOKEN
-  on:
-    tags: true
-    branch: master
-    condition: "$TRAVIS_RUST_VERSION = nightly"
