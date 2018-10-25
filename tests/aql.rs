@@ -3,6 +3,7 @@ use serde_derive::{Deserialize, Serialize};
 use serde_json::Value;
 
 use arangors::{AqlQuery, Connection, Document};
+
 const URL: &str = "http://localhost:8529/";
 
 #[derive(Deserialize, Debug)]

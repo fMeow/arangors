@@ -2,6 +2,7 @@ use pretty_assertions::{assert_eq, assert_ne};
 use serde_derive::{Deserialize, Serialize};
 
 use arangors::Connection;
+
 const URL: &str = "http://localhost:8529/";
 
 #[test]
