@@ -1,8 +1,11 @@
 use pretty_assertions::{assert_eq, assert_ne};
 use serde_json::value::Value;
+use log::info;
 
 use arangors::{AqlQuery, Connection, Cursor, Database};
+
 const URL: &str = "http://localhost:8529/";
+const NEW_DB_NAME: &str = "example";
 
 #[test]
 fn setup() {
@@ -39,4 +42,32 @@ fn test_get_database() {
     assert_eq!(database.is_none(), false);
     let database = conn.db("test_db_non_exist");
     assert_eq!(database.is_none(), true);
+}
+
+#[test]
+fn test_get_version() {
+    let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
+    let version = conn.fetch_arango_version().unwrap();
+    assert_eq!(version.license, "community");
+    assert_eq!(version.server, "arango");
+//    assert_eq!(version.version,"3.3.19");
+    assert_eq!(version.version.starts_with("3.3."), true);
+}
+
+#[test]
+fn test_fetch_current_database() {
+    let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
+    let database_info = conn.fetch_current_database().unwrap();
+    assert_eq!(database_info.name, "_system");
+    assert_eq!(database_info.is_system, true);
+}
+
+#[test]
+fn test_basic_auth() {
+    let conn = Connection::establish_basic_auth(URL, "root", "KWNngteTps7XjrNv").unwrap();
+    let session = conn.get_session();
+    let resp = session.get(URL).send().unwrap();
+    let headers = resp.headers();
+    assert_eq!(headers.get("Server").unwrap(), "ArangoDB");
+    // let basic = headers.get::<Basic>().unwrap();
 }
