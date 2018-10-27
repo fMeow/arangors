@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/Guoli-Lyu/arangors.svg?branch=master)](https://travis-ci.org/Guoli-Lyu/arangors)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-![arangors](https://docs.rs/arangors/badge.svg)
+[![arangors](https://docs.rs/arangors/badge.svg)](https://docs.rs/arangors)
 
 `arangors` is an intuitive rust client for [arangoDB](https://www.arangodb.com/),
 inspired by [pyArango](https://github.com/tariqdaouda/pyArango).
