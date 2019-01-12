@@ -12,7 +12,6 @@ use failure::{format_err, Error};
 use std::collections::HashMap;
 use std::fmt::Debug;
 
-use regex::Regex;
 use serde::ser::Serialize as SerializeTrait;
 use serde_derive::{Deserialize, Serialize};
 use serde_json::value::Value;
@@ -306,17 +305,16 @@ struct QueryExtra {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryStats {
     /// The total number of data-modification operations successfully executed.
     ///
     /// This is equivalent to the number of documents created, updated or
     /// removed by `INSERT`, `UPDATE`, `REPLACE` or `REMOVE` operations.
-    #[serde(rename = "writesExecuted")]
     writes_executed: usize,
 
     /// Total number of data-modification operations that were unsuccessful,
     /// but have been ignored because of query option ignoreErrors.
-    #[serde(rename = "writesIgnored")]
     writes_ignored: usize,
 
     /// Total number of documents iterated over when scanning a collection
@@ -324,14 +322,12 @@ pub struct QueryStats {
     ///
     /// Documents scanned by subqueries will be included in the result, but not
     /// no operations triggered by built-in or user-defined AQL functions.
-    #[serde(rename = "scannedFull")]
     scanned_full: usize,
     /// Total number of documents iterated over when scanning a collection
     /// using an index.
     ///
     /// Documents scanned by subqueries will be included in the result, but not
     /// no operations triggered by built-in or user-defined AQL functions.
-    #[serde(rename = "scannedIndex")]
     scanned_index: usize,
     /// Total number of documents that were removed after executing a filter
     /// condition in a FilterNode.
@@ -347,10 +343,7 @@ pub struct QueryStats {
     /// This attribute will only be returned if the fullCount option was set
     /// when starting the query and will only contain a sensible value if the
     /// query contained a LIMIT operation on the top level.
-    #[serde(rename = "fullCount")]
     full_count: Option<usize>,
-    #[serde(rename = "httpRequests")]
     http_requests: usize,
-    #[serde(rename = "executionTime")]
     execution_time: f64,
 }
