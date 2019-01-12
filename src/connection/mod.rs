@@ -271,15 +271,20 @@ impl Connection {
 
     /// Create a database via HTTP request and add it into `self.databases`.
     ///
-    /// Return a database object if success.
-    pub fn create_database(&self, name: &str) -> Result<bool, Error> {
+    /// If creation fails, an Error is cast. Otherwise, a bool is returned to
+    /// indicate whether the database is correctly created.
+    pub fn create_database(&mut self, name: &str) -> Result<bool, Error> {
         let mut map = HashMap::new();
         map.insert("name", name);
         let url = self.arango_url.join("/_api/database").unwrap();
         let resp = self.session.post(url).json(&map).send()?;
         let result: Response<bool> = try_serialize_response(resp);
         match result {
-            Response::Ok(resp) => Ok(resp.result),
+            Response::Ok(resp) => {
+                self.databases
+                    .insert(name.to_owned(), Database::new(&self, name)?);
+                Ok(resp.result)
+            }
             Response::Err(error) => Err(format_err!("{}", error.message)),
         }
     }

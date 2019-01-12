@@ -1,7 +1,7 @@
 //! database contains all struct and enum pertain to arangoDB "database" level.
 //!
 //! AQL query are all executed in database level, so Database offers AQL query.
-use failure::Error;
+use failure::{format_err, Error};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::Arc;
@@ -16,7 +16,9 @@ use super::aql::AqlQuery;
 use super::collection::{Collection, CollectionResponse};
 use super::connection::Connection;
 use super::response::Cursor;
-use super::response::{serialize_query_response, serialize_response};
+use super::response::{
+    serialize_query_response, serialize_response, try_serialize_response, Response,
+};
 
 #[derive(Debug)]
 pub struct Database {
@@ -46,7 +48,7 @@ impl<'a, 'b: 'a> Database {
     /// Retrieve all collections of this database.
     ///
     /// 1. retrieve the names of all collections
-    /// 1. cache colelctions
+    /// 1. cache collections
     ///     - for user collection, construct a `Collection` object and store
     /// them in `self.collections` for later use
     ///     - for system collection, construct a `Collection` object and store
@@ -110,7 +112,7 @@ impl<'a, 'b: 'a> Database {
         match self.system_collections.get(name) {
             Some(database) => Some(&database),
             None => {
-                info!("User collection {} not found.", name);
+                info!("System collection {} not found.", name);
                 None
             }
         }
@@ -172,8 +174,19 @@ impl<'a, 'b: 'a> Database {
         unimplemented!()
     }
 
-    pub fn create_collection(&self, name: &str) -> Collection {
-        unimplemented!()
+    /// Create a collection via HTTP request and add it into `self.collections`.
+    ///
+    /// Return a database object if success.
+    pub fn create_collection(&mut self, name: &str) -> Result<bool, Error> {
+        let mut map = HashMap::new();
+        map.insert("name", name);
+        let url = self.base_url.join("/_api/database").unwrap();
+        let resp = self.session.post(url).json(&map).send()?;
+        let result: Response<bool> = try_serialize_response(resp);
+        match result {
+            Response::Ok(resp) => Ok(resp.result),
+            Response::Err(error) => Err(format_err!("{}", error.message)),
+        }
     }
 
     /// Drops a collection

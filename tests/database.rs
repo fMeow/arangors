@@ -12,7 +12,7 @@ fn setup() {
 
 #[test]
 fn test_create_and_drop_database() {
-    let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
+    let mut conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
     let result = conn.create_database("example").unwrap();
     assert_eq!(result, true);
     let result = conn.drop_database("example").unwrap();

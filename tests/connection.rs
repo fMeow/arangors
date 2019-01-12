@@ -51,7 +51,8 @@ fn test_get_version() {
     assert_eq!(version.license, "community");
     assert_eq!(version.server, "arango");
     //    assert_eq!(version.version,"3.3.19");
-    assert_eq!(version.version.starts_with("3.3."), true);
+    let re = regex::Regex::new(r"3\.\d\.\d+").unwrap();
+    assert_eq!(re.is_match(&version.version), true);
 }
 
 #[test]
