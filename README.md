@@ -13,11 +13,12 @@ execute AQL query, manage arangoDB in an easy and intuitive way.
 
 ## NOTICE
 
-`arangors` is targeted at `Rust 2018`, so this driver would remain in
-nightly channel until the release of `Rust 2018`.
+`arangors` is targeted at `Rust 2018`. Currently only `nightly` channel is supported 
+as `arangors` use a unstable feature for external doc.
+And this feature will be removed in the near future to make this crate available in stable channel.
 
 Also, `arangors` will stay **synchronous** until the `futures` crate reach
-`1.0`.
+`1.0`, which means stable API for async/await.
 
 ## Philosophy of arangors
 
