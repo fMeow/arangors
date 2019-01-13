@@ -13,7 +13,7 @@ execute AQL query, manage arangoDB in an easy and intuitive way.
 
 ## NOTICE
 
-`arangors` is targeted at `Rust 2018`. Currently only `nightly` channel is supported 
+`arangors` is targeted at `Rust 2018`. Currently only `nightly` channel is supported
 as `arangors` use a unstable feature for external doc.
 And this feature will be removed in the near future to make this crate available in stable channel.
 
@@ -44,13 +44,13 @@ By now, the available features of arangors are:
 
 - make connection with arangors
 - get list of databases and collections
-- full features AQL query
+- full featured AQL query
 
 ## TODO
 
 - (Done) Milestone 0.1.x
 
-Synchronous connection based on `reqwest` and full features AQL query.
+Synchronous connection based on `reqwest` and full featured AQL query.
 
 - (WIP) Milestone 0.2.x
 
@@ -121,13 +121,15 @@ classes:
   - `aql_query_batch`
   - `aql_next_batch`
 
-- query to fetch all result
+- query to fetch all results
   - `aql_str`
   - `aql_bind_vars`
   - `aql_query`
 
 This later category provides a convenient high level API, whereas batch
 query offers more control.
+
+#### Typed or Not Typed
 
 Note that results can be strong typed given deserializable struct, or
 arbitrary JSON object with `serde::Value`.
@@ -154,47 +156,72 @@ struct User {
 let resp: Vec<User> = database.aql_str("FOR u IN users RETURN u").unwrap();
 ```
 
-Example:
+#### Batch query
 
-Users have to construct a `AqlQuery` object first. And `AqlQuery` offer all
-the options needed to tweak AQL query. You can set batch size, add bind
-vars, limit memory, and all others
-options available.
+`arangors` offers a way to manually handle batch query.
 
-```rust,ignore
-use arangors::{AqlQuery, Connection, Cursor, Database};
-use serde_json::value::Value;
+#### Fetch All Results
 
-fn main() {
-    let conn =
-        Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-    let database = conn.get_database("database").unwrap();
+There are three functions for AQL query that fetch all results from ArangoDB.
+These functions internally fetch batch results one after another to get all results.
 
-    let aql = AqlQuery::new("FOR u IN @@collection LIMIT 3 RETURN u").batch_size(1).count(true).bind_var("collection","test_collection");
+The functions for fetching all results are listed as bellow:
 
-    let resp: Vec<Value> = database.aql_query(aql).unwrap();
-    println!("{:?}", resp);
-}
-```
+- `aql_str`
 
-Strong typed Query result with `aql_str`:
+  This function only accept a AQL query string.
 
-```rust, ignore
-use serde_derive::Deserialize;
-#[derive(Deserialize, Debug)]
-struct User {
-    pub username: String,
-    pub password: String,
-}
+  Here is an example of strong typed query result with `aql_str`:
 
-fn main() {
-    let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
-    let db = conn.get_database("test_db").unwrap();
-    let result: Vec<User> = db
-        .aql_str(r#"FOR i in test_collection FILTER i.username=="test2" return i"#)
-        .unwrap();
-}
-```
+  ```rust, ignore
+  use serde_derive::Deserialize;
+  #[derive(Deserialize, Debug)]
+  struct User {
+      pub username: String,
+      pub password: String,
+  }
+
+  fn main() {
+      let conn = Connection::establish_jwt(URL, "username", "password").unwrap();
+      let db = conn.get_database("test_db").unwrap();
+      let result: Vec<User> = db
+          .aql_str(r#"FOR i in test_collection FILTER i.username=="test2" return i"#)
+          .unwrap();
+  }
+  ```
+
+- `aql_bind_vars`
+
+  This function can be used to start a AQL query with bind variables.
+
+  ```rust, ignore
+  fn main(){
+  }
+  ```
+
+- `aql_query`
+
+  This function offers all the options available to tweak a AQL query.
+  Users have to construct a `AqlQuery` object first. And `AqlQuery` offer all
+  the options needed to tweak AQL query. You can set batch size, add bind
+  vars, limit memory, and all others
+  options available.
+
+  ```rust,ignore
+  use arangors::{AqlQuery, Connection, Cursor, Database};
+  use serde_json::value::Value;
+
+  fn main() {
+      let conn =
+          Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
+      let database = conn.get_database("database").unwrap();
+
+      let aql = AqlQuery::new("FOR u IN @@collection LIMIT 3 RETURN u").batch_size(1).count(true).bind_var("collection","test_collection");
+
+      let resp: Vec<Value> = database.aql_query(aql).unwrap();
+      println!("{:?}", resp);
+  }
+  ```
 
 ### Contributing
 
