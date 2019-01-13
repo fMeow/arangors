@@ -259,7 +259,7 @@ impl<'de> Deserialize<'de> for CollectionStatus {
             4 => Ok(CollectionStatus::BeingUnload),
             5 => Ok(CollectionStatus::Deleted),
             6 => Ok(CollectionStatus::Loading),
-            _ => Err(DeError::custom("Undefined behavior. If the crate breaks after a upgrade of ArangoDB, please contact the author.")),
+            _ => Err(DeError::custom("Undefined behavior. If the crate breaks after an upgrade of ArangoDB, please contact the author.")),
         }
     }
 }
@@ -278,7 +278,7 @@ impl<'de> Deserialize<'de> for CollectionType {
         match value {
             2 => Ok(CollectionType::Document),
             3 => Ok(CollectionType::Edge),
-            _ => Err(DeError::custom("Undefined behavior. If the crate breaks after a upgrade of ArangoDB, please contact the author.")),
+            _ => Err(DeError::custom("Undefined behavior. If the crate breaks after an upgrade of ArangoDB, please contact the author.")),
         }
     }
 }
