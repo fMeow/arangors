@@ -3,19 +3,15 @@
 /// `Response`.
 use std::fmt;
 use std::fmt::Debug;
-use std::rc::Rc;
 
 use failure::{format_err, Error as FailureError};
 
 use log::{error, trace};
-use reqwest::Client;
 use serde::de::{self, Deserialize, DeserializeOwned, Deserializer};
 use serde_derive::Deserialize;
 use serde_json::value::Value;
-use url::Url;
 
 use super::aql::QueryStats;
-use super::database::Database;
 
 pub(crate) fn serialize_query_response<T>(
     mut resp: reqwest::Response,
@@ -205,7 +201,7 @@ pub struct Cursor<T> {
 
     /// the total number of result documents available
     ///
-    ///  only available if the query was executed with the count attribute
+    /// only available if the query was executed with the count attribute
     /// set
     pub count: Option<usize>,
     /// a boolean flag indicating whether the query result was served from
