@@ -5,7 +5,6 @@ use serde_json::value::Value;
 use arangors::{AqlQuery, Connection, Cursor, Database};
 
 const URL: &str = "http://localhost:8529/";
-const NEW_DB_NAME: &str = "example";
 
 #[test]
 fn setup() {
@@ -50,7 +49,7 @@ fn test_get_version() {
     let version = conn.fetch_arango_version().unwrap();
     assert_eq!(version.license, "community");
     assert_eq!(version.server, "arango");
-    //    assert_eq!(version.version,"3.3.19");
+
     let re = regex::Regex::new(r"3\.\d\.\d+").unwrap();
     assert_eq!(re.is_match(&version.version), true);
 }
@@ -71,4 +70,13 @@ fn test_basic_auth() {
     let headers = resp.headers();
     assert_eq!(headers.get("Server").unwrap(), "ArangoDB");
     // let basic = headers.get::<Basic>().unwrap();
+}
+
+#[test]
+fn test_jwt() {
+    let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
+    let session = conn.get_session();
+    let resp = session.get(URL).send().unwrap();
+    let headers = resp.headers();
+    assert_eq!(headers.get("Server").unwrap(), "ArangoDB");
 }
