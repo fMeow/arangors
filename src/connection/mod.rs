@@ -78,7 +78,7 @@ impl Connection {
     /// - Connection failed
     /// - response code is not 200
     /// - no SERVER header in response header
-    /// - validate_server in response header is not `ArangoDB`
+    /// - SERVER header in response header is not `ArangoDB`
     pub fn validate_server(&self) -> Result<(), Error> {
         validate_server(self.arango_url.as_str())
     }
@@ -183,6 +183,11 @@ impl Connection {
         &self.arango_url
     }
 
+    /// TODO This method should only be public in this crate when all features
+    /// are implemtented.
+    ///
+    /// By now, users can use this method to get a authorized session to access
+    /// arbitary path on arangoDB Server.
     pub fn get_session(&self) -> Arc<Client> {
         Arc::clone(&self.session)
     }
@@ -273,6 +278,8 @@ impl Connection {
     ///
     /// If creation fails, an Error is cast. Otherwise, a bool is returned to
     /// indicate whether the database is correctly created.
+    ///
+    /// TODO tweak options on ceating database
     pub fn create_database(&mut self, name: &str) -> Result<bool, Error> {
         let mut map = HashMap::new();
         map.insert("name", name);
@@ -290,10 +297,6 @@ impl Connection {
     }
 
     /// Drop database with name.
-    ///
-    /// If the database is successfully dropped, return the dropped database.
-    /// The ownership of the dropped database would be moved out. And the
-    /// dropped database can no longer be found at `self.databases`.
     pub fn drop_database(&self, name: &str) -> Result<bool, Error> {
         let url_path = format!("/_api/database/{}", name);
         let url = self.arango_url.join(&url_path).unwrap();
