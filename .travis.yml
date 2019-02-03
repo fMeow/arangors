@@ -4,15 +4,12 @@ rust:
   - beta
   - nightly
 matrix:
-  allow_failures:
-    - rust: stable
-    - rust: beta
   fast_finish: true
   include:
     - name: cargo doc
       rust: stable
       script:
-        - RUSTDOCFLAGS=-Dwarnings cargo doc --all
+        - RUSTDOCFLAGS=-Dwarnings cargo doc --all --no-deps
 cache:
   cargo: true
   # directories:
