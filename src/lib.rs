@@ -1,5 +1,5 @@
 //! An ergonomic [arangoDB](https://www.arangodb.com/) client for rust.
-
+//!
 //! `arangors` enables you to connect with arangoDB server, access to database,
 //! execute AQL query, manage arangoDB in an easy and intuitive way.
 //!
@@ -16,7 +16,7 @@
 //! slight difference that in the top level, there is a connection object on top
 //! of databases, containing a HTTP client with authentication information in
 //! HTTP headers.
-//! 
+//!
 //! Hierarchy of arangors:
 //! > connection -> databases(cached) -> collections -> documents/edges
 
