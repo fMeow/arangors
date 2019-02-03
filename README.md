@@ -12,37 +12,30 @@ inspired by [pyArango](https://github.com/tariqdaouda/pyArango).
 execute AQL query, manage arangoDB in an easy and intuitive way.
 
 ## NOTICE
-
-`arangors` is targeted at `Rust 2018`. Currently only `nightly` channel is supported
-as `arangors` use a unstable feature for external doc.
-And this feature will be removed in the near future to make this crate available in stable channel.
-
-Also, `arangors` will stay **synchronous** until the `futures` crate reach
-`1.0`, which means stable API for async/await.
+`arangors` will stay **synchronous** until the async/await syntax are available in stable channel.
 
 ## Philosophy of arangors
 
-`arangors` is targeted at ergonomic, intuitive and OOP alike API for arangoDB,
-both top level and low level.
+`arangors` is targeted at ergonomic, intuitive and OOP-like API for ArangoDB,
+both top level and low level API for users' choice.
 
 Overall architecture of arangoDB:
 
-> databases -> collections -> collections -> documents/edges
-
-And we would like the structure of our top level of client object just like
-this.
+> databases -> collections -> documents/edges 
 
 In fact, the design of `arangors` just mimic this architecture, with a
 slight difference that in the top level, there is a connection object on top
-of databases. The connection object contains a HTTP client with
-authentication information in HTTP headers, so I would rather call a client
-session.
+of databases, containing a HTTP client with authentication information in
+HTTP headers.
+
+Hierarchy of arangors:
+> connection -> databases(cached) -> collections -> documents/edges
 
 ## Features
 
 By now, the available features of arangors are:
 
-- make connection with arangors
+- make connection to arangoDB
 - get list of databases and collections
 - full featured AQL query
 
