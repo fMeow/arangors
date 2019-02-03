@@ -1,5 +1,24 @@
-#![feature(external_doc)]
-#![doc(include = "../README.md")]
+//! An ergonomic [arangoDB](https://www.arangodb.com/) client for rust.
+
+//! `arangors` enables you to connect with arangoDB server, access to database,
+//! execute AQL query, manage arangoDB in an easy and intuitive way.
+//!
+//! ## Philosophy of arangors
+//!
+//! `arangors` is targeted at ergonomic, intuitive and OOP-like API for
+//! ArangoDB, both top level and low level API for users' choice.
+//!
+//! Overall architecture of arangoDB:
+//!
+//! > databases -> collections -> documents/edges
+//!
+//! In fact, the design of `arangors` just mimic this architecture, with a
+//! slight difference that in the top level, there is a connection object on top
+//! of databases, containing a HTTP client with authentication information in
+//! HTTP headers.
+//! 
+//! Hierarchy of arangors:
+//! > connection -> databases(cached) -> collections -> documents/edges
 
 pub mod aql;
 pub mod collection;
