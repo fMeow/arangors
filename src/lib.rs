@@ -19,6 +19,7 @@
 //!
 //! Hierarchy of arangors:
 //! > connection -> databases(cached) -> collections -> documents/edges
+//!
 
 pub mod aql;
 pub mod collection;
