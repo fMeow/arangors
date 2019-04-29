@@ -96,7 +96,7 @@ use arangors::Connection;
 
 fn main(){
     let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-    let db = conn.get_database("_system").unwrap();
+    let db = conn.db("_system").unwrap();
     let collection = db.get_collection("_apps").unwrap();
 }
 ```
@@ -176,7 +176,7 @@ The functions for fetching all results are listed as bellow:
 
   fn main() {
       let conn = Connection::establish_jwt(URL, "username", "password").unwrap();
-      let db = conn.get_database("test_db").unwrap();
+      let db = conn.db("test_db").unwrap();
       let result: Vec<User> = db
           .aql_str(r#"FOR i in test_collection FILTER i.username=="test2" return i"#)
           .unwrap();
@@ -207,7 +207,7 @@ The functions for fetching all results are listed as bellow:
   fn main() {
       let conn =
           Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-      let database = conn.get_database("database").unwrap();
+      let database = conn.db("database").unwrap();
 
       let aql = AqlQuery::new("FOR u IN @@collection LIMIT 3 RETURN u").batch_size(1).count(true).bind_var("collection","test_collection");
 
