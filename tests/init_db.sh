@@ -1,9 +1,19 @@
 
+# set up database
 curl -X POST http://root:KWNngteTps7XjrNv@localhost:8529/_api/database --data '{"name":"test_db"}'
 curl -X POST http://root:KWNngteTps7XjrNv@localhost:8529/_db/test_db/_api/collection --data '{"name":"test_collection"}'
 curl -X POST http://root:KWNngteTps7XjrNv@localhost:8529/_db/test_db/_api/collection --data '{"name":"test_collection2"}'
 curl -X POST http://root:KWNngteTps7XjrNv@localhost:8529/_db/test_db/_api/collection --data '{"name":"test_collection3"}'
 
+# set up normal user
+curl -X DELETE http://root:KWNngteTps7XjrNv@localhost:8529/_api/user/normal
+curl -X POST http://root:KWNngteTps7XjrNv@localhost:8529/_api/user --data '{"user":"normal","passwd":"password"}'
+curl -X PUT  http://root:KWNngteTps7XjrNv@localhost:8529/_api/user/normal/database/test_db --data '{"grant":"rw"}'
+curl -X PUT  http://root:KWNngteTps7XjrNv@localhost:8529/_api/user/normal/database/test_db/test_collection1 --data '{"grant":"rw"}'
+curl -X PUT  http://root:KWNngteTps7XjrNv@localhost:8529/_api/user/normal/database/test_db/test_collection2 --data '{"grant":"ro"}'
+curl -X PUT  http://root:KWNngteTps7XjrNv@localhost:8529/_api/user/normal/database/test_db/test_collection3 --data '{"grant":"none"}'
+
+# set up collection
 curl -X PUT http://root:KWNngteTps7XjrNv@localhost:8529/_db/test_db/_api/collection/test_collection/truncate
 curl -X POST http://root:KWNngteTps7XjrNv@localhost:8529/_db/test_db/_api/document/test_collection --data '{"username":"test","password":"test_pwd"}'
 curl -X POST http://root:KWNngteTps7XjrNv@localhost:8529/_db/test_db/_api/document/test_collection --data '{"username":"test2","password":"test2_pwd"}'
