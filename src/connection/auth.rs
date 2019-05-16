@@ -19,42 +19,42 @@
 /// let no_auth = Auth::default();
 /// ```
 #[derive(Debug, Clone)]
-pub enum Auth {
+pub(crate) enum Auth<'a> {
     /// Basic auth
-    Basic(Credential),
+    Basic(Credential<'a>),
     /// JSON Web Token (JWT) auth
-    Jwt(Credential),
+    Jwt(Credential<'a>),
     /// no auth
     None,
 }
 
-impl Default for Auth {
-    fn default() -> Auth {
+impl<'a> Default for Auth<'a> {
+    fn default() -> Auth<'static> {
         Auth::None
     }
 }
 
-impl Auth {
-    pub fn basic<T: Into<String>>(username: T, password: T) -> Auth {
+impl<'a> Auth<'a> {
+    pub fn basic(username: &'a str, password: &'a str) -> Auth<'a> {
         Auth::Basic(Credential {
-            username: username.into(),
-            password: password.into(),
+            username: username,
+            password: password,
         })
     }
 
-    pub fn jwt<T: Into<String>>(username: T, password: T) -> Auth {
+    pub fn jwt(username: &'a str, password: &'a str) -> Auth<'a> {
         Auth::Jwt(Credential {
-            username: username.into(),
-            password: password.into(),
+            username: username,
+            password: password,
         })
     }
 }
 
 /// Username and password holder for authentication
 #[derive(Debug, Clone, Hash)]
-pub struct Credential {
+pub(crate) struct Credential<'a> {
     /// username
-    pub(crate) username: String,
+    pub username: &'a str,
     /// password
-    pub(crate) password: String,
+    pub password: &'a str,
 }
