@@ -19,7 +19,7 @@ fn test_setup() {
 fn test_jwt_auth() {
     // let _ = pretty_env_logger::try_init();
     let conn: Connection = Default::default();
-    let jwt = conn.jwt_login("root", "KWNngteTps7XjrNv").unwrap();
+    let jwt = conn.jwt_login(USERNAME, PASSWORD).unwrap();
     info!("JWT login success. Token: {}", jwt);
     let not_empty = jwt.len() > 1;
     assert_eq!(not_empty, true);
