@@ -26,26 +26,28 @@
 //! let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
 //! ```
 
-mod auth;
-mod model;
-#[cfg(test)]
-mod tests;
+use std::{collections::HashMap, sync::Arc};
 
 use failure::{format_err, Error};
 use log::{error, info, trace};
-use std::{collections::HashMap, sync::Arc};
-
 // use reqwest::unstable::r#async::Client;
 use reqwest::{
     header::{HeaderMap, AUTHORIZATION, SERVER},
     Client, Url,
 };
+use serde::de::value::StrDeserializer;
 use serde_derive::Deserialize;
+
+use super::database::Database;
+use super::response::{serialize_response, try_serialize_response, Response};
 
 use self::auth::Auth;
 use self::model::{DatabaseInfo, Version};
-use super::database::Database;
-use super::response::{serialize_response, try_serialize_response, Response};
+
+mod auth;
+pub mod model;
+#[cfg(test)]
+mod tests;
 
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about auth, arangodb url, and a hash
@@ -58,12 +60,12 @@ use super::response::{serialize_response, try_serialize_response, Response};
 /// use arangors::connection::Connection;
 /// let conn: Connection = Default::default();
 /// ```
-// TODO Connections' lifetimes should be longer than Databases' lifetimes
 #[derive(Debug)]
 pub struct Connection {
     session: Arc<Client>,
     databases: HashMap<String, Database>,
     arango_url: Url,
+    user: String,
 }
 
 impl Connection {
@@ -110,24 +112,31 @@ impl Connection {
     /// 1. set authentication in header
     /// 1. build a http client that holds authentication tokens
     /// 1. construct databases objects for later use
-    pub fn establish<S: Into<String>>(arango_url: S, auth: Auth) -> Result<Connection, Error> {
+    fn establish<S: Into<String>>(arango_url: S, auth: Auth) -> Result<Connection, Error> {
         let mut conn = Connection {
             arango_url: Url::parse(arango_url.into().as_str())?.join("/").unwrap(),
             ..Default::default()
         };
         conn.validate_server()?;
 
+        let mut user: String;
         let authorization = match auth {
-            Auth::Basic(credential) => {
-                let token =
-                    base64::encode(&format!("{}:{}", credential.username, credential.password));
+            Auth::Basic(cred) => {
+                user = String::from(cred.username);
+
+                let token = base64::encode(&format!("{}:{}", cred.username, cred.password));
                 Some(format!("Basic {}", token))
             }
-            Auth::Jwt(credential) => {
-                let token = conn.jwt_login(credential.username, credential.password)?;
+            Auth::Jwt(cred) => {
+                user = String::from(cred.username);
+
+                let token = conn.jwt_login(cred.username, cred.password)?;
                 Some(format!("Bearer {}", token))
             }
-            Auth::None => None,
+            Auth::None => {
+                user = String::from("root");
+                None
+            }
         };
 
         let mut headers = HeaderMap::new();
@@ -135,13 +144,13 @@ impl Connection {
             headers.insert(AUTHORIZATION, value.parse().unwrap());
         }
 
+        conn.user = user;
         conn.session = Arc::new(
             Client::builder()
                 .gzip(true)
                 .default_headers(headers)
                 .build()?,
         );
-        conn.fetch_databases()?;
         info!("Established");
         Ok(conn)
     }
@@ -151,26 +160,26 @@ impl Connection {
         Ok(Connection::establish(arango_url.into(), Auth::None)?)
     }
 
-    pub fn establish_basic_auth<S: Into<String>>(
-        arango_url: S,
-        username: S,
-        password: S,
+    pub fn establish_basic_auth(
+        arango_url: &str,
+        username: &str,
+        password: &str,
     ) -> Result<Connection, Error> {
         trace!("Establish with basic auth");
         Ok(Connection::establish(
-            arango_url.into(),
-            Auth::basic(username.into(), password.into()),
+            arango_url,
+            Auth::basic(username, password),
         )?)
     }
-    pub fn establish_jwt<S: Into<String>>(
-        arango_url: S,
-        username: S,
-        password: S,
+    pub fn establish_jwt(
+        arango_url: &str,
+        username: &str,
+        password: &str,
     ) -> Result<Connection, Error> {
         trace!("Establish with jwt");
         Ok(Connection::establish(
-            arango_url.into(),
-            Auth::jwt(username.into(), password.into()),
+            arango_url,
+            Auth::jwt(username, password),
         )?)
     }
 
@@ -328,6 +337,7 @@ impl Default for Connection {
         Connection {
             arango_url: Url::parse("http://127.0.0.1:8529").unwrap(),
             databases: HashMap::new(),
+            user: String::from("root"),
             session: Arc::new(Client::new()),
         }
     }
