@@ -10,11 +10,11 @@
 /// Auth is then used when initialize `Connection`.
 ///
 /// # Example
-/// ```rust,ignore
-/// use arango_rs::connection::auth::Auth;
-/// let basic_auth = Auth::basic("user", "123456");
-/// let jwt_auth = Auth::jwt("user", "123456");
+/// ```rust
+/// use arango_rs::connection::Auth;
 ///
+/// let basic_auth = Auth::basic("username", "password");
+/// let jwt_auth = Auth::jwt("username", "password");
 /// let no_auth = Auth::None;
 /// let no_auth = Auth::default();
 /// ```
