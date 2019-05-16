@@ -2,14 +2,11 @@ use pretty_assertions::{assert_eq, assert_ne};
 use serde_json::value::Value;
 
 use arangors::{AqlQuery, Connection, Cursor, Database};
+use common::{test_root_and_normal, test_setup};
+pub mod common;
 
 const URL: &str = "http://localhost:8529/";
 const NEW_DB_NAME: &str = "example";
-
-#[test]
-fn setup() {
-    env_logger::init();
-}
 
 #[test]
 fn test_create_and_drop_database() {

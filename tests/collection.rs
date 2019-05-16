@@ -4,11 +4,8 @@ use serde_derive::{Deserialize, Serialize};
 use arangors::Connection;
 
 const URL: &str = "http://localhost:8529/";
-
-#[test]
-fn setup() {
-    env_logger::init();
-}
+pub mod common;
+use common::{test_root_and_normal, test_setup};
 
 #[test]
 fn test_has_collection() {

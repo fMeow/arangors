@@ -3,6 +3,8 @@ use serde_derive::{Deserialize, Serialize};
 use serde_json::Value;
 
 use arangors::{AqlQuery, Connection, Document};
+pub mod common;
+use common::{test_root_and_normal, test_setup};
 
 const URL: &str = "http://localhost:8529/";
 
@@ -10,11 +12,6 @@ const URL: &str = "http://localhost:8529/";
 struct User {
     pub username: String,
     pub password: String,
-}
-
-#[test]
-fn setup() {
-    env_logger::init();
 }
 
 #[test]

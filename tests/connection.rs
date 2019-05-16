@@ -3,13 +3,11 @@ use pretty_assertions::{assert_eq, assert_ne};
 use serde_json::value::Value;
 
 use arangors::{AqlQuery, Connection, Cursor, Database};
+use common::{test_root_and_normal, test_setup};
+
+pub mod common;
 
 const URL: &str = "http://localhost:8529/";
-
-#[test]
-fn setup() {
-    env_logger::init();
-}
 
 #[test]
 fn test_list_databases() {
@@ -56,10 +54,20 @@ fn test_get_version() {
 
 #[test]
 fn test_fetch_current_database() {
-    let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
-    let database_info = conn.fetch_current_database().unwrap();
-    assert_eq!(database_info.name, "_system");
-    assert_eq!(database_info.is_system, true);
+    fn fetch_current_database(user: &str, passwd: &str) {
+        let conn = Connection::establish_jwt(URL, user, passwd).unwrap();
+        let result = conn.fetch_current_database();
+        match result {
+            Ok(database_info) => {
+                assert_eq!(database_info.name, "_system");
+                assert_eq!(database_info.is_system, true);
+            }
+            Err(err) => {
+                assert!(false, err);
+            }
+        }
+    }
+    test_root_and_normal(fetch_current_database);
 }
 
 #[test]
@@ -74,9 +82,12 @@ fn test_basic_auth() {
 
 #[test]
 fn test_jwt() {
-    let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
-    let session = conn.get_session();
-    let resp = session.get(URL).send().unwrap();
-    let headers = resp.headers();
-    assert_eq!(headers.get("Server").unwrap(), "ArangoDB");
+    fn jwt(user: &str, passwd: &str) {
+        let conn = Connection::establish_jwt(URL, user, passwd).unwrap();
+        let session = conn.get_session();
+        let resp = session.get(URL).send().unwrap();
+        let headers = resp.headers();
+        assert_eq!(headers.get("Server").unwrap(), "ArangoDB");
+    }
+    test_root_and_normal(jwt);
 }
