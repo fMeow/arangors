@@ -10,24 +10,19 @@
 //! So are the `arangors` API:
 //! Example:
 //!
-//! ```rust,ignore
-//! use arangors::{connection::auth::Auth, Connection};
+//! - With authentication
 //!
-//! // Basic auth
-//! let auth = Auth::basic(username.into(), password.into());
-//! let conn = Connection::establish("http://localhost:8529", auth).unwrap();
+//! ```rust
+//! use arangors::Connection;
 //!
-//! // JWT Auth
-//! let auth = Auth::jwt(username.into(), password.into());
-//! let conn = Connection::establish("http://localhost:8529", auth).unwrap();
-//!
-//! // Without Auth
-//! let conn = Connection::establish("http://localhost:8529", Auth::None).unwrap();
-//!
-//! // (Recommended) Handy functions
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
 //! let conn =
 //!     Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
+//! ```
+//!
+//! - No authentication
+//! ```rust, ignore
+//! use arangors::Connection;
 //! let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
 //! ```
 
