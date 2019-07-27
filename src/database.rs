@@ -1,14 +1,14 @@
 //! database contains all struct and enum pertain to arangoDB "database" level.
 //!
 //! AQL query are all executed in database level, so Database offers AQL query.
-use failure::{format_err, Error};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::Arc;
 
+use failure::{format_err, Error};
 use log::{debug, info, trace};
 use reqwest::Client;
-use serde::{de::DeserializeOwned, ser::Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::value::Value;
 use url::Url;
 

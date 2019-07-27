@@ -63,9 +63,9 @@ mod tests;
 #[derive(Debug)]
 pub struct Connection {
     session: Arc<Client>,
-    databases: HashMap<String, Database>,
     arango_url: Url,
-    user: String,
+    username: String,
+    //    role: R,
 }
 
 impl Connection {
@@ -96,22 +96,16 @@ impl Connection {
     }
 
     // -------------------- methods for initialization --------------------
-    /// The most trivial way to establish a connection to arangoDB server.
-    /// Users have to build a `Auth` object themselves.
-    /// The recommended way to establish connection is to use the
-    /// functions that specify the authentication methods:
-    /// - establish_without_auth
-    /// - establish_basic_auth
-    /// - establish_jwt
-    ///
-    /// The most secure way to connect to a arangoDB server is via JWT
-    /// token authentication, along with TLS encryption.
+    /// Establish connection to ArangoDB sever with Auth.
     ///
     /// The connection is establish in the following steps:
     /// 1. validate if it is a arangoDB server at the given base url
     /// 1. set authentication in header
     /// 1. build a http client that holds authentication tokens
     /// 1. construct databases objects for later use
+    ///
+    /// The most secure way to connect to a arangoDB server is via JWT
+    /// token authentication, along with TLS encryption.
     fn establish<S: Into<String>>(arango_url: S, auth: Auth) -> Result<Connection, Error> {
         let mut conn = Connection {
             arango_url: Url::parse(arango_url.into().as_str())?.join("/").unwrap(),
@@ -144,7 +138,7 @@ impl Connection {
             headers.insert(AUTHORIZATION, value.parse().unwrap());
         }
 
-        conn.user = user;
+        conn.username = user;
         conn.session = Arc::new(
             Client::builder()
                 .gzip(true)
@@ -155,11 +149,33 @@ impl Connection {
         Ok(conn)
     }
 
+    /// Establish connection to ArangoDB sever without Authentication.
+    ///
+    /// The target server **MUST DISABLE** authentication for all requests,
+    /// which should only used for **test purpose**.
+    ///
+    /// Disable authentication means all operations are performed by root user.
+    ///
+    /// Example:
+    /// ```rust, ignore
+    /// use arangors::Connection;
+    ///
+    /// let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
+    /// ```
     pub fn establish_without_auth<S: Into<String>>(arango_url: S) -> Result<Connection, Error> {
         trace!("Establish without auth");
         Ok(Connection::establish(arango_url.into(), Auth::None)?)
     }
 
+    /// Establish connection to ArangoDB sever with basic auth.
+    ///
+    /// Example:
+    /// ```rust
+    /// use arangors::Connection;
+    ///
+    /// let conn =
+    ///     Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
+    /// ```
     pub fn establish_basic_auth(
         arango_url: &str,
         username: &str,
@@ -171,6 +187,20 @@ impl Connection {
             Auth::basic(username, password),
         )?)
     }
+
+    /// Establish connection to ArangoDB sever with jwt authentication.
+    ///
+    /// Prefered way to interact with arangoDB server.
+    ///
+    /// JWT token expires after 1 month.
+    ///
+    /// Example:
+    ///
+    /// ```rust
+    /// use arangors::Connection;
+    ///
+    /// let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
+    /// ```
     pub fn establish_jwt(
         arango_url: &str,
         username: &str,
@@ -183,15 +213,18 @@ impl Connection {
         )?)
     }
 
+    /// Get url for remote arangoDB server.
     pub fn get_url(&self) -> &Url {
         &self.arango_url
     }
 
-    /// TODO This method should only be public in this crate when all features
-    /// are implemtented.
+    /// Get HTTP session.
     ///
-    /// By now, users can use this method to get a authorized session to access
-    /// arbitary path on arangoDB Server.
+    /// Users can use this method to get a authorized session to access
+    /// arbitrary path on arangoDB Server.
+    ///
+    /// TODO This method should only be public in this crate when all features
+    ///     are implemented.
     pub fn get_session(&self) -> Arc<Client> {
         Arc::clone(&self.session)
     }
@@ -201,22 +234,7 @@ impl Connection {
     /// This function look up accessible database in cache hash map,
     /// and return a reference of database if found.
     pub fn db(&self, name: &str) -> Option<&Database> {
-        match self.databases.get(name) {
-            Some(database) => Some(&database),
-            None => {
-                info!("Database {} not found.", name);
-                None
-            }
-        }
-    }
-
-    /// Get a hashmap of name-reference for all database.
-    pub fn get_all_db(&self) -> HashMap<String, &Database> {
-        let mut databases: HashMap<String, &Database> = HashMap::new();
-        for (name, database) in self.databases.iter() {
-            databases.insert(name.to_owned(), database);
-        }
-        databases
+        unimplemented!()
     }
 
     /// The last steps of connection establishment is to query the accessible
@@ -228,41 +246,21 @@ impl Connection {
     ///
     /// This function uses the API that is used to retrieve a list of
     /// all databases the current user can access.
-    fn fetch_databases(&mut self) -> Result<&mut Connection, Error> {
-        // an invalid arango_url should never running through initialization
-        // so we assume arango_url is a valid url
-        // When we pass an invalid path, it should panic to eliminate the bug
-        // in development.
-        let url = self.arango_url.join("/_api/database/user").unwrap();
+    fn databases(&mut self) -> Result<Database, Error> {
+        let url = self
+            .arango_url
+            .join(&format!("/_api/user/{}/database", &self.username))
+            .unwrap();
         let resp = self.session.get(url).send()?;
         let result: Vec<String> = serialize_response(resp)?;
-        trace!("Retrieved databases.");
-        for database_name in result.iter() {
-            self.databases.insert(
-                database_name.to_owned(),
-                Database::new(&self, database_name.as_str())?,
-            );
-        }
-        Ok(self)
+        //        Ok()
+        unimplemented!()
     }
 
     pub fn fetch_arango_version(&self) -> Result<Version, Error> {
         let url = self.arango_url.join("/_api/version").unwrap();
         let version: Version = self.session.get(url).send()?.json()?;
         Ok(version)
-    }
-
-    /// List all existing databases in server. As clients may not has the
-    /// permission to access all the databases, this function only return
-    /// a `Vec<String>` instead of a hash map of databases.
-    pub fn list_all_database(&self) -> Result<Vec<&String>, Error> {
-        let mut vec: Vec<&String> = Vec::new();
-
-        for key in self.databases.keys() {
-            vec.push(key);
-        }
-
-        Ok(vec)
     }
 
     /// Get a pointer of current database.
@@ -285,59 +283,60 @@ impl Connection {
     ///
     /// TODO tweak options on ceating database
     pub fn create_database(&mut self, name: &str) -> Result<bool, Error> {
-        let mut map = HashMap::new();
-        map.insert("name", name);
-        let url = self.arango_url.join("/_api/database").unwrap();
-        let resp = self.session.post(url).json(&map).send()?;
-        let result: Response<bool> = try_serialize_response(resp);
-        match result {
-            Response::Ok(resp) => {
-                self.databases
-                    .insert(name.to_owned(), Database::new(&self, name)?);
-                Ok(resp.result)
-            }
-            Response::Err(error) => Err(format_err!("{}", error.message)),
-        }
+        //        let mut map = HashMap::new();
+        //        map.insert("name", name);
+        //        let url = self.arango_url.join("/_api/database").unwrap();
+        //        let resp = self.session.post(url).json(&map).send()?;
+        //        let result: Response<bool> = try_serialize_response(resp);
+        //        match result {
+        //            Response::Ok(resp) => {
+        //                self.databases
+        //                    .insert(name.to_owned(), Database::new(&self, name)?);
+        //                Ok(resp.result)
+        //            }
+        //            Response::Err(error) => Err(format_err!("{}", error.message)),
+        //        }
+        unimplemented!();
     }
 
     /// Drop database with name.
     pub fn drop_database(&self, name: &str) -> Result<bool, Error> {
-        let url_path = format!("/_api/database/{}", name);
-        let url = self.arango_url.join(&url_path).unwrap();
-        let resp = self.session.delete(url).send()?;
-        let result: Response<bool> = try_serialize_response(resp);
-        match result {
-            Response::Ok(resp) => Ok(resp.result),
-            Response::Err(error) => Err(format_err!("{}", error.message)),
-        }
+        //        let url_path = format!("/_api/database/{}", name);
+        //        let url = self.arango_url.join(&url_path).unwrap();
+        //        let resp = self.session.delete(url).send()?;
+        //        let result: Response<bool> = try_serialize_response(resp);
+        //        match result {
+        //            Response::Ok(resp) => Ok(resp.result),
+        //            Response::Err(error) => Err(format_err!("{}", error.message)),
+        //        }
+        unimplemented!()
     }
 
-    /// Refresh the hierarchy of all accessible databases.
-    ///
-    /// This is a expensive method, and all the cached information about
-    /// this server would be refreshed.
-    ///
-    /// Refresh is done in the following steps:
-    /// 1. retrieve the names of all the accessible databases
-    /// 1. for each databases, construct a `Database` object and store them in
-    /// `self.databases` for later use
-    ///
-    /// Note that a `Database` object caches all the accessible collections.
-    ///
-    /// This function uses the API that is used to retrieve a list of
-    /// all databases the current user can access to refresh databases.
-    /// Then each database retrieve a list of available collections.
-    pub fn refresh(&mut self) -> Result<&mut Connection, Error> {
-        self.fetch_databases()
-    }
+    //    /// Refresh the hierarchy of all accessible databases.
+    //    ///
+    //    /// This is a expensive method, and all the cached information about
+    //    /// this server would be refreshed.
+    //    ///
+    //    /// Refresh is done in the following steps:
+    //    /// 1. retrieve the names of all the accessible databases
+    //    /// 1. for each databases, construct a `Database` object and store them in
+    //    /// `self.databases` for later use
+    //    ///
+    //    /// Note that a `Database` object caches all the accessible collections.
+    //    ///
+    //    /// This function uses the API that is used to retrieve a list of
+    //    /// all databases the current user can access to refresh databases.
+    //    /// Then each database retrieve a list of available collections.
+    //    pub fn refresh(&mut self) -> Result<&mut Connection, Error> {
+    //        self.fetch_databases()
+    //    }
 }
 
 impl Default for Connection {
     fn default() -> Connection {
         Connection {
             arango_url: Url::parse("http://127.0.0.1:8529").unwrap(),
-            databases: HashMap::new(),
-            user: String::from("root"),
+            username: String::from("root"),
             session: Arc::new(Client::new()),
         }
     }
