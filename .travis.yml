@@ -53,7 +53,7 @@ before_script:
 script:
   - cargo fmt --all -- --check
   - cargo build --all
-  - RUST_LOG=trace cargo test --all
+  - RUST_LOG=arangors=trace cargo test --all
 
 notifications:
   email:
