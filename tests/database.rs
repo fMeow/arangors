@@ -1,7 +1,7 @@
 use log::trace;
 use pretty_assertions::assert_eq;
 
-use arangors::{AqlQuery, Connection, Cursor, Database};
+use arangors::Connection;
 use common::{
     test_root_and_normal, test_setup, NORMAL_PASSWORD, NORMAL_USERNAME, ROOT_PASSWORD,
     ROOT_USERNAME,
