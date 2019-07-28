@@ -2,7 +2,6 @@ language: rust
 rust:
   - stable
   - beta
-  - nightly
 matrix:
   fast_finish: true
   include:
@@ -53,8 +52,8 @@ before_script:
 
 script:
   - cargo fmt --all -- --check
-  - cargo build --verbose --all
-  - RUST_LOG=arangors=trace cargo test --verbose --all
+  - cargo build --all
+  - RUST_LOG=trace cargo test --all
 
 notifications:
   email:
