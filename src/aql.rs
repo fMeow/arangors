@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 
 use serde::ser::Serialize as SerializeTrait;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_json::value::Value;
 
 #[derive(Debug, Serialize)]

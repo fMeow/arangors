@@ -6,8 +6,6 @@ fn main() {
     env_logger::init();
 
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
-    let databases = conn.list_all_database().unwrap();
-    println!("{:?}", databases);
 
     let database = conn.db("test_db").unwrap();
     let aql = AqlQuery::new("FOR u IN test_collection LIMIT 3 RETURN u");

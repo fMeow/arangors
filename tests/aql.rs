@@ -1,5 +1,5 @@
 use pretty_assertions::{assert_eq, assert_ne};
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use arangors::{AqlQuery, Connection, Document};
@@ -16,6 +16,7 @@ struct User {
 
 #[test]
 fn test_aql_str() {
+    test_setup();
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
     let db = conn.db("test_db").unwrap();
     let result: Vec<Document<User>> = db
@@ -27,6 +28,7 @@ fn test_aql_str() {
 
 #[test]
 fn test_aql() {
+    test_setup();
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
     let db = conn.db("test_db").unwrap();
     let aql = AqlQuery::new(r#"FOR i in test_collection FILTER i.username=="test2" return i"#);
@@ -37,6 +39,7 @@ fn test_aql() {
 
 #[test]
 fn test_aql_bind_vars() {
+    test_setup();
     let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
     let db = conn.db("test_db").unwrap();
     let aql = AqlQuery::new(r#"FOR i in test_collection FILTER i.username==@username return i"#)

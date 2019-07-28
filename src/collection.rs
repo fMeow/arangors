@@ -2,44 +2,47 @@ use failure::Error;
 use std::sync::Arc;
 
 use reqwest::{Client, Url};
-use serde::de::{Deserialize, Deserializer, Error as DeError};
-use serde_derive::Deserialize;
+use serde::de::{Deserializer, Error as DeError};
+use serde::Deserialize;
 
 use super::{Database, Document};
 
 #[derive(Debug)]
-pub struct Collection {
+pub struct Collection<'a> {
     id: String,
     name: String,
     collection_type: CollectionType,
     base_url: Url,
     session: Arc<Client>,
+    phantom: &'a (),
 }
-impl<'a, 'b: 'a> Collection {
+
+impl<'a> Collection<'a> {
     /// Construct Collection given
     ///  Base url should be like `http://localhost:8529/_db/mydb/_api/`
     pub(crate) fn new<T: Into<String>>(
-        database: &'b Database,
+        database: &'a Database,
         name: T,
         id: T,
         collection_type: CollectionType,
-    ) -> Result<Collection, Error> {
+    ) -> Collection<'a> {
         let name = name.into();
         let path = format!("collection/{}/", name.as_str());
-        let url = database.get_url().join(path.as_str())?;
-        Ok(Collection {
+        let url = database.get_url().join(path.as_str()).unwrap();
+        Collection {
             name: name,
             id: id.into(),
             session: database.get_session(),
             base_url: url,
             collection_type,
-        })
+            phantom: database.phantom,
+        }
     }
 
     pub(crate) fn from_response(
-        database: &'b Database,
+        database: &'a Database,
         collection: &CollectionResponse,
-    ) -> Result<Collection, Error> {
+    ) -> Collection<'a> {
         Self::new(
             database,
             collection.name.to_owned(),
@@ -246,6 +249,7 @@ pub enum CollectionStatus {
     Deleted,
     Loading,
 }
+
 impl<'de> Deserialize<'de> for CollectionStatus {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -269,6 +273,7 @@ pub enum CollectionType {
     Document,
     Edge,
 }
+
 impl<'de> Deserialize<'de> for CollectionType {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

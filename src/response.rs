@@ -7,8 +7,8 @@ use std::fmt::Debug;
 use failure::{format_err, Error as FailureError};
 
 use log::{error, trace};
-use serde::de::{self, Deserialize, DeserializeOwned, Deserializer};
-use serde_derive::Deserialize;
+use serde::de::{self, DeserializeOwned, Deserializer};
+use serde::Deserialize;
 use serde_json::value::Value;
 
 use super::aql::QueryStats;
@@ -39,7 +39,7 @@ where
 /// response of success and failure.
 ///
 /// When ArangoDB server response error code, then an error would be cast.
-pub(crate) fn serialize_response<T>(mut resp: reqwest::Response) -> Result<T, FailureError>
+pub(crate) fn serialize_response<T>(resp: reqwest::Response) -> Result<T, FailureError>
 where
     T: DeserializeOwned + Debug,
 {

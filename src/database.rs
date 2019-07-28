@@ -12,53 +12,50 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::value::Value;
 use url::Url;
 
-use super::aql::AqlQuery;
-use super::collection::{Collection, CollectionResponse};
-use super::connection::Connection;
-use super::response::Cursor;
-use super::response::{
+use crate::aql::AqlQuery;
+use crate::collection::{Collection, CollectionResponse};
+use crate::connection::{
+    model::{DatabaseInfo, Version},
+    Connection,
+};
+use crate::response::Cursor;
+use crate::response::{
     serialize_query_response, serialize_response, try_serialize_response, Response,
 };
 
 #[derive(Debug)]
-pub struct Database {
+pub struct ReadOnly;
+
+#[derive(Debug)]
+pub struct ReadWrite;
+
+#[derive(Debug)]
+pub struct Database<'a> {
     name: String,
     base_url: Url,
     session: Arc<Client>,
-    collections: HashMap<String, Collection>,
-    system_collections: HashMap<String, Collection>,
+    pub(crate) phantom: &'a (),
 }
 
-impl<'a, 'b: 'a> Database {
-    ///  Base url should be like `http://localhost:8529/`
-    pub fn new<T: Into<String>>(conn: &'b Connection, name: T) -> Result<Database, Error> {
+impl<'a> Database<'a> {
+    pub(crate) fn new<T: Into<String>, S>(conn: &'a Connection<S>, name: T) -> Database {
         let name = name.into();
-        let path = format!("/_db/{}/_api/", name.as_str());
+        let path = format!("/_db/{}/", name.as_str());
         let url = conn.get_url().join(path.as_str()).unwrap();
-        let mut database = Database {
+        Database {
             name,
             session: conn.get_session(),
             base_url: url,
-            collections: HashMap::new(),
-            system_collections: HashMap::new(),
-        };
-        database.fetch_collections()?;
-        Ok(database)
+            phantom: &conn.phantom,
+        }
     }
     /// Retrieve all collections of this database.
-    ///
-    /// 1. retrieve the names of all collections
-    /// 1. cache collections
-    ///     - for user collection, construct a `Collection` object and store
-    /// them in `self.collections` for later use
-    ///     - for system collection, construct a `Collection` object and store
-    /// them in `self.system_collections` for later use
-    fn fetch_collections(&mut self) -> Result<&mut Database, Error> {
+    pub fn accessible_collections(&self) -> Result<Vec<CollectionResponse>, Error> {
         // an invalid arango_url should never running through initialization
         // so we assume arango_url is a valid url
         // When we pass an invalid path, it should panic to eliminate the bug
         // in development.
-        let url = self.base_url.join("collection").unwrap();
+        let url = self.base_url.join("_api/collection").unwrap();
         trace!(
             "Retrieving collections from {:?}: {}",
             self.name,
@@ -68,19 +65,7 @@ impl<'a, 'b: 'a> Database {
         let result: Vec<CollectionResponse> =
             serialize_response(resp).expect("Failed to serialize Collection response");
         trace!("Collections retrieved");
-
-        for coll in result.iter() {
-            let collection = Collection::from_response(self, coll)?;
-            if coll.is_system {
-                // trace!("System collection: {:?}", coll.name);
-                self.system_collections
-                    .insert(coll.name.to_owned(), collection);
-            } else {
-                trace!("Collection: {:?}", coll.name);
-                self.collections.insert(coll.name.to_owned(), collection);
-            }
-        }
-        Ok(self)
+        Ok(result)
     }
 
     pub fn get_url(&self) -> &Url {
@@ -92,82 +77,14 @@ impl<'a, 'b: 'a> Database {
     }
 
     /// Get collection object with name.
-    ///
-    /// This function look up user collections in cache hash map,
-    /// and return a reference of collection if found.
-    pub fn get_collection(&self, name: &str) -> Option<&Collection> {
-        match self.collections.get(name) {
-            Some(database) => Some(&database),
-            None => {
-                info!("User collection {} not found.", name);
-                None
+    pub fn collection(&self, name: &str) -> Result<Collection, Error> {
+        let collections = self.accessible_collections()?;
+        for collection in &collections {
+            if collection.name.eq(name) {
+                return Ok(Collection::from_response(self, collection));
             }
         }
-    }
-    /// Get system collection object with name.
-    ///
-    /// This function look up system collections in cache hash map,
-    /// and return a reference of collection if found.
-    pub fn get_system_collection(&self, name: &str) -> Option<&Collection> {
-        match self.system_collections.get(name) {
-            Some(database) => Some(&database),
-            None => {
-                info!("System collection {} not found.", name);
-                None
-            }
-        }
-    }
-
-    pub fn has_collection(&self, name: &str) -> bool {
-        let system = match self.get_system_collection(name) {
-            Some(_) => true,
-            None => false,
-        };
-        let user = match self.get_collection(name) {
-            Some(_) => true,
-            None => false,
-        };
-        user | system
-    }
-
-    pub fn list_collections(&self) -> Vec<String> {
-        let mut vec = Vec::new();
-        for (name, _) in self.collections.iter() {
-            vec.push(name.clone())
-        }
-        for (name, _) in self.system_collections.iter() {
-            vec.push(name.clone())
-        }
-        vec
-    }
-
-    pub fn has_user_collection(&self, name: &str) -> bool {
-        match self.get_collection(name) {
-            Some(_) => true,
-            None => false,
-        }
-    }
-    pub fn list_user_collections(&self) -> Vec<String> {
-        let mut vec = Vec::new();
-        for (name, _) in self.collections.iter() {
-            vec.push(name.clone())
-        }
-        vec
-    }
-
-    pub fn has_system_collection(&self, name: &str) -> bool {
-        match self.get_system_collection(name) {
-            Some(_) => true,
-            None => false,
-        }
-    }
-
-    pub fn list_system_collections(&self) -> Vec<String> {
-        let mut vec = Vec::new();
-        for (name, _) in self.system_collections.iter() {
-            vec.push(name.clone())
-        }
-        vec
+        return Err(format_err!("Collection {} not found", name));
     }
 
     pub fn create_edge_collection(&self, name: &str) -> Collection {
@@ -177,33 +94,71 @@ impl<'a, 'b: 'a> Database {
     /// Create a collection via HTTP request and add it into `self.collections`.
     ///
     /// Return a database object if success.
-    pub fn create_collection(&mut self, name: &str) -> Result<bool, Error> {
+    pub fn create_collection(&mut self, name: &str) -> Result<Collection, Error> {
         let mut map = HashMap::new();
         map.insert("name", name);
-        let url = self.base_url.join("/_api/database").unwrap();
+        let url = self.base_url.join("_api/collection").unwrap();
         let resp = self.session.post(url).json(&map).send()?;
         let result: Response<bool> = try_serialize_response(resp);
         match result {
-            Response::Ok(resp) => Ok(resp.result),
+            Response::Ok(resp) => {
+                if resp.result == true {
+                    Ok(self.collection(name)?)
+                } else {
+                    Err(format_err!("Fail to create collection. Reason: {:?}", resp))
+                }
+            }
             Response::Err(error) => Err(format_err!("{}", error.message)),
         }
     }
 
     /// Drops a collection
-    pub fn drop_collection(&self, name: &str) -> Collection {
-        unimplemented!()
+    pub fn drop_collection(&self, name: &str) -> Result<(), Error> {
+        let url_path = format!("_api/collection/{}", name);
+        let url = self.base_url.join(&url_path).unwrap();
+        let resp = self.session.delete(url).send()?;
+        let result: Response<bool> = try_serialize_response(resp);
+        match result {
+            Response::Ok(resp) => {
+                if resp.result == true {
+                    Ok(())
+                } else {
+                    Err(format_err!("Fail to drop collection. Reason: {:?}", resp))
+                }
+            }
+            Response::Err(error) => Err(format_err!("{}", error.message)),
+        }
+    }
+
+    /// Get the version remote arango database server
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    pub fn arango_version(&self) -> Result<Version, Error> {
+        let url = self.base_url.join("_api/version").unwrap();
+        let version: Version = self.session.get(url).send()?.json()?;
+        Ok(version)
+    }
+
+    /// Get information of current database.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    pub fn info(&self) -> Result<DatabaseInfo, Error> {
+        let url = self.base_url.join("_api/database/current").unwrap();
+        let resp = self.session.get(url).send()?;
+        serialize_response(resp)
     }
 
     /// Execute aql query, return a cursor if succeed. The major advantage of
     /// batch query is that cursors contain more information and stats
-    /// about the AQL query, and users can
-    /// fetch results in batch to save memory
+    /// about the AQL query, and users can fetch results in batch to save memory
     /// resources on clients.
     pub fn aql_query_batch<R>(&self, aql: AqlQuery) -> Result<Cursor<R>, Error>
     where
         R: DeserializeOwned + Debug,
     {
-        let url = self.base_url.join("cursor").unwrap();
+        let url = self.base_url.join("_api/cursor").unwrap();
         let resp = self.session.post(url).json(&aql).send()?;
         trace!("{:?}", serde_json::to_string(&aql));
         serialize_query_response(resp)
@@ -216,7 +171,7 @@ impl<'a, 'b: 'a> Database {
     {
         let url = self
             .base_url
-            .join(&format!("cursor/{}", cursor_id))
+            .join(&format!("_api/cursor/{}", cursor_id))
             .unwrap();
         let resp = self.session.put(url).send()?;
 
@@ -276,7 +231,7 @@ impl<'a, 'b: 'a> Database {
     pub fn aql_bind_vars<R>(
         &self,
         query: &str,
-        bind_vars: Vec<(String, Value)>,
+        bind_vars: HashMap<&str, Value>,
     ) -> Result<Vec<R>, Error>
     where
         R: DeserializeOwned + Debug,

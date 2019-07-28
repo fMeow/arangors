@@ -1,34 +1,22 @@
+use log::trace;
 use pretty_assertions::{assert_eq, assert_ne};
-use serde_derive::{Deserialize, Serialize};
 
 use arangors::Connection;
 
 const URL: &str = "http://localhost:8529/";
-pub mod common;
-use common::{test_root_and_normal, test_setup};
 
-#[test]
-fn test_has_collection() {
-    let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
-    let database = conn.db("test_db").unwrap();
-    println!("{:?}", database.list_user_collections());
-    let coll = database.has_collection("test_collection");
-    assert_eq!(coll, true);
-    let coll = database.has_collection("test_collection_non_exists");
-    assert_eq!(coll, false);
-    let coll = database.has_system_collection("_apps");
-    assert_eq!(coll, true);
-    let coll = database.has_system_collection("none");
-    assert_eq!(coll, false);
-}
+pub mod common;
+
+use common::{test_setup, NORMAL_PASSWORD, NORMAL_USERNAME};
 
 #[test]
 fn test_get_collection() {
-    let conn = Connection::establish_jwt(URL, "root", "KWNngteTps7XjrNv").unwrap();
+    test_setup();
+    let conn = Connection::establish_jwt(URL, NORMAL_USERNAME, NORMAL_PASSWORD).unwrap();
     let database = conn.db("test_db").unwrap();
-    println!("{:?}", database.list_user_collections());
-    let coll = database.get_collection("test_collection");
-    assert_eq!(coll.is_none(), false);
-    let coll = database.get_collection("test_collection_non_exists");
-    assert_eq!(coll.is_none(), true);
+    trace!("{:?}", database.accessible_collections());
+    let coll = database.collection("test_collection");
+    assert_eq!(coll.is_err(), false);
+    let coll = database.collection("test_collection_non_exists");
+    assert_eq!(coll.is_err(), true);
 }
