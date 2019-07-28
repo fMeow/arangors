@@ -1,10 +1,9 @@
-use pretty_assertions::{assert_eq, assert_ne};
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use pretty_assertions::assert_eq;
+use serde::Deserialize;
 
 use arangors::{AqlQuery, Connection, Document};
 pub mod common;
-use common::{test_root_and_normal, test_setup};
+use common::test_setup;
 
 const URL: &str = "http://localhost:8529/";
 

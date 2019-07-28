@@ -1,4 +1,4 @@
-use arangors::{AqlQuery, Connection, Cursor, Database};
+use arangors::{AqlQuery, Connection};
 use serde_json::value::Value;
 const URL: &str = "http://localhost:8529";
 

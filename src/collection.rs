@@ -1,4 +1,3 @@
-use failure::Error;
 use std::sync::Arc;
 
 use reqwest::{Client, Url};
@@ -207,22 +206,22 @@ impl<'a> Collection<'a> {
     /// Creates a new document from the document given in the body, unless
     /// there is already a document with the _key given. If no _key is given, a
     /// new unique _key is generated automatically.
-    pub fn create_document<T>(&self, doc: Document<T>) {
+    pub fn create_document<T>(&self, _doc: Document<T>) {
         unimplemented!()
     }
 
     /// Partially updates the document
-    pub fn update_document<T>(&self, doc: Document<T>) {
+    pub fn update_document<T>(&self, _doc: Document<T>) {
         unimplemented!()
     }
 
     /// Replaces the document
-    pub fn replace_document<T>(&self, doc: Document<T>) {
+    pub fn replace_document<T>(&self, _doc: Document<T>) {
         unimplemented!()
     }
 
     /// Removes a document
-    pub fn remove_document<T>(&self, doc: Document<T>) {
+    pub fn remove_document<T>(&self, _doc: Document<T>) {
         unimplemented!()
     }
 }

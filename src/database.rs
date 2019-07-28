@@ -6,9 +6,9 @@ use std::fmt::Debug;
 use std::sync::Arc;
 
 use failure::{format_err, Error};
-use log::{debug, info, trace};
+use log::trace;
 use reqwest::Client;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::de::DeserializeOwned;
 use serde_json::value::Value;
 use url::Url;
 
@@ -87,7 +87,7 @@ impl<'a> Database<'a> {
         return Err(format_err!("Collection {} not found", name));
     }
 
-    pub fn create_edge_collection(&self, name: &str) -> Collection {
+    pub fn create_edge_collection(&self, _name: &str) -> Collection {
         unimplemented!()
     }
 

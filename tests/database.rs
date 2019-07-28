@@ -1,6 +1,5 @@
 use log::trace;
-use pretty_assertions::{assert_eq, assert_ne};
-use serde_json::value::Value;
+use pretty_assertions::assert_eq;
 
 use arangors::{AqlQuery, Connection, Cursor, Database};
 use common::{

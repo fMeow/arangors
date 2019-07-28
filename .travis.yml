@@ -58,4 +58,11 @@ script:
 notifications:
   email:
     on_success: never
-
+deploy:
+  provider: cargo
+  token:
+    secure: WVA6vaPw37s/PC5R1AUZo/sTBcVwvL8T/IL4xTLAxSncPR10kgtOlSG3hCBFLmnYwsFzWqIWDb8P2+RqSwD75flp6RILInM4lrrfl8CFD1nAVP6+FdpLCQn3CG1IAdQucXFFa2eUkQtbXi0XeH2KoH5kIRY8M+bjc1D1zqzPjoZ83BjdOLazIdeh3RCYPgA9xCrufvPdU5C84kbb6hLAAuwhP3rePW/jVfDrI0F9REyJ7RhYFmLqW/qABTWkGYYHvkcl6IdexrNZ5olhRSdXm7ZNt+MIALiuS4KlKLJxUF+acUxdDkv3bDh4F6nbwjtdPnhb6x5O5jovUJXDLQr43DPJ2IOdS4oTNnv/4sZD581Titosq5YmGD7ojrOs6KUa6D7zKrTJVj+VtoXxVDC4ZRHoffMzqyhVSV+1i+RGtlMF6wUsIosXMF7IwrdsB1IHnYx5972KTjdivA4Exu25n4wOBDiE5nXjApDK1PBwRDxoRUiZdZKkW2Abh0Zy0vzdRoPrNqZ9H5/rPzaU+sETOZM4Kxe9clYMwHI6cGJLKaZf9noI+yxwcCsBT7OYEZS8/CK4jTy2BiLRmiyyffs9p9CmZYo2q4umkVMU3HDZLE+k11QpPsBUhv4aI0YTBJofhmIWv2oJ1k9MsrztmTwtE1MKN8w1RexjTgsMrX9QnDI=
+  on:
+    tags: true
+    branch: master
+    condition: "$TRAVIS_RUST_VERSION = stable"

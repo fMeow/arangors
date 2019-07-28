@@ -29,19 +29,19 @@
 use std::{collections::HashMap, sync::Arc};
 
 use failure::{format_err, Error};
-use log::{error, info, trace};
+use log::{info, trace};
 use reqwest::{
     header::{HeaderMap, AUTHORIZATION, SERVER},
     Client, Url,
 };
-use serde::de::value::StrDeserializer;
+
 use serde::{Deserialize, Serialize};
 
 use super::database::Database;
 use super::response::{serialize_response, try_serialize_response, Response};
 
 use self::auth::Auth;
-use self::model::{DatabaseInfo, Version};
+
 use self::role::{Admin, Normal};
 
 mod auth;

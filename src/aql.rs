@@ -8,11 +8,8 @@
 ///     - (optional) construct AqlOption.
 /// 1. (TODO) locally validate aql queries.
 /// 1. perform AQL query via `self.session`.
-use failure::{format_err, Error};
 use std::collections::HashMap;
-use std::fmt::Debug;
 
-use serde::ser::Serialize as SerializeTrait;
 use serde::{Deserialize, Serialize};
 use serde_json::value::Value;
 

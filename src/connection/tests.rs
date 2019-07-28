@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-
-use log::{debug, info};
-use pretty_assertions::{assert_eq, assert_ne};
-use reqwest::{header::AUTHORIZATION, Url};
+use log::info;
+use pretty_assertions::assert_eq;
+use reqwest::Url;
 
 use super::*;
 
