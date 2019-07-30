@@ -320,7 +320,7 @@ impl Connection<Admin> {
     /// # Example
     /// ```rust
     /// use arangors::Connection;
-    /// let conn_normal = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
+    /// let conn_normal = Connection::establish_jwt("http://localhost:8529", "root", "KWNngteTps7XjrNv").unwrap();
     /// // consume normal connection and convert it into admin connection
     /// let conn_admin = conn_normal.into_admin().unwrap();
     /// let result = conn_admin.create_database("new_db").unwrap();
