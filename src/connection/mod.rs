@@ -323,9 +323,10 @@ impl Connection<Admin> {
     /// let conn_normal = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
     /// // consume normal connection and convert it into admin connection
     /// let conn_admin = conn_normal.into_admin().unwrap();
-    /// let result = conn.create_database("new_db").unwrap();
+    /// let result = conn_admin.create_database("new_db").unwrap();
     ///
-    /// let result = conn.drop_database("new_db").unwrap();
+    /// let mut conn_admin = conn_admin;
+    /// let result = conn_admin.drop_database("new_db").unwrap();
     /// ```
     /// TODO tweak options on creating database
     pub fn create_database(&self, name: &str) -> Result<Database, Error> {
