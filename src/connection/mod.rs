@@ -317,6 +317,16 @@ impl Connection<Admin> {
     /// If creation fails, an Error is cast. Otherwise, a bool is returned to
     /// indicate whether the database is correctly created.
     ///
+    /// # Example
+    /// ```rust
+    /// use arangors::Connection;
+    /// let conn_normal = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
+    /// // consume normal connection and convert it into admin connection
+    /// let conn_admin = conn_normal.into_admin().unwrap();
+    /// let result = conn.create_database("new_db").unwrap();
+    ///
+    /// let result = conn.drop_database("new_db").unwrap();
+    /// ```
     /// TODO tweak options on creating database
     pub fn create_database(&self, name: &str) -> Result<Database, Error> {
         let mut map = HashMap::new();
@@ -337,6 +347,10 @@ impl Connection<Admin> {
     }
 
     /// Drop database with name.
+    ///
+    /// This method require a `&mut self`, which means no other reference
+    /// to this `Connection` object are allowed. This design avoid references
+    /// to drop database at compile time.
     pub fn drop_database(&mut self, name: &str) -> Result<(), Error> {
         let url_path = format!("/_api/database/{}", name);
         let url = self.arango_url.join(&url_path).unwrap();
