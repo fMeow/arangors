@@ -120,13 +120,14 @@ classes:
 
 - batch query
 
-- `aql_query_batch`
-- `aql_next_batch`
+    - `aql_query_batch`
+    - `aql_next_batch`
 
 - query to fetch all results
-- `aql_str`
-- `aql_bind_vars`
-- `aql_query`
+
+    - `aql_str`
+    - `aql_bind_vars`
+    - `aql_query`
 
 This later category provides a convenient high level API, whereas batch
 query offers more control.
