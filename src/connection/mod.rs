@@ -46,8 +46,6 @@ use self::role::{Admin, Normal};
 
 mod auth;
 pub mod model;
-#[cfg(test)]
-mod tests;
 
 pub mod role {
     #[derive(Debug)]

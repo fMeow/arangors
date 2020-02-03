@@ -7,12 +7,16 @@ const URL: &str = "http://localhost:8529/";
 
 pub mod common;
 
-use common::{test_setup, NORMAL_PASSWORD, NORMAL_USERNAME};
+use common::{test_setup, get_arangodb_host, get_normal_user, get_normal_password};
 
 #[test]
 fn test_get_collection() {
     test_setup();
-    let conn = Connection::establish_jwt(URL, NORMAL_USERNAME, NORMAL_PASSWORD).unwrap();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let conn = Connection::establish_jwt(&host, &user, &password).unwrap();
     let database = conn.db("test_db").unwrap();
     trace!("{:?}", database.accessible_collections());
     let coll = database.collection("test_collection");

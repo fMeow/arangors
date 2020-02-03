@@ -2,7 +2,7 @@ use pretty_assertions::assert_eq;
 
 use arangors::connection::Permission;
 use arangors::Connection;
-use common::{test_root_and_normal, test_setup, NORMAL_PASSWORD, NORMAL_USERNAME};
+use common::{test_root_and_normal, test_setup, get_arangodb_host, get_root_user, get_root_password, get_normal_user, get_normal_password, NORMAL_USERNAME};
 
 pub mod common;
 
@@ -11,7 +11,11 @@ const URL: &str = "http://localhost:8529/";
 #[test]
 fn test_list_databases() {
     test_setup();
-    let conn = Connection::establish_jwt(URL, NORMAL_USERNAME, NORMAL_PASSWORD).unwrap();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let conn = Connection::establish_jwt(&host, &user, &password).unwrap();
     let dbs = conn.accessible_databases().unwrap();
 
     assert_eq!(dbs.contains_key("test_db"), true);
@@ -27,15 +31,23 @@ fn test_list_databases() {
 #[test]
 fn test_get_url() {
     test_setup();
-    let conn = Connection::establish_jwt(URL, NORMAL_USERNAME, NORMAL_PASSWORD).unwrap();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let conn = Connection::establish_jwt(&host, &user, &password).unwrap();
     let url = conn.get_url().clone().into_string();
-    assert_eq!(url, URL)
+    assert_eq!(url, host)
 }
 
 #[test]
 fn test_get_database() {
     test_setup();
-    let conn = Connection::establish_jwt(URL, NORMAL_USERNAME, NORMAL_PASSWORD).unwrap();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let conn = Connection::establish_jwt(&host, &user, &password).unwrap();
     let database = conn.db("test_db");
     assert_eq!(database.is_err(), false);
     let database = conn.db("test_db_non_exist");
@@ -45,9 +57,13 @@ fn test_get_database() {
 #[test]
 fn test_basic_auth() {
     test_setup();
-    let conn = Connection::establish_jwt(URL, NORMAL_USERNAME, NORMAL_PASSWORD).unwrap();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let conn = Connection::establish_jwt(&host, &user, &password).unwrap();
     let session = conn.get_session();
-    let resp = session.get(URL).send().unwrap();
+    let resp = session.get(&host).send().unwrap();
     let headers = resp.headers();
     assert_eq!(headers.get("Server").unwrap(), "ArangoDB");
 }
@@ -56,9 +72,10 @@ fn test_basic_auth() {
 fn test_jwt() {
     test_setup();
     fn jwt(user: &str, passwd: &str) {
-        let conn = Connection::establish_jwt(URL, user, passwd).unwrap();
+        let host = get_arangodb_host();
+        let conn = Connection::establish_jwt(&host, user, passwd).unwrap();
         let session = conn.get_session();
-        let resp = session.get(URL).send().unwrap();
+        let resp = session.get(&host).send().unwrap();
         let headers = resp.headers();
         assert_eq!(headers.get("Server").unwrap(), "ArangoDB");
     }

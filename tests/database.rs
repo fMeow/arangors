@@ -3,19 +3,21 @@ use pretty_assertions::assert_eq;
 
 use arangors::Connection;
 use common::{
-    test_root_and_normal, test_setup, NORMAL_PASSWORD, NORMAL_USERNAME, ROOT_PASSWORD,
-    ROOT_USERNAME,
+    test_root_and_normal, test_setup, get_arangodb_host, get_root_user, get_root_password, get_normal_user, get_normal_password,
 };
 
 pub mod common;
 
-const URL: &str = "http://localhost:8529/";
 const NEW_DB_NAME: &str = "example";
 
 #[test]
 fn test_create_and_drop_database() {
     test_setup();
-    let conn = Connection::establish_jwt(URL, ROOT_USERNAME, ROOT_PASSWORD)
+    let host = get_arangodb_host();
+    let root_user = get_root_user();
+    let root_password = get_root_password();
+
+    let conn = Connection::establish_jwt(&host, &root_user, &root_password)
         .unwrap()
         .into_admin()
         .unwrap();
@@ -39,8 +41,10 @@ fn test_create_and_drop_database() {
 #[test]
 fn test_fetch_current_database_info() {
     test_setup();
+
     fn fetch_current_database(user: &str, passwd: &str) {
-        let conn = Connection::establish_jwt(URL, user, passwd).unwrap();
+        let host = get_arangodb_host();
+        let conn = Connection::establish_jwt(&host, user, passwd).unwrap();
         let db = conn.db("test_db").unwrap();
         let info = db.info();
         match info {
@@ -57,7 +61,11 @@ fn test_fetch_current_database_info() {
 #[test]
 fn test_get_version() {
     test_setup();
-    let conn = Connection::establish_jwt(URL, NORMAL_USERNAME, NORMAL_PASSWORD).unwrap();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let conn = Connection::establish_jwt(&host, &user, &password).unwrap();
     let db = conn.db("test_db").unwrap();
     let version = db.arango_version().unwrap();
     trace!("{:?}", version);
