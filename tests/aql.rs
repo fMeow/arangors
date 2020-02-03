@@ -4,9 +4,7 @@ use serde::Deserialize;
 use arangors::{AqlQuery, Connection, Document};
 pub mod common;
 use common::test_setup;
-use crate::common::{get_arangodb_host, get_normal_user, get_normal_password, get_root_user, get_root_password};
-
-const URL: &str = "http://localhost:8529/";
+use crate::common::{get_arangodb_host, get_root_user, get_root_password};
 
 #[derive(Deserialize, Debug)]
 struct User {

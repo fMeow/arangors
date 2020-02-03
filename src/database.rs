@@ -13,14 +13,14 @@ use serde_json::value::Value;
 use url::Url;
 
 use crate::aql::AqlQuery;
-use crate::collection::{Collection, CollectionResponse};
+use crate::collection::{Collection, CollectionResponse, CollectionDetails};
 use crate::connection::{
     model::{DatabaseInfo, Version},
     Connection,
 };
-use crate::response::Cursor;
+use crate::response::{Cursor, serialize};
 use crate::response::{
-    serialize_query_response, serialize_response, try_serialize_response, Response,
+    serialize_query_response, serialize_response
 };
 
 #[derive(Debug)]
@@ -98,17 +98,15 @@ impl<'a> Database<'a> {
         let mut map = HashMap::new();
         map.insert("name", name);
         let url = self.base_url.join("_api/collection").unwrap();
-        let resp = self.session.post(url).json(&map).send()?;
-        let result: Response<bool> = try_serialize_response(resp);
-        match result {
-            Response::Ok(resp) => {
-                if resp.result == true {
-                    Ok(self.collection(name)?)
-                } else {
-                    Err(format_err!("Fail to create collection. Reason: {:?}", resp))
-                }
+        let mut resp = self.session.post(url).json(&map).send()?;
+
+        let result: CollectionDetails = serialize(&mut resp)?;
+
+        match result.error {
+            true => Err(format_err!("Fail to create collection. Reason: {:?}", resp)),
+            false => {
+                Ok(self.collection(name)?)
             }
-            Response::Err(error) => Err(format_err!("{}", error.message)),
         }
     }
 
@@ -116,17 +114,15 @@ impl<'a> Database<'a> {
     pub fn drop_collection(&self, name: &str) -> Result<(), Error> {
         let url_path = format!("_api/collection/{}", name);
         let url = self.base_url.join(&url_path).unwrap();
-        let resp = self.session.delete(url).send()?;
-        let result: Response<bool> = try_serialize_response(resp);
-        match result {
-            Response::Ok(resp) => {
-                if resp.result == true {
-                    Ok(())
-                } else {
-                    Err(format_err!("Fail to drop collection. Reason: {:?}", resp))
-                }
+        let mut resp = self.session.delete(url).send()?;
+
+        let result: CollectionDetails = serialize(&mut resp)?;
+
+        match result.error {
+            true => Err(format_err!("Fail to create collection. Reason: {:?}", resp)),
+            false => {
+                Ok(())
             }
-            Response::Err(error) => Err(format_err!("{}", error.message)),
         }
     }
 

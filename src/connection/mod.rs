@@ -180,7 +180,7 @@ impl Connection<Normal> {
         };
         conn.validate_server()?;
 
-        let mut user: String;
+        let user: String;
         let authorization = match auth {
             Auth::Basic(cred) => {
                 user = String::from(cred.username);

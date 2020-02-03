@@ -2,11 +2,9 @@ use pretty_assertions::assert_eq;
 
 use arangors::connection::Permission;
 use arangors::Connection;
-use common::{test_root_and_normal, test_setup, get_arangodb_host, get_root_user, get_root_password, get_normal_user, get_normal_password, NORMAL_USERNAME};
+use common::{test_root_and_normal, test_setup, get_arangodb_host, get_normal_user, get_normal_password};
 
 pub mod common;
-
-const URL: &str = "http://localhost:8529/";
 
 #[test]
 fn test_list_databases() {

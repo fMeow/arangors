@@ -71,6 +71,29 @@ where
     response
 }
 
+/// There are different type of json object when requests to arangoDB
+/// server is accepted or not. Here provides an abstraction for
+/// response related to collection operations (CRUD)
+///
+/// When ArangoDB server response error code, then an error would be cast.
+pub(crate) fn serialize<T>(resp: &mut reqwest::Response) -> Result<T, FailureError>
+    where
+        T: DeserializeOwned + Debug,
+{
+    let response_text = resp.text().unwrap();
+    let result: T = serde_json::from_str(response_text.as_str())
+        .map_err(|err| {
+            error!(
+                "Failed to serialize.\n\tResponse: {:?} \n\tText: {:?}",
+                resp, response_text
+            );
+            err
+        })?;
+
+    Ok(result)
+}
+
+
 /// A enum of response contains all the case clients will encounter:
 /// - Query result (Cursor)
 /// - Error
