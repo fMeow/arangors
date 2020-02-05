@@ -3,9 +3,9 @@
 # Run the scrpit as follows from your terminal before starting 'cargo test':
 # . ./init_db.sh
 
-export ARANGODB_HOST="10.20.1.240:8529/"
+export ARANGODB_HOST="localhost:8529/"
 export ARANGO_ROOT_USER="root"
-export ARANGO_ROOT_PASSWORD="Portugal.01"
+export ARANGO_ROOT_PASSWORD="KWNngteTps7XjrNv"
 export ARANGO_USER="username"
 export ARANGO_PASSWORD="password"
 
