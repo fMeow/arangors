@@ -1,5 +1,4 @@
 use std::env;
-
 pub const ARANGODB_HOST: &str = "http://localhost:8529/";
 
 pub const ROOT_USERNAME: &str = "root";
@@ -12,7 +11,7 @@ pub fn get_root_user() -> String {
     let root_user = env::var("ARANGO_ROOT_USER");
 
     match root_user {
-        Err(e) => ROOT_USERNAME.to_owned(),
+        Err(_e) => ROOT_USERNAME.to_owned(),
         Ok(s) => s,
     }
 }
@@ -21,7 +20,7 @@ pub fn get_root_password() -> String {
     let password = env::var("ARANGO_ROOT_PASSWORD");
 
     match password {
-        Err(e) => ROOT_PASSWORD.to_owned(),
+        Err(_e) => ROOT_PASSWORD.to_owned(),
         Ok(s) => s,
     }
 }
@@ -30,7 +29,7 @@ pub fn get_normal_user() -> String {
     let user = env::var("ARANGO_USER");
 
     match user {
-        Err(e) => NORMAL_USERNAME.to_owned(),
+        Err(_e) => NORMAL_USERNAME.to_owned(),
         Ok(s) => s,
     }
 }
@@ -38,8 +37,8 @@ pub fn get_normal_user() -> String {
 pub fn get_normal_password() -> String {
     let password = env::var("ARANGO_PASSWORD");
 
-    match user {
-        Err(e) => NORMAL_PASSWORD.to_owned(),
+    match password {
+        Err(_e) => NORMAL_PASSWORD.to_owned(),
         Ok(s) => s,
     }
 }
@@ -47,8 +46,8 @@ pub fn get_normal_password() -> String {
 pub fn get_arangodb_host() -> String {
     let host = env::var("ARANGODB_HOST");
 
-    match user {
-        Err(e) => NORMAL_USERNAME.to_owned(),
+    match host {
+        Err(_e) => ARANGODB_HOST.to_owned(),
         Ok(s) => format!("http://{}", s),
     }
 }
