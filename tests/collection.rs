@@ -5,7 +5,7 @@ use arangors::Connection;
 
 pub mod common;
 
-use common::{test_setup, get_arangodb_host, get_normal_user, get_normal_password};
+use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
 
 #[test]
 fn test_get_collection() {

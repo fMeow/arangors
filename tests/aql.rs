@@ -3,8 +3,8 @@ use serde::Deserialize;
 
 use arangors::{AqlQuery, Connection, Document};
 pub mod common;
+use crate::common::{get_arangodb_host, get_root_password, get_root_user};
 use common::test_setup;
-use crate::common::{get_arangodb_host, get_root_user, get_root_password};
 
 #[derive(Deserialize, Debug)]
 struct User {

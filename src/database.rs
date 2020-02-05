@@ -13,15 +13,13 @@ use serde_json::value::Value;
 use url::Url;
 
 use crate::aql::AqlQuery;
-use crate::collection::{Collection, CollectionResponse, CollectionDetails};
+use crate::collection::{Collection, CollectionDetails, CollectionResponse};
 use crate::connection::{
     model::{DatabaseInfo, Version},
     Connection,
 };
-use crate::response::{Cursor, serialize};
-use crate::response::{
-    serialize_query_response, serialize_response
-};
+use crate::response::{serialize, Cursor};
+use crate::response::{serialize_query_response, serialize_response};
 
 #[derive(Debug)]
 pub struct ReadOnly;
@@ -104,9 +102,7 @@ impl<'a> Database<'a> {
 
         match result.error {
             true => Err(format_err!("Fail to create collection. Reason: {:?}", resp)),
-            false => {
-                Ok(self.collection(name)?)
-            }
+            false => Ok(self.collection(name)?),
         }
     }
 
@@ -120,9 +116,7 @@ impl<'a> Database<'a> {
 
         match result.error {
             true => Err(format_err!("Fail to create collection. Reason: {:?}", resp)),
-            false => {
-                Ok(())
-            }
+            false => Ok(()),
         }
     }
 

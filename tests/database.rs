@@ -3,7 +3,8 @@ use pretty_assertions::assert_eq;
 
 use arangors::Connection;
 use common::{
-    test_root_and_normal, test_setup, get_arangodb_host, get_root_user, get_root_password, get_normal_user, get_normal_password,
+    get_arangodb_host, get_normal_password, get_normal_user, get_root_password, get_root_user,
+    test_root_and_normal, test_setup,
 };
 
 pub mod common;

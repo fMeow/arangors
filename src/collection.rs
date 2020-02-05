@@ -7,7 +7,7 @@ use serde::Deserialize;
 use super::{Database, Document};
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all="camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct CollectionKeyOptions {
     pub allow_user_keys: bool,
     pub increment: Option<u32>,
@@ -17,7 +17,7 @@ pub struct CollectionKeyOptions {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(rename_all="camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct CollectionDetails {
     pub cache_enabled: Option<bool>,
     pub count: Option<u32>,
