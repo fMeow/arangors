@@ -6,6 +6,38 @@ use serde::Deserialize;
 
 use super::{Database, Document};
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionKeyOptions {
+    pub allow_user_keys: bool,
+    pub increment: Option<u32>,
+    pub last_value: Option<u32>,
+    pub offset: Option<u32>,
+    pub r#type: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionDetails {
+    pub cache_enabled: Option<bool>,
+    pub count: Option<u32>,
+    pub code: u16,
+    pub error: bool,
+    pub error_message: Option<String>,
+    pub error_num: Option<u16>,
+    pub globally_unique_id: Option<String>,
+    pub id: Option<String>,
+    pub is_system: Option<bool>,
+    pub key_options: Option<CollectionKeyOptions>,
+    pub name: Option<String>,
+    pub object_id: Option<String>,
+    pub status: Option<u16>,
+    pub status_string: Option<String>,
+    pub r#type: Option<u16>,
+    pub wait_for_sync: Option<bool>,
+    pub write_concern: Option<u16>,
+}
+
 #[derive(Debug)]
 pub struct Collection<'a> {
     id: String,

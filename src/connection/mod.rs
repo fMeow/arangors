@@ -46,8 +46,6 @@ use self::role::{Admin, Normal};
 
 mod auth;
 pub mod model;
-#[cfg(test)]
-mod tests;
 
 pub mod role {
     #[derive(Debug)]
@@ -182,7 +180,7 @@ impl Connection<Normal> {
         };
         conn.validate_server()?;
 
-        let mut user: String;
+        let user: String;
         let authorization = match auth {
             Auth::Basic(cred) => {
                 user = String::from(cred.username);
