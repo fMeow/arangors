@@ -5,29 +5,23 @@ use std::fmt;
 use std::fmt::Debug;
 
 use failure::{format_err, Error as FailureError};
-
 use log::{error, trace};
-use serde::de::{self, DeserializeOwned, Deserializer};
-use serde::Deserialize;
+use serde::{
+    de::{self, DeserializeOwned, Deserializer},
+    Deserialize,
+};
 use serde_json::value::Value;
 
 use super::aql::QueryStats;
 
-pub(crate) fn serialize_query_response<T>(
-    mut resp: reqwest::Response,
-) -> Result<Cursor<T>, FailureError>
+pub(crate) fn serialize_query_response<T>(resp: &str) -> Result<Cursor<T>, FailureError>
 where
     T: DeserializeOwned + Debug,
 {
-    let response_text = resp.text()?;
-    let response: QueryResponse<T> =
-        serde_json::from_str(response_text.as_str()).map_err(|err| {
-            error!(
-                "Failed to serialize.\n\tResponse: {:?} \n\tText: {:?}",
-                resp, response_text
-            );
-            err
-        })?;
+    let response: QueryResponse<T> = serde_json::from_str(resp).map_err(|err| {
+        error!("Failed to serialize: {:?}", resp);
+        err
+    })?;
     match response {
         QueryResponse::Ok(resp) => Ok(resp),
         QueryResponse::Err(error) => Err(format_err!("{}", error.message)),
@@ -39,11 +33,11 @@ where
 /// response of success and failure.
 ///
 /// When ArangoDB server response error code, then an error would be cast.
-pub(crate) fn serialize_response<T>(resp: reqwest::Response) -> Result<T, FailureError>
+pub(crate) fn serialize_response<T>(text: &str) -> Result<T, FailureError>
 where
     T: DeserializeOwned + Debug,
 {
-    let response = try_serialize_response(resp);
+    let response: Response<T> = serde_json::from_str(text)?;
     match response {
         Response::Ok(resp) => Ok(resp.result),
         Response::Err(error) => Err(format_err!("{}", error.message)),
@@ -51,41 +45,16 @@ where
 }
 
 /// There are different type of json object when requests to arangoDB
-/// server is accepted or not.
-/// It would return error if response error code.
-/// TODO more intuitive response error enum
-pub(crate) fn try_serialize_response<T>(mut resp: reqwest::Response) -> Response<T>
-where
-    T: DeserializeOwned + Debug,
-{
-    let response_text = resp.text().unwrap();
-    let response: Response<T> = serde_json::from_str(response_text.as_str())
-        .map_err(|err| {
-            error!(
-                "Failed to serialize.\n\tResponse: {:?} \n\tText: {:?}",
-                resp, response_text
-            );
-            err
-        })
-        .unwrap();
-    response
-}
-
-/// There are different type of json object when requests to arangoDB
 /// server is accepted or not. Here provides an abstraction for
 /// response related to collection operations (CRUD)
 ///
 /// When ArangoDB server response error code, then an error would be cast.
-pub(crate) fn serialize<T>(resp: &mut reqwest::Response) -> Result<T, FailureError>
+pub(crate) fn serialize<T>(resp: &str) -> Result<T, FailureError>
 where
     T: DeserializeOwned + Debug,
 {
-    let response_text = resp.text().unwrap();
-    let result: T = serde_json::from_str(response_text.as_str()).map_err(|err| {
-        error!(
-            "Failed to serialize.\n\tResponse: {:?} \n\tText: {:?}",
-            resp, response_text
-        );
+    let result: T = serde_json::from_str(resp).map_err(|err| {
+        error!("Failed to serialize: {:?}", resp,);
         err
     })?;
 
@@ -102,7 +71,7 @@ where
 #[derive(Debug)]
 pub enum QueryResponse<T> {
     Ok(Cursor<T>),
-    Err(Error),
+    Err(ServerError),
 }
 
 impl<'de, T> Deserialize<'de> for QueryResponse<T>
@@ -123,7 +92,7 @@ where
         let rest = Value::Object(map);
 
         if error {
-            Error::deserialize(rest)
+            ServerError::deserialize(rest)
                 .map(QueryResponse::Err)
                 .map_err(de::Error::custom)
         } else {
@@ -142,9 +111,9 @@ where
 /// Never transpose the order of `Query` and `Success` as serde deserialize
 /// response in order. And `Query` is just a super set of `Success`
 #[derive(Debug)]
-pub enum Response<T> {
+pub(crate) enum Response<T> {
     Ok(Success<T>),
-    Err(Error),
+    Err(ServerError),
 }
 
 impl<'de, T> Deserialize<'de> for Response<T>
@@ -165,7 +134,7 @@ where
         let rest = Value::Object(map);
 
         if error {
-            Error::deserialize(rest)
+            ServerError::deserialize(rest)
                 .map(Response::Err)
                 .map_err(de::Error::custom)
         } else {
@@ -175,9 +144,9 @@ where
         }
     }
 }
+
 #[derive(Deserialize, Debug)]
 pub struct Success<T> {
-    pub(crate) error: bool,
     pub(crate) code: u16,
     pub(crate) result: T,
 }
@@ -189,7 +158,7 @@ impl<T: fmt::Display> fmt::Display for Success<T> {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct Error {
+pub struct ServerError {
     pub(crate) error: bool,
     pub(crate) code: u16,
     #[serde(rename = "errorNum")]
@@ -198,7 +167,7 @@ pub struct Error {
     pub(crate) message: String,
 }
 
-impl Error {
+impl ServerError {
     /// Get the HTTP status code of an error response.
     pub fn get_code(&self) -> u16 {
         self.code

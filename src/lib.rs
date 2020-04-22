@@ -1,6 +1,6 @@
 //! # arangors
 //!
-//! [![Build Status](https://travis-ci.org/Guoli-Lyu/arangors.svg?branch=master)](https://travis-ci.org/Guoli-Lyu/arangors)
+//! [![Build Status](https://travis-ci.org/fMeow/arangors.svg?branch=master)](https://travis-ci.org/fMeow/arangors)
 //! [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 //! [![Crates.io](https://img.shields.io/crates/v/arangors.svg)](https://crates.io/crates/arangors)
 //! [![arangors](https://docs.rs/arangors/badge.svg)](https://docs.rs/arangors)
@@ -12,12 +12,13 @@
 //! execute AQL query, manage arangoDB in an easy and intuitive way.
 //!
 //! ## NOTICE
-//! `arangors` will stay **synchronous** until the async/await syntax are available in stable channel.
+//! `arangors` will stay **synchronous** until the async/await syntax are
+//! available in stable channel.
 //!
 //! ## Philosophy of arangors
 //!
-//! `arangors` is targeted at ergonomic, intuitive and OOP-like API for ArangoDB,
-//! both top level and low level API for users' choice.
+//! `arangors` is targeted at ergonomic, intuitive and OOP-like API for
+//! ArangoDB, both top level and low level API for users' choice.
 //!
 //! Overall architecture of arangoDB:
 //!
@@ -47,11 +48,14 @@
 //!
 //! - (WIP) Milestone 0.2.x
 //!
-//! Remove cache behaviour and fix severe bugs in 0.2 that only root user can have access to arangoDB, which impose breaking API changes.
+//! Remove cache behaviour and fix severe bugs in 0.2 that only root user can
+//! have access to arangoDB, which impose breaking API changes.
 //!
-//! Fill the unimplemented API in `Connection`, `Database`, `Collection` and `Document`.
+//! Fill the unimplemented API in `Connection`, `Database`, `Collection` and
+//! `Document`.
 //!
-//! In this stage, all operations available for database, collection and document should be implemented.
+//! In this stage, all operations available for database, collection and
+//! document should be implemented.
 //!
 //! - Milestone 0.3.x
 //!
@@ -86,7 +90,7 @@
 //! // (Recommended) Handy functions
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
 //! let conn =
-//! Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
+//!     Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
 //! ```
 //!
 //! - Without authentication, only use in evaluation setting
@@ -101,8 +105,9 @@
 //! ```rust
 //! use arangors::Connection;
 //!
-//! fn main(){
-//!     let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
+//! fn main() {
+//!     let conn =
+//!         Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
 //!     let db = conn.db("test_db").unwrap();
 //!     let collection = db.collection("test_collection").unwrap();
 //! }
@@ -138,19 +143,21 @@
 //! - Arbitrary JSON object
 //!
 //! ```rust
-//! use serde_json::Value;
 //! use arangors::Connection;
+//! use serde_json::Value;
 //!
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
 //! let db = conn.db("test_db").unwrap();
-//! let resp: Vec<Value> = db.aql_str("FOR u IN test_collection LIMIT 3 RETURN u").unwrap();
+//! let resp: Vec<Value> = db
+//!     .aql_str("FOR u IN test_collection LIMIT 3 RETURN u")
+//!     .unwrap();
 //! ```
 //!
 //! - Strong typed result
 //!
 //! ```rust
-//! use serde::Deserialize;
 //! use arangors::Connection;
+//! use serde::Deserialize;
 //!
 //! #[derive(Deserialize, Debug)]
 //! struct User {
@@ -169,8 +176,9 @@
 //!
 //! #### Fetch All Results
 //!
-//! There are three functions for AQL query that fetch all results from ArangoDB.
-//! These functions internally fetch batch results one after another to get all results.
+//! There are three functions for AQL query that fetch all results from
+//! ArangoDB. These functions internally fetch batch results one after another
+//! to get all results.
 //!
 //! The functions for fetching all results are listed as bellow:
 //!
@@ -181,8 +189,8 @@
 //! Here is an example of strong typed query result with `aql_str`:
 //!
 //! ```rust
-//! use serde::Deserialize;
 //! use arangors::Connection;
+//! use serde::Deserialize;
 //!
 //! #[derive(Deserialize, Debug)]
 //! struct User {
@@ -191,7 +199,8 @@
 //! }
 //!
 //! fn main() {
-//!     let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
+//!     let conn =
+//!         Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
 //!     let db = conn.db("test_db").unwrap();
 //!     let result: Vec<User> = db
 //!         .aql_str(r#"FOR i in test_collection FILTER i.username=="test2" return i"#)
@@ -205,8 +214,8 @@
 //!
 //! ```rust
 //! use arangors::{Connection, Document};
+//! use serde::{Deserialize, Serialize};
 //! use std::collections::HashMap;
-//! use serde::{Serialize, Deserialize};
 //!
 //! #[derive(Serialize, Deserialize, Debug)]
 //! struct User {
@@ -218,13 +227,14 @@
 //! let db = conn.db("test_db").unwrap();
 //!
 //! let mut vars = HashMap::new();
-//! let user = User{
-//!     username:"test".to_string(),
-//!     password:"test_pwd".to_string(),
+//! let user = User {
+//!     username: "test".to_string(),
+//!     password: "test_pwd".to_string(),
 //! };
 //! vars.insert("user", serde_json::value::to_value(&user).unwrap());
-//! let result:Vec<Document<User>>= db.aql_bind_vars(r#"FOR i in test_collection FILTER i==@user return i"#, vars).unwrap();
-//!
+//! let result: Vec<Document<User>> = db
+//!     .aql_bind_vars(r#"FOR i in test_collection FILTER i==@user return i"#, vars)
+//!     .unwrap();
 //! ```
 //!
 //! - `aql_query`
@@ -242,7 +252,10 @@
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
 //! let database = conn.db("test_db").unwrap();
 //!
-//! let aql = AqlQuery::new("FOR u IN @@collection LIMIT 3 RETURN u").batch_size(1).count(true).bind_var("@collection","test_collection");
+//! let aql = AqlQuery::new("FOR u IN @@collection LIMIT 3 RETURN u")
+//!     .batch_size(1)
+//!     .count(true)
+//!     .bind_var("@collection", "test_collection");
 //!
 //! let resp: Vec<Value> = database.aql_query(aql).unwrap();
 //! println!("{:?}", resp);
@@ -256,24 +269,22 @@
 //!
 //! `arangors` is provided under the MIT license. See [LICENSE](./LICENSE).
 //! An ergonomic [arangoDB](https://www.arangodb.com/) client for rust.
+#![allow(unused_parens)]
+
+pub use crate::{
+    aql::{AqlOption, AqlQuery},
+    collection::Collection,
+    connection::Connection,
+    database::Database,
+    document::Document,
+    response::{Cursor, ServerError, Success},
+};
 
 pub mod aql;
+pub mod client;
 pub mod collection;
 pub mod connection;
 pub mod database;
 pub mod document;
 mod query;
 pub mod response;
-
-pub use crate::collection::Collection;
-pub use crate::connection::Connection;
-pub use crate::database::Database;
-pub use crate::document::Document;
-
-pub use crate::response::Cursor;
-pub use crate::response::Error;
-pub use crate::response::Response;
-pub use crate::response::Success;
-
-pub use crate::aql::AqlOption;
-pub use crate::aql::AqlQuery;

@@ -2,7 +2,7 @@
 
 # arangors
 
-[![Build Status](https://travis-ci.org/Guoli-Lyu/arangors.svg?branch=master)](https://travis-ci.org/Guoli-Lyu/arangors)
+[![Build Status](https://travis-ci.org/fMeow/arangors.svg?branch=master)](https://travis-ci.org/fMeow/arangors)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/arangors.svg)](https://crates.io/crates/arangors)
 [![arangors](https://docs.rs/arangors/badge.svg)](https://docs.rs/arangors)

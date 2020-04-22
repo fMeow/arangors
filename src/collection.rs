@@ -1,8 +1,13 @@
 use std::sync::Arc;
 
-use reqwest::{Client, Url};
-use serde::de::{Deserializer, Error as DeError};
-use serde::Deserialize;
+use maybe_async::maybe_async;
+use serde::{
+    de::{Deserializer, Error as DeError},
+    Deserialize,
+};
+use url::Url;
+
+use crate::client::ClientExt;
 
 use super::{Database, Document};
 
@@ -39,24 +44,24 @@ pub struct CollectionDetails {
 }
 
 #[derive(Debug)]
-pub struct Collection<'a> {
+pub struct Collection<'a, C: ClientExt> {
     id: String,
     name: String,
     collection_type: CollectionType,
     base_url: Url,
-    session: Arc<Client>,
+    session: Arc<C>,
     phantom: &'a (),
 }
 
-impl<'a> Collection<'a> {
+impl<'a, C: ClientExt> Collection<'a, C> {
     /// Construct Collection given
     ///  Base url should be like `http://localhost:8529/_db/mydb/_api/`
     pub(crate) fn new<T: Into<String>>(
-        database: &'a Database,
+        database: &'a Database<C>,
         name: T,
         id: T,
         collection_type: CollectionType,
-    ) -> Collection<'a> {
+    ) -> Collection<'a, C> {
         let name = name.into();
         let path = format!("collection/{}/", name.as_str());
         let url = database.get_url().join(path.as_str()).unwrap();
@@ -71,9 +76,9 @@ impl<'a> Collection<'a> {
     }
 
     pub(crate) fn from_response(
-        database: &'a Database,
+        database: &'a Database<C>,
         collection: &CollectionResponse,
-    ) -> Collection<'a> {
+    ) -> Collection<'a, C> {
         Self::new(
             database,
             collection.name.to_owned(),
@@ -98,7 +103,7 @@ impl<'a> Collection<'a> {
         &self.base_url
     }
 
-    pub fn get_session(&self) -> Arc<Client> {
+    pub fn get_session(&self) -> Arc<C> {
         Arc::clone(&self.session)
     }
 
@@ -107,12 +112,14 @@ impl<'a> Collection<'a> {
     }
 
     /// Fetch the properties of collection
-    pub fn fetch_properties(&self) {
+    #[maybe_async]
+    pub async fn fetch_properties(&self) {
         unimplemented!()
     }
 
     /// Counts the documents in this collection
-    pub fn fetch_document_count(&self) {
+    #[maybe_async]
+    pub async fn fetch_document_count(&self) {
         unimplemented!()
     }
     /// Fetch the statistics of a collection
@@ -140,7 +147,8 @@ impl<'a> Collection<'a> {
     /// collection is normally slightly higher than the sum of the reported
     /// fileSize values. Still the sum of the fileSize values can still be used
     /// as a lower bound approximation of the disk usage.
-    pub fn fetch_statistics(&self) {
+    #[maybe_async]
+    pub async fn fetch_statistics(&self) {
         unimplemented!()
     }
 
@@ -149,7 +157,8 @@ impl<'a> Collection<'a> {
     /// The revision id is a server-generated string that clients can use to
     /// check whether data in a collection has changed since the last revision
     /// check.
-    pub fn fetch_revision_id(&self) {
+    #[maybe_async]
+    pub async fn fetch_revision_id(&self) {
         unimplemented!()
     }
     /// Fetch a checksum for the specified collection
@@ -172,18 +181,21 @@ impl<'a> Collection<'a> {
     // By providing the optional query parameter withData with a value of true, the
     // user-defined document attributes will be included in the calculation too.
     // Note: Including user-defined attributes will make the checksumming slower.
-    pub fn fetch_checksum(&self) {
+    #[maybe_async]
+    pub async fn fetch_checksum(&self) {
         unimplemented!()
     }
 
     /// Loads a collection into memory.
-    pub fn load(&self) {
+    #[maybe_async]
+    pub async fn load(&self) {
         unimplemented!()
     }
     /// Removes a collection from memory. This call does not delete any
     /// documents. You can use the collection afterwards; in which case it will
     /// be loaded into memory, again.
-    pub fn unload(&self) {
+    #[maybe_async]
+    pub async fn unload(&self) {
         unimplemented!()
     }
 
@@ -208,17 +220,20 @@ impl<'a> Collection<'a> {
     ///
     /// On sucess this function returns an object with attribute result set to
     /// true
-    pub fn load_indexes(&self) {
+    #[maybe_async]
+    pub async fn load_indexes(&self) {
         unimplemented!()
     }
 
     /// Changes the properties of a collection.
-    pub fn change_properties(&self) {
+    #[maybe_async]
+    pub async fn change_properties(&self) {
         unimplemented!()
     }
 
     /// Renames the collection
-    pub fn rename_collection(&self) {
+    #[maybe_async]
+    pub async fn rename_collection(&self) {
         unimplemented!()
     }
 
@@ -231,29 +246,34 @@ impl<'a> Collection<'a> {
     ///
     /// Saving new data in the collection subsequently will create a new
     /// journal file automatically if there is no current journal.
-    pub fn rotate_journal(&self) {
+    #[maybe_async]
+    pub async fn rotate_journal(&self) {
         unimplemented!()
     }
 
     /// Creates a new document from the document given in the body, unless
     /// there is already a document with the _key given. If no _key is given, a
     /// new unique _key is generated automatically.
-    pub fn create_document<T>(&self, _doc: Document<T>) {
+    #[maybe_async]
+    pub async fn create_document<T>(&self, _doc: Document<T>) {
         unimplemented!()
     }
 
     /// Partially updates the document
-    pub fn update_document<T>(&self, _doc: Document<T>) {
+    #[maybe_async]
+    pub async fn update_document<T>(&self, _doc: Document<T>) {
         unimplemented!()
     }
 
     /// Replaces the document
-    pub fn replace_document<T>(&self, _doc: Document<T>) {
+    #[maybe_async]
+    pub async fn replace_document<T>(&self, _doc: Document<T>) {
         unimplemented!()
     }
 
     /// Removes a document
-    pub fn remove_document<T>(&self, _doc: Document<T>) {
+    #[maybe_async]
+    pub async fn remove_document<T>(&self, _doc: Document<T>) {
         unimplemented!()
     }
 }
@@ -294,7 +314,10 @@ impl<'de> Deserialize<'de> for CollectionStatus {
             4 => Ok(CollectionStatus::BeingUnload),
             5 => Ok(CollectionStatus::Deleted),
             6 => Ok(CollectionStatus::Loading),
-            _ => Err(DeError::custom("Undefined behavior. If the crate breaks after an upgrade of ArangoDB, please contact the author.")),
+            _ => Err(DeError::custom(
+                "Undefined behavior. If the crate breaks after an upgrade of ArangoDB, please \
+                 contact the author.",
+            )),
         }
     }
 }
@@ -314,7 +337,10 @@ impl<'de> Deserialize<'de> for CollectionType {
         match value {
             2 => Ok(CollectionType::Document),
             3 => Ok(CollectionType::Edge),
-            _ => Err(DeError::custom("Undefined behavior. If the crate breaks after an upgrade of ArangoDB, please contact the author.")),
+            _ => Err(DeError::custom(
+                "Undefined behavior. If the crate breaks after an upgrade of ArangoDB, please \
+                 contact the author.",
+            )),
         }
     }
 }

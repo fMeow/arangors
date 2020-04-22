@@ -26,26 +26,26 @@
 //! let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
 //! ```
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
 use failure::{format_err, Error};
+use http::header::{HeaderMap, AUTHORIZATION, SERVER};
 use log::{info, trace};
-use reqwest::{
-    header::{HeaderMap, AUTHORIZATION, SERVER},
-    Client, Url,
+use serde::{Deserialize, Serialize};
+use url::Url;
+
+use maybe_async::maybe_async;
+
+use crate::client::{reqwest::ReqwestClient, ClientExt};
+
+use super::{database::Database, response::serialize_response};
+
+use self::{
+    auth::Auth,
+    role::{Admin, Normal},
 };
 
-use serde::{Deserialize, Serialize};
-
-use super::database::Database;
-use super::response::{serialize_response, try_serialize_response, Response};
-
-use self::auth::Auth;
-
-use self::role::{Admin, Normal};
-
 mod auth;
-pub mod model;
 
 pub mod role {
     #[derive(Debug)]
@@ -65,20 +65,36 @@ pub enum Permission {
     ReadWrite,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct Version {
+    pub server: String,
+    pub version: String,
+    pub license: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DatabaseDetails {
+    pub name: String,
+    pub id: String,
+    pub path: String,
+    pub is_system: bool,
+}
+
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about auth, arangodb url, and a hash
 /// map of the databases Object. The `databases` Hashmap is construct once
 /// connections succeed.
 #[derive(Debug)]
-pub struct Connection<S> {
-    session: Arc<Client>,
+pub struct Connection<S = Normal, C: ClientExt = ReqwestClient> {
+    session: Arc<C>,
     arango_url: Url,
     username: String,
     state: S,
     pub(crate) phantom: (),
 }
 
-impl<S> Connection<S> {
+impl<S, C: ClientExt> Connection<S, C> {
     /// Validate the server at given arango url
     ///
     /// Cast `failure::Error` if
@@ -86,9 +102,11 @@ impl<S> Connection<S> {
     /// - response code is not 200
     /// - no SERVER header in response header
     /// - SERVER header in response header is not `ArangoDB`
-    pub fn validate_server(&self) -> Result<(), Error> {
+    #[maybe_async]
+    pub async fn validate_server(&self) -> Result<(), Error> {
         let arango_url = self.arango_url.as_str();
-        let resp = reqwest::get(arango_url)?;
+        let client = C::new(None)?;
+        let resp = client.get(arango_url.parse().unwrap(), "").await?;
         // HTTP code 200
         if resp.status().is_success() {
             // have `Server` in header
@@ -124,7 +142,7 @@ impl<S> Connection<S> {
     ///
     /// TODO This method should only be public in this crate when all features
     ///     are implemented.
-    pub fn get_session(&self) -> Arc<Client> {
+    pub fn get_session(&self) -> Arc<C> {
         Arc::clone(&self.session)
     }
 
@@ -132,8 +150,9 @@ impl<S> Connection<S> {
     ///
     /// This function look up accessible database in cache hash map,
     /// and return a reference of database if found.
-    pub fn db(&self, name: &str) -> Result<Database, Error> {
-        let dbs = self.accessible_databases()?;
+    #[maybe_async]
+    pub async fn db(&self, name: &str) -> Result<Database<'_, C>, Error> {
+        let dbs = self.accessible_databases().await?;
         if dbs.contains_key(name) {
             Ok(Database::new(&self, name))
         } else {
@@ -148,18 +167,19 @@ impl<S> Connection<S> {
     ///
     /// This function uses the API that is used to retrieve a list of
     /// all databases the current user can access.
-    pub fn accessible_databases(&self) -> Result<HashMap<String, Permission>, Error> {
+    #[maybe_async]
+    pub async fn accessible_databases(&self) -> Result<HashMap<String, Permission>, Error> {
         let url = self
             .arango_url
             .join(&format!("/_api/user/{}/database", &self.username))
             .unwrap();
-        let resp = self.session.get(url).send()?;
-        let result = serialize_response(resp)?;
+        let resp = self.session.get(url, "").await?;
+        let result = serialize_response(resp.text())?;
         Ok(result)
     }
 }
 
-impl Connection<Normal> {
+impl<C: ClientExt> Connection<Normal, C> {
     /// Establish connection to ArangoDB sever with Auth.
     ///
     /// The connection is establish in the following steps:
@@ -170,15 +190,19 @@ impl Connection<Normal> {
     ///
     /// The most secure way to connect to a arangoDB server is via JWT
     /// token authentication, along with TLS encryption.
-    fn establish<T: Into<String>>(arango_url: T, auth: Auth) -> Result<Connection<Normal>, Error> {
+    #[maybe_async]
+    async fn establish<T: Into<String>>(
+        arango_url: T,
+        auth: Auth<'_>,
+    ) -> Result<Connection<Normal, C>, Error> {
         let mut conn = Connection {
             arango_url: Url::parse(arango_url.into().as_str())?.join("/").unwrap(),
             username: String::new(),
-            session: Arc::new(Client::new()),
+            session: Arc::new(C::new(None)?),
             state: Normal,
             phantom: (),
         };
-        conn.validate_server()?;
+        conn.validate_server().await?;
 
         let user: String;
         let authorization = match auth {
@@ -191,7 +215,7 @@ impl Connection<Normal> {
             Auth::Jwt(cred) => {
                 user = String::from(cred.username);
 
-                let token = conn.jwt_login(cred.username, cred.password)?;
+                let token = conn.jwt_login(cred.username, cred.password).await?;
                 Some(format!("Bearer {}", token))
             }
             Auth::None => {
@@ -206,12 +230,7 @@ impl Connection<Normal> {
         }
 
         conn.username = user;
-        conn.session = Arc::new(
-            Client::builder()
-                .gzip(true)
-                .default_headers(headers)
-                .build()?,
-        );
+        conn.session = Arc::new(C::new(headers)?);
         info!("Established");
         Ok(conn)
     }
@@ -229,11 +248,12 @@ impl Connection<Normal> {
     ///
     /// let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
     /// ```
-    pub fn establish_without_auth<T: Into<String>>(
+    #[maybe_async]
+    pub async fn establish_without_auth<T: Into<String>>(
         arango_url: T,
-    ) -> Result<Connection<Normal>, Error> {
+    ) -> Result<Connection<Normal, C>, Error> {
         trace!("Establish without auth");
-        Ok(Connection::establish(arango_url.into(), Auth::None)?)
+        Connection::establish(arango_url.into(), Auth::None).await
     }
 
     /// Establish connection to ArangoDB sever with basic auth.
@@ -245,16 +265,14 @@ impl Connection<Normal> {
     /// let conn =
     ///     Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
     /// ```
-    pub fn establish_basic_auth(
+    #[maybe_async]
+    pub async fn establish_basic_auth(
         arango_url: &str,
         username: &str,
         password: &str,
-    ) -> Result<Connection<Normal>, Error> {
+    ) -> Result<Connection<Normal, C>, Error> {
         trace!("Establish with basic auth");
-        Ok(Connection::establish(
-            arango_url,
-            Auth::basic(username, password),
-        )?)
+        Connection::establish(arango_url, Auth::basic(username, password)).await
     }
 
     /// Establish connection to ArangoDB sever with jwt authentication.
@@ -270,19 +288,18 @@ impl Connection<Normal> {
     ///
     /// let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
     /// ```
-    pub fn establish_jwt(
+    #[maybe_async]
+    pub async fn establish_jwt(
         arango_url: &str,
         username: &str,
         password: &str,
-    ) -> Result<Connection<Normal>, Error> {
+    ) -> Result<Connection<Normal, C>, Error> {
         trace!("Establish with jwt");
-        Ok(Connection::establish(
-            arango_url,
-            Auth::jwt(username, password),
-        )?)
+        Connection::establish(arango_url, Auth::jwt(username, password)).await
     }
 
-    fn jwt_login<T: Into<String>>(&self, username: T, password: T) -> Result<String, Error> {
+    #[maybe_async]
+    async fn jwt_login<T: Into<String>>(&self, username: T, password: T) -> Result<String, Error> {
         #[derive(Deserialize)]
         struct JWT {
             pub jwt: String,
@@ -293,12 +310,17 @@ impl Connection<Normal> {
         map.insert("username", username.into());
         map.insert("password", password.into());
 
-        let jwt: JWT = self.session.post(url).json(&map).send()?.json()?;
+        let jwt: JWT = self
+            .session
+            .post(url, &serde_json::to_string(&map)?)
+            .await?
+            .json()?;
         Ok(jwt.jwt)
     }
 
-    pub fn into_admin(self) -> Result<Connection<Admin>, Error> {
-        let dbs = self.accessible_databases()?;
+    #[maybe_async]
+    pub async fn into_admin(self) -> Result<Connection<Admin, C>, Error> {
+        let dbs = self.accessible_databases().await?;
         let db = dbs
             .get("_system")
             .ok_or(format_err!("Do not have read access to _system database"))?;
@@ -309,7 +331,7 @@ impl Connection<Normal> {
     }
 }
 
-impl Connection<Admin> {
+impl<C: ClientExt> Connection<Admin, C> {
     /// Create a database via HTTP request and add it into `self.databases`.
     ///
     /// If creation fails, an Error is cast. Otherwise, a bool is returned to
@@ -318,7 +340,8 @@ impl Connection<Admin> {
     /// # Example
     /// ```rust
     /// use arangors::Connection;
-    /// let conn_normal = Connection::establish_jwt("http://localhost:8529", "root", "KWNngteTps7XjrNv").unwrap();
+    /// let conn_normal =
+    ///     Connection::establish_jwt("http://localhost:8529", "root", "KWNngteTps7XjrNv").unwrap();
     /// // consume normal connection and convert it into admin connection
     /// let conn_admin = conn_normal.into_admin().unwrap();
     /// let result = conn_admin.create_database("new_db").unwrap();
@@ -327,21 +350,20 @@ impl Connection<Admin> {
     /// let result = conn_admin.drop_database("new_db").unwrap();
     /// ```
     /// TODO tweak options on creating database
-    pub fn create_database(&self, name: &str) -> Result<Database, Error> {
+    #[maybe_async]
+    pub async fn create_database(&self, name: &str) -> Result<Database<'_, C>, Error> {
         let mut map = HashMap::new();
         map.insert("name", name);
         let url = self.arango_url.join("/_api/database").unwrap();
-        let resp = self.session.post(url).json(&map).send()?;
-        let result: Response<bool> = try_serialize_response(resp);
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&map)?)
+            .await?;
+        let result: bool = serialize_response(resp.text())?;
         match result {
-            Response::Ok(resp) => {
-                if resp.result == true {
-                    Ok(self.db(name)?)
-                } else {
-                    Err(format_err!("Fail to create db. Reason: {:?}", resp))
-                }
-            }
-            Response::Err(error) => Err(format_err!("{}", error.message)),
+            true => self.db(name).await,
+            false => Err(format_err!("Fail to create db. Reason: {:?}", resp)),
         }
     }
 
@@ -350,30 +372,26 @@ impl Connection<Admin> {
     /// This method require a `&mut self`, which means no other reference
     /// to this `Connection` object are allowed. This design avoid references
     /// to drop database at compile time.
-    pub fn drop_database(&mut self, name: &str) -> Result<(), Error> {
+    #[maybe_async]
+    pub async fn drop_database(&mut self, name: &str) -> Result<(), Error> {
         let url_path = format!("/_api/database/{}", name);
         let url = self.arango_url.join(&url_path).unwrap();
-        let resp = self.session.delete(url).send()?;
-        let result: Response<bool> = try_serialize_response(resp);
+
+        let resp = self.session.delete(url, "").await?;
+        let result: bool = serialize_response(resp.text())?;
         match result {
-            Response::Ok(resp) => {
-                if resp.result == true {
-                    Ok(())
-                } else {
-                    Err(format_err!("Fail to drop db. Reason: {:?}", resp))
-                }
-            }
-            Response::Err(error) => Err(format_err!("{}", error.message)),
+            true => Ok(()),
+            false => Err(format_err!("Fail to drop db. Reason: {:?}", resp)),
         }
     }
 
-    pub fn into_normal(self) -> Connection<Normal> {
+    pub fn into_normal(self) -> Connection<Normal, C> {
         self.into()
     }
 }
 
-impl From<Connection<Normal>> for Connection<Admin> {
-    fn from(conn: Connection<Normal>) -> Connection<Admin> {
+impl<C: ClientExt> From<Connection<Normal, C>> for Connection<Admin, C> {
+    fn from(conn: Connection<Normal, C>) -> Connection<Admin, C> {
         Connection {
             arango_url: conn.arango_url,
             session: conn.session,
@@ -384,8 +402,8 @@ impl From<Connection<Normal>> for Connection<Admin> {
     }
 }
 
-impl From<Connection<Admin>> for Connection<Normal> {
-    fn from(conn: Connection<Admin>) -> Connection<Normal> {
+impl<C: ClientExt> From<Connection<Admin, C>> for Connection<Normal, C> {
+    fn from(conn: Connection<Admin, C>) -> Connection<Normal, C> {
         Connection {
             arango_url: conn.arango_url,
             session: conn.session,
