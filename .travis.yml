@@ -21,6 +21,7 @@ services:
 
 env:
   - DOCKER_COMPOSE_VERSION=1.22.0
+  - RUST_LOG=arangors=trace
 
 addons:
   apt:
@@ -48,12 +49,20 @@ before_install:
 
 before_script:
   - bash tests/init_db.sh
-  - rustup component add rustfmt-preview
+  - rustup component add rustfmt
 
 script:
   - cargo fmt --all -- --check
-  - cargo build --all
-  - RUST_LOG=arangors=trace cargo test --all
+  - cargo build
+  - cargo test
+  - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_async"
+  - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_async"
+  - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_blocking"
+  - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_blocking"
+  - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise"
+  - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise"
+  - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise blocking"
+  - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise blocking"
 
 notifications:
   email:
