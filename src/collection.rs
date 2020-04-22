@@ -24,23 +24,19 @@ pub struct CollectionKeyOptions {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionDetails {
-    pub cache_enabled: Option<bool>,
+    pub cache_enabled: bool,
     pub count: Option<u32>,
-    pub code: u16,
-    pub error: bool,
-    pub error_message: Option<String>,
-    pub error_num: Option<u16>,
-    pub globally_unique_id: Option<String>,
-    pub id: Option<String>,
-    pub is_system: Option<bool>,
-    pub key_options: Option<CollectionKeyOptions>,
-    pub name: Option<String>,
-    pub object_id: Option<String>,
-    pub status: Option<u16>,
-    pub status_string: Option<String>,
-    pub r#type: Option<u16>,
-    pub wait_for_sync: Option<bool>,
-    pub write_concern: Option<u16>,
+    pub globally_unique_id: String,
+    pub id: String,
+    pub is_system: bool,
+    pub key_options: CollectionKeyOptions,
+    pub name: String,
+    pub object_id: String,
+    pub status: u16,
+    pub status_string: String,
+    pub r#type: u16,
+    pub wait_for_sync: bool,
+    pub write_concern: u16,
 }
 
 #[derive(Debug)]
@@ -83,7 +79,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             database,
             collection.name.to_owned(),
             collection.id.to_owned(),
-            collection.collection_type.clone(),
+            collection.r#type.clone(),
         )
     }
 
@@ -283,8 +279,7 @@ pub struct CollectionResponse {
     pub id: String,
     pub name: String,
     pub status: CollectionStatus,
-    #[serde(rename = "type")]
-    pub collection_type: CollectionType,
+    pub r#type: CollectionType,
     #[serde(rename = "isSystem")]
     pub is_system: bool,
     #[serde(rename = "globallyUniqueId")]

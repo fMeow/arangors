@@ -5,7 +5,7 @@ use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
 use failure::{format_err, Error};
 use log::trace;
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::value::Value;
 use url::Url;
 
@@ -15,8 +15,9 @@ use crate::{
     aql::AqlQuery,
     client::ClientExt,
     collection::{Collection, CollectionDetails, CollectionResponse},
-    connection::{Connection, DatabaseDetails, Version},
-    response::{serialize, serialize_query_response, serialize_response, Cursor},
+    connection::{DatabaseDetails, GenericConnection, Version},
+    response::{serialize_query_response, serialize_response, ArangoResult, Cursor},
+    ServerError,
 };
 
 #[derive(Debug)]
@@ -34,7 +35,10 @@ pub struct Database<'a, C: ClientExt> {
 }
 
 impl<'a, C: ClientExt> Database<'a, C> {
-    pub(crate) fn new<T: Into<String>, S>(conn: &'a Connection<S, C>, name: T) -> Database<C> {
+    pub(crate) fn new<T: Into<String>, S>(
+        conn: &'a GenericConnection<C, S>,
+        name: T,
+    ) -> Database<C> {
         let name = name.into();
         let path = format!("/_db/{}/", name.as_str());
         let url = conn.get_url().join(path.as_str()).unwrap();
@@ -59,9 +63,9 @@ impl<'a, C: ClientExt> Database<'a, C> {
             url.as_str()
         );
         let resp = self.session.get(url, "").await?;
-        let result: Vec<CollectionResponse> = serialize_response(resp.text())?;
+        let result: ArangoResult<Vec<CollectionResponse>> = serialize_response(resp.text())?;
         trace!("Collections retrieved");
-        Ok(result)
+        Ok(result.inner)
     }
 
     pub fn get_url(&self) -> &Url {
@@ -92,7 +96,6 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// Create a collection via HTTP request and add it into `self.collections`.
     ///
     /// Return a database object if success.
-    /// TODO
     #[maybe_async]
     pub async fn create_collection(&mut self, name: &str) -> Result<Collection<'_, C>, Error> {
         let mut map = HashMap::new();
@@ -102,28 +105,28 @@ impl<'a, C: ClientExt> Database<'a, C> {
             .session
             .post(url, &serde_json::to_string(&map)?)
             .await?;
-        let result: CollectionDetails = serialize(resp.text())?;
-        match result.error {
-            true => Err(format_err!("Fail to create collection. Reason: {:?}", resp)),
-            false => Ok(self.collection(name).await?),
-        }
+        let _result: CollectionDetails = serialize_response(resp.text())?;
+        self.collection(name).await
     }
 
     /// Drops a collection
     /// TODO
     #[maybe_async]
-    pub async fn drop_collection(&mut self, name: &str) -> Result<CollectionDetails, Error> {
+    pub async fn drop_collection(&mut self, name: &str) -> Result<String, Error> {
         let url_path = format!("_api/collection/{}", name);
         let url = self.base_url.join(&url_path).unwrap();
 
-        let resp = self.session.delete(url, "").await?;
-        let result: CollectionDetails = serialize(resp.text())?;
-        match result.error {
-            true => Err(format_err!(
-                "Fail to drop collection. Reason: {:?}",
-                result.error_message
-            )),
-            false => Ok(result),
+        #[derive(Debug, Deserialize)]
+        #[serde(untagged)]
+        enum DropCollectionResponse {
+            Ok { error: bool, code: u16, id: String },
+            Err(ServerError),
+        }
+
+        let resp: DropCollectionResponse = self.session.delete(url, "").await?.json()?;
+        match resp {
+            DropCollectionResponse::Err(e) => Err(format_err!("{}", e.message)),
+            DropCollectionResponse::Ok { id, .. } => Ok(id),
         }
     }
 
@@ -147,7 +150,8 @@ impl<'a, C: ClientExt> Database<'a, C> {
     pub async fn info(&self) -> Result<DatabaseDetails, Error> {
         let url = self.base_url.join("_api/database/current").unwrap();
         let resp = self.session.get(url, "").await?;
-        serialize_response(resp.text())
+        let res: ArangoResult<_> = serialize_response(resp.text())?;
+        Ok(res.inner)
     }
 
     /// Execute aql query, return a cursor if succeed. The major advantage of

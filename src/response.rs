@@ -44,23 +44,6 @@ where
     }
 }
 
-/// There are different type of json object when requests to arangoDB
-/// server is accepted or not. Here provides an abstraction for
-/// response related to collection operations (CRUD)
-///
-/// When ArangoDB server response error code, then an error would be cast.
-pub(crate) fn serialize<T>(resp: &str) -> Result<T, FailureError>
-where
-    T: DeserializeOwned + Debug,
-{
-    let result: T = serde_json::from_str(resp).map_err(|err| {
-        error!("Failed to serialize: {:?}", resp,);
-        err
-    })?;
-
-    Ok(result)
-}
-
 /// A enum of response contains all the case clients will encounter:
 /// - Query result (Cursor)
 /// - Error
@@ -111,7 +94,7 @@ where
 /// Never transpose the order of `Query` and `Success` as serde deserialize
 /// response in order. And `Query` is just a super set of `Success`
 #[derive(Debug)]
-pub(crate) enum Response<T> {
+pub enum Response<T> {
     Ok(Success<T>),
     Err(ServerError),
 }
@@ -148,7 +131,14 @@ where
 #[derive(Deserialize, Debug)]
 pub struct Success<T> {
     pub(crate) code: u16,
+    #[serde(flatten)]
     pub(crate) result: T,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ArangoResult<T> {
+    #[serde(rename = "result")]
+    pub inner: T,
 }
 
 impl<T: fmt::Display> fmt::Display for Success<T> {
@@ -159,7 +149,6 @@ impl<T: fmt::Display> fmt::Display for Success<T> {
 
 #[derive(Deserialize, Debug)]
 pub struct ServerError {
-    pub(crate) error: bool,
     pub(crate) code: u16,
     #[serde(rename = "errorNum")]
     pub(crate) error_num: u16,

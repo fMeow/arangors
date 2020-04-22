@@ -3,17 +3,19 @@
 # Run the scrpit as follows from your terminal before starting 'cargo test':
 # . ./init_db.sh
 
-export ARANGODB_HOST="localhost:8529/"
-export ARANGO_ROOT_USER="root"
-export ARANGO_ROOT_PASSWORD="KWNngteTps7XjrNv"
-export ARANGO_USER="username"
-export ARANGO_PASSWORD="password"
+export ARANGODB_HOST=${ARANGODB_HOST:="localhost:8529/"}
+export ARANGO_ROOT_USER=${ARANGO_ROOT_USER:="root"}
+export ARANGO_ROOT_PASSWORD=${ARANGO_ROOT_PASSWORD:="KWNngteTps7XjrNv"}
+export ARANGO_USER=${ARANGO_USER:="username"}
+export ARANGO_PASSWORD=${ARANGO_PASSWORD:="password"}
 
 # set up database
 curl -X POST "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_api/database" --data '{"name":"test_db"}'
 curl -X POST "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_db/test_db/_api/collection" --data '{"name":"test_collection"}'
 curl -X POST "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_db/test_db/_api/collection" --data '{"name":"test_collection2"}'
 curl -X POST "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_db/test_db/_api/collection" --data '{"name":"test_collection3"}'
+curl -X POST "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_db/test_db/_api/collection" --data '{"name":"test_collection4"}'
+curl -X DELETE "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_db/test_db/_api/collection/test_collection4"
 
 # set up normal user
 curl -X DELETE "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_api/user/username"

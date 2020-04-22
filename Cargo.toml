@@ -36,15 +36,15 @@ mmfiles = []
 rocksdb = []
 
 [dependencies]
+async-trait = "0.1"
 base64 = "0.12"
 failure = "0.1"
+http = "0.2"
+log = "0.4"
+maybe-async = "0.1.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-log = "0.4"
 url = "2"
-maybe-async = "0.1.2"
-async-trait = "0.1"
-http = "0.2"
 
 reqwest  = { version = "0.10", features = ["gzip", "json"], optional = true }
 
@@ -53,3 +53,4 @@ env_logger = "0.7.1"
 pretty_assertions = "0.6.1"
 dotenv = "0.15.0"
 regex = "1.3.7"
+tokio = { version = "0.2.18", features = ["macros", "rt-core"]}

@@ -47,7 +47,7 @@ before_install:
   - docker-compose logs
 
 before_script:
-  - sh tests/init_db.sh
+  - bash tests/init_db.sh
   - rustup component add rustfmt-preview
 
 script:

@@ -9,6 +9,7 @@ use crate::client::ClientExt;
 
 use super::*;
 
+#[derive(Debug)]
 pub struct ReqwestClient(pub Client);
 
 #[maybe_async::maybe_async]

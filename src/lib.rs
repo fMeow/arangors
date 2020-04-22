@@ -11,10 +11,6 @@
 //! `arangors` enables you to connect with arangoDB server, access to database,
 //! execute AQL query, manage arangoDB in an easy and intuitive way.
 //!
-//! ## NOTICE
-//! `arangors` will stay **synchronous** until the async/await syntax are
-//! available in stable channel.
-//!
 //! ## Philosophy of arangors
 //!
 //! `arangors` is targeted at ergonomic, intuitive and OOP-like API for
@@ -59,11 +55,13 @@
 //!
 //! - Milestone 0.3.x
 //!
-//! Provides the API related to graph, index and user management.
+//! Implement both sync and async client.
 //!
 //! - Milestone 0.4.x
 //!
-//! Implement both sync and async client.
+//! Provides the API related to graph, index and user management.
+//!
+//!
 //! ## Glance
 //!
 //! ### Connection
@@ -87,10 +85,17 @@
 //! ```rust
 //! use arangors::Connection;
 //!
+//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
+//! # async fn main() {
 //! // (Recommended) Handy functions
-//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-//! let conn =
-//!     Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
+//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+//!     .await
+//!     .unwrap();
+//! let conn = Connection::establish_basic_auth("http://localhost:8529", "username", "password")
+//!     .await
+//!     .unwrap();
+//! # }
 //! ```
 //!
 //! - Without authentication, only use in evaluation setting
@@ -105,12 +110,15 @@
 //! ```rust
 //! use arangors::Connection;
 //!
-//! fn main() {
-//!     let conn =
-//!         Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-//!     let db = conn.db("test_db").unwrap();
-//!     let collection = db.collection("test_collection").unwrap();
-//! }
+//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
+//! # async fn main() {
+//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+//!     .await
+//!     .unwrap();
+//! let db = conn.db("test_db").await.unwrap();
+//! let collection = db.collection("test_collection").await.unwrap();
+//! # }
 //! ```
 //!
 //! ### AQL Query
@@ -146,11 +154,18 @@
 //! use arangors::Connection;
 //! use serde_json::Value;
 //!
-//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-//! let db = conn.db("test_db").unwrap();
+//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
+//! # async fn main() {
+//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+//!     .await
+//!     .unwrap();
+//! let db = conn.db("test_db").await.unwrap();
 //! let resp: Vec<Value> = db
 //!     .aql_str("FOR u IN test_collection LIMIT 3 RETURN u")
+//!     .await
 //!     .unwrap();
+//! # }
 //! ```
 //!
 //! - Strong typed result
@@ -165,9 +180,18 @@
 //!     pub password: String,
 //! }
 //!
-//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-//! let db = conn.db("test_db").unwrap();
-//! let resp: Vec<User> = db.aql_str("FOR u IN test_collection RETURN u").unwrap();
+//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
+//! # async fn main() {
+//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+//!     .await
+//!     .unwrap();
+//! let db = conn.db("test_db").await.unwrap();
+//! let resp: Vec<User> = db
+//!     .aql_str("FOR u IN test_collection RETURN u")
+//!     .await
+//!     .unwrap();
+//! # }
 //! ```
 //!
 //! #### Batch query
@@ -198,14 +222,18 @@
 //!     pub password: String,
 //! }
 //!
-//! fn main() {
-//!     let conn =
-//!         Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-//!     let db = conn.db("test_db").unwrap();
-//!     let result: Vec<User> = db
-//!         .aql_str(r#"FOR i in test_collection FILTER i.username=="test2" return i"#)
-//!         .unwrap();
-//! }
+//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
+//! # async fn main() {
+//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+//!     .await
+//!     .unwrap();
+//! let db = conn.db("test_db").await.unwrap();
+//! let result: Vec<User> = db
+//!     .aql_str(r#"FOR i in test_collection FILTER i.username=="test2" return i"#)
+//!     .await
+//!     .unwrap();
+//! # }
 //! ```
 //!
 //! - `aql_bind_vars`
@@ -213,9 +241,9 @@
 //! This function can be used to start a AQL query with bind variables.
 //!
 //! ```rust
+//! # use serde::{Deserialize, Serialize};
+//! # use std::collections::HashMap;
 //! use arangors::{Connection, Document};
-//! use serde::{Deserialize, Serialize};
-//! use std::collections::HashMap;
 //!
 //! #[derive(Serialize, Deserialize, Debug)]
 //! struct User {
@@ -223,8 +251,13 @@
 //!     pub password: String,
 //! }
 //!
-//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-//! let db = conn.db("test_db").unwrap();
+//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
+//! # async fn main() {
+//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+//!     .await
+//!     .unwrap();
+//! let db = conn.db("test_db").await.unwrap();
 //!
 //! let mut vars = HashMap::new();
 //! let user = User {
@@ -234,7 +267,9 @@
 //! vars.insert("user", serde_json::value::to_value(&user).unwrap());
 //! let result: Vec<Document<User>> = db
 //!     .aql_bind_vars(r#"FOR i in test_collection FILTER i==@user return i"#, vars)
+//!     .await
 //!     .unwrap();
+//! # }
 //! ```
 //!
 //! - `aql_query`
@@ -249,16 +284,22 @@
 //! use arangors::{AqlQuery, Connection, Cursor, Database};
 //! use serde_json::value::Value;
 //!
-//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-//! let database = conn.db("test_db").unwrap();
+//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
+//! # async fn main() {
+//! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+//!     .await
+//!     .unwrap();
+//! let database = conn.db("test_db").await.unwrap();
 //!
 //! let aql = AqlQuery::new("FOR u IN @@collection LIMIT 3 RETURN u")
 //!     .batch_size(1)
 //!     .count(true)
 //!     .bind_var("@collection", "test_collection");
 //!
-//! let resp: Vec<Value> = database.aql_query(aql).unwrap();
+//! let resp: Vec<Value> = database.aql_query(aql).await.unwrap();
 //! println!("{:?}", resp);
+//! # }
 //! ```
 //!
 //! ### Contributing
@@ -271,10 +312,12 @@
 //! An ergonomic [arangoDB](https://www.arangodb.com/) client for rust.
 #![allow(unused_parens)]
 
+#[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
+pub use crate::connection::Connection;
 pub use crate::{
     aql::{AqlOption, AqlQuery},
     collection::Collection,
-    connection::Connection,
+    connection::GenericConnection,
     database::Database,
     document::Document,
     response::{Cursor, ServerError, Success},

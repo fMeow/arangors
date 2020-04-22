@@ -14,12 +14,13 @@ inspired by [pyArango](https://github.com/tariqdaouda/pyArango).
 execute AQL query, manage arangoDB in an easy and intuitive way.
 
 ## NOTICE
-`arangors` will stay **synchronous** until the async/await syntax are available in stable channel.
+`arangors` will stay **synchronous** until the async/await syntax are
+available in stable channel.
 
 ## Philosophy of arangors
 
-`arangors` is targeted at ergonomic, intuitive and OOP-like API for ArangoDB,
-both top level and low level API for users' choice.
+`arangors` is targeted at ergonomic, intuitive and OOP-like API for
+ArangoDB, both top level and low level API for users' choice.
 
 Overall architecture of arangoDB:
 
@@ -49,11 +50,14 @@ Synchronous connection based on `reqwest` and full featured AQL query.
 
 - (WIP) Milestone 0.2.x
 
-Remove cache behaviour and fix severe bugs in 0.2 that only root user can have access to arangoDB, which impose breaking API changes.
+Remove cache behaviour and fix severe bugs in 0.2 that only root user can
+have access to arangoDB, which impose breaking API changes.
 
-Fill the unimplemented API in `Connection`, `Database`, `Collection` and `Document`.
+Fill the unimplemented API in `Connection`, `Database`, `Collection` and
+`Document`.
 
-In this stage, all operations available for database, collection and document should be implemented.
+In this stage, all operations available for database, collection and
+document should be implemented.
 
 - Milestone 0.3.x
 
@@ -86,9 +90,12 @@ Example:
 use arangors::Connection;
 
 // (Recommended) Handy functions
-let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-let conn =
-Connection::establish_basic_auth("http://localhost:8529", "username", "password").unwrap();
+let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+    .await
+    .unwrap();
+let conn = Connection::establish_basic_auth("http://localhost:8529", "username", "password")
+    .await
+    .unwrap();
 ```
 
 - Without authentication, only use in evaluation setting
@@ -103,11 +110,11 @@ let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
 ```rust
 use arangors::Connection;
 
-fn main(){
-    let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-    let db = conn.db("test_db").unwrap();
-    let collection = db.collection("test_collection").unwrap();
-}
+let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+    .await
+    .unwrap();
+let db = conn.db("test_db").await.unwrap();
+let collection = db.collection("test_collection").await.unwrap();
 ```
 
 ### AQL Query
@@ -140,19 +147,24 @@ arbitrary JSON object with `serde::Value`.
 - Arbitrary JSON object
 
 ```rust
-use serde_json::Value;
 use arangors::Connection;
+use serde_json::Value;
 
-let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-let db = conn.db("test_db").unwrap();
-let resp: Vec<Value> = db.aql_str("FOR u IN test_collection LIMIT 3 RETURN u").unwrap();
+let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+    .await
+    .unwrap();
+let db = conn.db("test_db").await.unwrap();
+let resp: Vec<Value> = db
+    .aql_str("FOR u IN test_collection LIMIT 3 RETURN u")
+    .await
+    .unwrap();
 ```
 
 - Strong typed result
 
 ```rust
-use serde::Deserialize;
 use arangors::Connection;
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 struct User {
@@ -160,9 +172,14 @@ struct User {
     pub password: String,
 }
 
-let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-let db = conn.db("test_db").unwrap();
-let resp: Vec<User> = db.aql_str("FOR u IN test_collection RETURN u").unwrap();
+let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+    .await
+    .unwrap();
+let db = conn.db("test_db").await.unwrap();
+let resp: Vec<User> = db
+    .aql_str("FOR u IN test_collection RETURN u")
+    .await
+    .unwrap();
 ```
 
 #### Batch query
@@ -171,8 +188,9 @@ let resp: Vec<User> = db.aql_str("FOR u IN test_collection RETURN u").unwrap();
 
 #### Fetch All Results
 
-There are three functions for AQL query that fetch all results from ArangoDB.
-These functions internally fetch batch results one after another to get all results.
+There are three functions for AQL query that fetch all results from
+ArangoDB. These functions internally fetch batch results one after another
+to get all results.
 
 The functions for fetching all results are listed as bellow:
 
@@ -183,8 +201,8 @@ This function only accept a AQL query string.
 Here is an example of strong typed query result with `aql_str`:
 
 ```rust
-use serde::Deserialize;
 use arangors::Connection;
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 struct User {
@@ -192,13 +210,14 @@ struct User {
     pub password: String,
 }
 
-fn main() {
-    let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-    let db = conn.db("test_db").unwrap();
-    let result: Vec<User> = db
-        .aql_str(r#"FOR i in test_collection FILTER i.username=="test2" return i"#)
-        .unwrap();
-}
+let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+    .await
+    .unwrap();
+let db = conn.db("test_db").await.unwrap();
+let result: Vec<User> = db
+    .aql_str(r#"FOR i in test_collection FILTER i.username=="test2" return i"#)
+    .await
+    .unwrap();
 ```
 
 - `aql_bind_vars`
@@ -207,8 +226,6 @@ This function can be used to start a AQL query with bind variables.
 
 ```rust
 use arangors::{Connection, Document};
-use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct User {
@@ -216,17 +233,21 @@ struct User {
     pub password: String,
 }
 
-let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-let db = conn.db("test_db").unwrap();
+let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+    .await
+    .unwrap();
+let db = conn.db("test_db").await.unwrap();
 
 let mut vars = HashMap::new();
-let user = User{
-    username:"test".to_string(),
-    password:"test_pwd".to_string(),
+let user = User {
+    username: "test".to_string(),
+    password: "test_pwd".to_string(),
 };
 vars.insert("user", serde_json::value::to_value(&user).unwrap());
-let result:Vec<Document<User>>= db.aql_bind_vars(r#"FOR i in test_collection FILTER i==@user return i"#, vars).unwrap();
-
+let result: Vec<Document<User>> = db
+    .aql_bind_vars(r#"FOR i in test_collection FILTER i==@user return i"#, vars)
+    .await
+    .unwrap();
 ```
 
 - `aql_query`
@@ -241,12 +262,17 @@ options available.
 use arangors::{AqlQuery, Connection, Cursor, Database};
 use serde_json::value::Value;
 
-let conn = Connection::establish_jwt("http://localhost:8529", "username", "password").unwrap();
-let database = conn.db("test_db").unwrap();
+let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+    .await
+    .unwrap();
+let database = conn.db("test_db").await.unwrap();
 
-let aql = AqlQuery::new("FOR u IN @@collection LIMIT 3 RETURN u").batch_size(1).count(true).bind_var("@collection","test_collection");
+let aql = AqlQuery::new("FOR u IN @@collection LIMIT 3 RETURN u")
+    .batch_size(1)
+    .count(true)
+    .bind_var("@collection", "test_collection");
 
-let resp: Vec<Value> = database.aql_query(aql).unwrap();
+let resp: Vec<Value> = database.aql_query(aql).await.unwrap();
 println!("{:?}", resp);
 ```
 

@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use failure::Error;
 use http::{method::Method, HeaderMap};
 use serde::de::DeserializeOwned;
@@ -7,7 +9,7 @@ use url::Url;
 pub mod reqwest;
 
 #[maybe_async::maybe_async]
-pub trait ClientExt: Sync {
+pub trait ClientExt: Sync + Debug {
     fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, Error>
     where
         Self: Sized;

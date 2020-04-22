@@ -1,4 +1,5 @@
-use std::env;
+use std::{env, future::Future};
+
 pub const ARANGODB_HOST: &str = "http://localhost:8529/";
 
 pub const ROOT_USERNAME: &str = "root";
@@ -62,10 +63,21 @@ pub fn test_setup() {
     }
 }
 
+#[maybe_async::sync_impl]
 pub fn test_root_and_normal<T>(test: T) -> ()
 where
-    T: Fn(&str, &str) -> (),
+    T: Fn(String, String) -> (),
 {
-    test(get_root_user().as_ref(), get_root_password().as_ref());
-    test(get_normal_user().as_ref(), get_normal_password().as_ref());
+    test(get_root_user(), get_root_password());
+    test(get_normal_user(), get_normal_password());
+}
+
+#[maybe_async::async_impl]
+pub async fn test_root_and_normal<T, F>(test: T) -> ()
+where
+    T: Fn(String, String) -> F,
+    F: Future<Output = ()>,
+{
+    test(get_root_user(), get_root_password()).await;
+    test(get_normal_user(), get_normal_password()).await;
 }
