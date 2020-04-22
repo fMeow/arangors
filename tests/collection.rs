@@ -11,6 +11,7 @@ pub mod common;
     async = r#"any(feature="reqwest_async")"#,
     test = "tokio::test"
 )]
+#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_get_collection() {
     test_setup();
     let host = get_arangodb_host();
@@ -34,6 +35,7 @@ async fn test_get_collection() {
     async = r#"any(feature="reqwest_async")"#,
     test = "tokio::test"
 )]
+#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_create_and_drop_collection() {
     test_setup();
     let host = get_arangodb_host();

@@ -6,7 +6,6 @@ use common::{
     get_arangodb_host, get_normal_password, get_normal_user, get_root_password, get_root_user,
     test_root_and_normal, test_setup,
 };
-use std::io::Write;
 
 pub mod common;
 
@@ -17,6 +16,7 @@ const NEW_DB_NAME: &str = "example";
     async = r#"any(feature="reqwest_async")"#,
     test = "tokio::test"
 )]
+#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_create_and_drop_database() {
     test_setup();
     let host = get_arangodb_host();
@@ -51,6 +51,7 @@ async fn test_create_and_drop_database() {
     async = r#"any(feature="reqwest_async")"#,
     test = "tokio::test"
 )]
+#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_fetch_current_database_info() {
     test_setup();
 
@@ -78,6 +79,7 @@ async fn test_fetch_current_database_info() {
     async = r#"any(feature="reqwest_async")"#,
     test = "tokio::test"
 )]
+#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_get_version() {
     test_setup();
     let host = get_arangodb_host();

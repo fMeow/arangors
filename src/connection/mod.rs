@@ -15,7 +15,7 @@
 //! ```rust
 //! use arangors::Connection;
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -43,12 +43,14 @@ use url::Url;
 
 use maybe_async::maybe_async;
 
+use crate::{client::ClientExt, response::ArangoResult};
+
+use super::{database::Database, response::serialize_response};
+
 use self::{
     auth::Auth,
     role::{Admin, Normal},
 };
-use super::{database::Database, response::serialize_response};
-use crate::{client::ClientExt, response::ArangoResult};
 
 mod auth;
 
@@ -89,6 +91,9 @@ pub struct DatabaseDetails {
 #[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
 pub type Connection = GenericConnection<crate::client::reqwest::ReqwestClient>;
 
+#[cfg(feature = "surf_async")]
+pub type Connection = GenericConnection<crate::client::surf::SurfClient>;
+
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about auth, arangodb url, and a hash
 /// map of the databases Object. The `databases` Hashmap is construct once
@@ -115,26 +120,18 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
         let arango_url = self.arango_url.as_str();
         let client = C::new(None)?;
         let resp = client.get(arango_url.parse().unwrap(), "").await?;
-        // HTTP code 200
-        if resp.status().is_success() {
-            // have `Server` in header
-            if let Some(server) = resp.headers().get(SERVER) {
-                // value of `Server` is `ArangoDB`
-                let server_value = server.to_str().unwrap();
-                if server_value.eq_ignore_ascii_case("ArangoDB") {
-                    trace!("Validate arangoDB server done.");
-                    return Ok(());
-                } else {
-                    return Err(format_err!("In HTTP header, Server is {}", server_value));
-                }
+        // have `Server` in header
+        if let Some(server) = resp.headers().get(SERVER) {
+            // value of `Server` is `ArangoDB`
+            let server_value = server.to_str().unwrap();
+            if server_value.eq_ignore_ascii_case("ArangoDB") {
+                trace!("Validate arangoDB server done.");
+                return Ok(());
             } else {
-                return Err(format_err!("Fail to find Server in HTTP header"));
+                return Err(format_err!("In HTTP header, Server is {}", server_value));
             }
         } else {
-            return Err(format_err!(
-                "Fail to connect to server, Status code: {}",
-                resp.status()
-            ));
+            return Err(format_err!("Fail to find Server in HTTP header"));
         }
     }
 
@@ -270,7 +267,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// ```rust
     /// use arangors::Connection;
     ///
-    /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+    /// # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
     /// # #[cfg_attr(feature="blocking", maybe_async::must_be_sync)]
     /// # async fn main() {
     /// let conn = Connection::establish_basic_auth("http://localhost:8529", "username", "password")
@@ -299,7 +296,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// ```rust
     /// use arangors::Connection;
     ///
-    /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+    /// # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
     /// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
     /// # async fn main() {
     /// let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -359,7 +356,7 @@ impl<C: ClientExt> GenericConnection<C, Admin> {
     /// # Example
     /// ```rust
     /// use arangors::Connection;
-    /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+    /// # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
     /// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
     /// # async fn main() {
     /// let conn_normal =

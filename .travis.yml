@@ -63,10 +63,8 @@ script:
   - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_async"
   - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_blocking"
   - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_blocking"
-  - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise"
-  - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise"
-  - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise blocking"
-  - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise blocking"
+  - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise surf_async"
+  - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise surf_async"
 
 notifications:
   email:

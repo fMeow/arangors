@@ -7,6 +7,8 @@ use url::Url;
 
 #[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
 pub mod reqwest;
+#[cfg(any(feature = "surf_async"))]
+pub mod surf;
 
 #[maybe_async::maybe_async]
 pub trait ClientExt: Sync + Debug {
@@ -49,6 +51,39 @@ pub trait ClientExt: Sync + Debug {
     {
         self.request(Method::PATCH, url, text).await
     }
+
+    #[inline]
+    async fn connect(&self, url: Url, text: &str) -> Result<ClientResponse, Error>
+    where
+        Self: Sized,
+    {
+        self.request(Method::CONNECT, url, text).await
+    }
+
+    #[inline]
+    async fn head(&self, url: Url, text: &str) -> Result<ClientResponse, Error>
+    where
+        Self: Sized,
+    {
+        self.request(Method::HEAD, url, text).await
+    }
+
+    #[inline]
+    async fn options(&self, url: Url, text: &str) -> Result<ClientResponse, Error>
+    where
+        Self: Sized,
+    {
+        self.request(Method::OPTIONS, url, text).await
+    }
+
+    #[inline]
+    async fn trace(&self, url: Url, text: &str) -> Result<ClientResponse, Error>
+    where
+        Self: Sized,
+    {
+        self.request(Method::TRACE, url, text).await
+    }
+
     async fn request(&self, method: Method, url: Url, text: &str) -> Result<ClientResponse, Error>
     where
         Self: Sized;
@@ -59,7 +94,7 @@ pub struct ClientResponse {
     status_code: http::StatusCode,
     headers: http::HeaderMap,
     content: String,
-    version: http::Version,
+    version: Option<http::Version>,
 }
 
 impl ClientResponse {
@@ -71,7 +106,7 @@ impl ClientResponse {
 
     /// Get the HTTP `Version` of this `Response`.
     #[inline]
-    pub fn version(&self) -> http::Version {
+    pub fn version(&self) -> Option<http::Version> {
         self.version
     }
 

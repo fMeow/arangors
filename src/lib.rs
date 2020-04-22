@@ -85,7 +85,7 @@
 //! ```rust
 //! use arangors::Connection;
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! // (Recommended) Handy functions
@@ -110,7 +110,7 @@
 //! ```rust
 //! use arangors::Connection;
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -154,7 +154,7 @@
 //! use arangors::Connection;
 //! use serde_json::Value;
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -180,7 +180,7 @@
 //!     pub password: String,
 //! }
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -222,7 +222,7 @@
 //!     pub password: String,
 //! }
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -251,7 +251,7 @@
 //!     pub password: String,
 //! }
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -284,7 +284,7 @@
 //! use arangors::{AqlQuery, Connection, Cursor, Database};
 //! use serde_json::value::Value;
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -312,7 +312,11 @@
 //! An ergonomic [arangoDB](https://www.arangodb.com/) client for rust.
 #![allow(unused_parens)]
 
-#[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
+#[cfg(any(
+    feature = "reqwest_async",
+    feature = "reqwest_blocking",
+    feature = "surf_async"
+))]
 pub use crate::connection::Connection;
 pub use crate::{
     aql::{AqlOption, AqlQuery},

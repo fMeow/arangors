@@ -24,7 +24,7 @@ impl ClientExt for ReqwestClient {
 
         let status_code = resp.status();
         let headers = resp.headers().clone();
-        let version = resp.version();
+        let version = Some(resp.version());
         let content = resp.text().await?;
 
         Ok(ClientResponse {
