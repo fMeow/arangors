@@ -55,6 +55,10 @@ script:
   - cargo fmt --all -- --check
   - cargo build
   - cargo test
+  - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise" --lib
+  - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise" --lib
+  - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise blocking"  --lib
+  - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise blocking" --lib
   - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_async"
   - cargo test --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_async"
   - cargo build --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_blocking"

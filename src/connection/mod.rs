@@ -43,17 +43,12 @@ use url::Url;
 
 use maybe_async::maybe_async;
 
-use crate::{
-    client::{reqwest::ReqwestClient, ClientExt},
-    response::ArangoResult,
-};
-
-use super::{database::Database, response::serialize_response};
-
 use self::{
     auth::Auth,
     role::{Admin, Normal},
 };
+use super::{database::Database, response::serialize_response};
+use crate::{client::ClientExt, response::ArangoResult};
 
 mod auth;
 
@@ -92,7 +87,7 @@ pub struct DatabaseDetails {
 }
 
 #[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
-pub type Connection = GenericConnection<ReqwestClient>;
+pub type Connection = GenericConnection<crate::client::reqwest::ReqwestClient>;
 
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about auth, arangodb url, and a hash
