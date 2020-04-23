@@ -113,10 +113,6 @@
 //!
 //! So are the `arangors` API.
 //!
-//! When a connection is successfully established,
-//! `arangors` will automatically fetch the structure of arangoDB
-//! by get the list of database, and then lists of collections per database.
-//!
 //! Example:
 //!
 //! - With authentication
