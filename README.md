@@ -11,11 +11,8 @@
 inspired by [pyArango](https://github.com/tariqdaouda/pyArango).
 
 `arangors` enables you to connect with arangoDB server, access to database,
-execute AQL query, manage arangoDB in an easy and intuitive way.
-
-## NOTICE
-`arangors` will stay **synchronous** until the async/await syntax are
-available in stable channel.
+execute AQL query, manage arangoDB in an easy and intuitive way,
+both async and plain synchrnous code with any HTTP ecosystem you love.
 
 ## Philosophy of arangors
 
@@ -32,7 +29,7 @@ of databases, containing a HTTP client with authentication information in
 HTTP headers.
 
 Hierarchy of arangors:
-> connection -> databases(cached) -> collections -> documents/edges
+> connection -> databases -> collections -> documents/edges
 
 ## Features
 
@@ -40,33 +37,72 @@ By now, the available features of arangors are:
 
 - make connection to arangoDB
 - get list of databases and collections
+- fetch database and collection info
+- create and delete dababase or collections
 - full featured AQL query
 
 ## TODO
 
 - (Done) Milestone 0.1.x
 
-Synchronous connection based on `reqwest` and full featured AQL query.
+    Synchronous connection based on `reqwest` and full featured AQL query.
 
-- (WIP) Milestone 0.2.x
+- (X) Milestone 0.2.x
 
-Remove cache behaviour and fix severe bugs in 0.2 that only root user can
-have access to arangoDB, which impose breaking API changes.
+    Fill the unimplemented API in `Connection`, `Database`, `Collection` and
+    `Document`.
 
-Fill the unimplemented API in `Connection`, `Database`, `Collection` and
-`Document`.
+    ~~In this stage, all operations available for database, collection and
+    document should be implemented.~~
 
-In this stage, all operations available for database, collection and
-document should be implemented.
+    Well, I am too lazy to fill all API, as the AQL syntax suffices in most
+cases.     Let's fullill this goal in 0.4.x .
 
-- Milestone 0.3.x
+- (Done) Milestone 0.3.x
 
-Provides the API related to graph, index and user management.
+    Implement both sync and async client. Also, offers a way to use custom
+HTTP client ecosystem.
 
-- Milestone 0.4.x
+- (WIP) Milestone 0.4.x
 
-Implement both sync and async client.
+    Provides the API related to graph, index and user management.
+
+    In this stage, all operations available for database, collection and
+    document should be implemented.
+
 ## Glance
+
+### Use Different HTTP Ecosystem, Regardless of Async or Sync
+
+You can switch to different HTTP ecosystem with a feature gate, or implement the Client yourself(
+see examples).
+
+Currently out-of-box supported ecosystem are:
+- `reqwest_async`
+- `reqwest_blocking`
+- `surf_async`
+
+By default, `arangors` use `reqwest_async` as underling HTTP Client to connect with ArangoDB.
+You can switch other ecosystem in feature gate:
+
+```toml
+[dependencies]
+arangors = { version = "0.3", features = ["surf_async"], no-default-features = true }
+```
+
+Or if you want to stick with other ecosystem that are not listed in the feature gate,
+you can get vanilla `arangors` without any HTTP client dependecies:
+
+```toml
+[dependencies]
+// This one is async
+arangors = { version = "0.3", no-default-features = true }
+// This one is synchronous
+arangors = { version = "0.3", features = ["blocking"], no-default-features = true }
+```
+
+Thanks to `maybe_async`, `arangors` can unify sync and async API and toggle with a
+feature gate. Arangors adopts async first policy.
 
 ### Connection
 
@@ -101,8 +137,7 @@ let conn = Connection::establish_basic_auth("http://localhost:8529", "username",
 - Without authentication, only use in evaluation setting
 
 ``` rust, ignore
-use arangors::Connection;
-let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
+let conn = Connection::establish_without_auth("http://localhost:8529").await.unwrap();
 ```
 
 ### Database && Collection
@@ -141,10 +176,11 @@ query offers more control.
 
 #### Typed or Not Typed
 
-Note that results can be strong typed given deserializable struct, or
-arbitrary JSON object with `serde::Value`.
+Note that results from arangoDB server, e.x. fetched documents, can be
+strong typed given deserializable struct, or arbitrary JSON object with
+`serde::Value`.
 
-- Arbitrary JSON object
+- Not Typed: Arbitrary JSON object
 
 ```rust
 use arangors::Connection;
@@ -160,7 +196,7 @@ let resp: Vec<Value> = db
     .unwrap();
 ```
 
-- Strong typed result
+- Strong Typed
 
 ```rust
 use arangors::Connection;
@@ -185,6 +221,41 @@ let resp: Vec<User> = db
 #### Batch query
 
 `arangors` offers a way to manually handle batch query.
+
+Use `aql_query_batch` to get a cursor, and use `aql_next_batch` to fetch
+next batch and update cursor with the cursor.
+
+```rust
+
+let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+    .await
+    .unwrap();
+let db = conn.db("test_db").await.unwrap();
+
+let aql = AqlQuery::new("FOR u IN @@collection LIMIT 3 RETURN u")
+    .batch_size(1)
+    .count(true)
+    .bind_var("@collection", "test_collection");
+
+// fetch the first cursor
+let mut cursor = db.aql_query_batch(aql).await.unwrap();
+// see metadata in cursor
+println!("count: {:?}", cursor.count);
+println!("cached: {}", cursor.cached);
+let mut results: Vec<serde_json::Value> = Vec::new();
+loop {
+    if cursor.more {
+        let id = cursor.id.unwrap().clone();
+        // save data
+        results.extend(cursor.result.into_iter());
+        // update cursor
+        cursor = db.aql_next_batch(id.as_str()).await.unwrap();
+    } else {
+        break;
+    }
+}
+println!("{:?}", results);
+```
 
 #### Fetch All Results
 

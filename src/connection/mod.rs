@@ -15,7 +15,8 @@
 //! ```rust
 //! use arangors::Connection;
 //!
-//! # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+//! # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -152,9 +153,6 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     }
 
     /// Get database object with name.
-    ///
-    /// This function look up accessible database in cache hash map,
-    /// and return a reference of database if found.
     #[maybe_async]
     pub async fn db(&self, name: &str) -> Result<Database<'_, C>, ClientError> {
         let db = Database::new(&self, name);
@@ -268,7 +266,8 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// ```rust
     /// use arangors::Connection;
     ///
-    /// # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
+    /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+    /// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
     /// # #[cfg_attr(feature="blocking", maybe_async::must_be_sync)]
     /// # async fn main() {
     /// let conn = Connection::establish_basic_auth("http://localhost:8529", "username", "password")
@@ -297,7 +296,8 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// ```rust
     /// use arangors::Connection;
     ///
-    /// # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
+    /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+    /// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
     /// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
     /// # async fn main() {
     /// let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -367,7 +367,8 @@ impl<C: ClientExt> GenericConnection<C, Admin> {
     /// # Example
     /// ```rust
     /// use arangors::Connection;
-    /// # #[cfg_attr(any(feature="reqwest_async", feature="surf_async"), maybe_async::maybe_async, tokio::main)]
+    /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+    /// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
     /// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
     /// # async fn main() {
     /// let conn_normal =
