@@ -114,5 +114,5 @@ async fn test_jwt() {
         let headers = resp.headers();
         assert_eq!(headers.get("Server").unwrap(), "ArangoDB");
     }
-    test_root_and_normal(jwt);
+    test_root_and_normal(jwt).await;
 }

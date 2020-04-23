@@ -71,7 +71,7 @@ async fn test_fetch_current_database_info() {
             Err(e) => assert!(false, "Fail to drop database: {:?}", e),
         }
     }
-    test_root_and_normal(fetch_current_database);
+    test_root_and_normal(fetch_current_database).await;
 }
 
 #[maybe_async::test(
