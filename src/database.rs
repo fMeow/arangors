@@ -49,6 +49,9 @@ impl<'a, C: ClientExt> Database<'a, C> {
         }
     }
     /// Retrieve all collections of this database.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn accessible_collections(&self) -> Result<Vec<CollectionResponse>, ClientError> {
         // an invalid arango_url should never running through initialization
@@ -76,6 +79,9 @@ impl<'a, C: ClientExt> Database<'a, C> {
     }
 
     /// Get collection object with name.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn collection(&self, name: &str) -> Result<Collection<'_, C>, ClientError> {
         let url = self
@@ -91,9 +97,12 @@ impl<'a, C: ClientExt> Database<'a, C> {
         unimplemented!()
     }
 
-    /// Create a collection via HTTP request and add it into `self.collections`.
+    /// Create a collection via HTTP request.
     ///
-    /// Return a database object if success.
+    /// Return a collection object if success.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn create_collection(
         &mut self,
@@ -111,7 +120,9 @@ impl<'a, C: ClientExt> Database<'a, C> {
     }
 
     /// Drops a collection
-    /// TODO
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn drop_collection(&mut self, name: &str) -> Result<String, ClientError> {
         let url_path = format!("_api/collection/{}", name);
@@ -155,6 +166,9 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// batch query is that cursors contain more information and stats
     /// about the AQL query, and users can fetch results in batch to save memory
     /// resources on clients.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn aql_query_batch<R>(&self, aql: AqlQuery<'_>) -> Result<Cursor<R>, ClientError>
     where
@@ -170,6 +184,9 @@ impl<'a, C: ClientExt> Database<'a, C> {
     }
 
     /// Get next batch given the cursor id.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, ClientError>
     where
@@ -210,6 +227,9 @@ impl<'a, C: ClientExt> Database<'a, C> {
     ///
     /// DO NOT set a small batch size, otherwise clients will have to make many
     /// HTTP requests.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn aql_query<R>(&self, aql: AqlQuery<'_>) -> Result<Vec<R>, ClientError>
     where
@@ -226,6 +246,9 @@ impl<'a, C: ClientExt> Database<'a, C> {
 
     /// Similar to `aql_query`, except that this method only accept a string of
     /// AQL query.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn aql_str<R>(&self, query: &str) -> Result<Vec<R>, ClientError>
     where
@@ -237,6 +260,9 @@ impl<'a, C: ClientExt> Database<'a, C> {
 
     /// Similar to `aql_query`, except that this method only accept a string of
     /// AQL query, with additional bind vars.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn aql_bind_vars<R>(
         &self,

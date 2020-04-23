@@ -95,9 +95,7 @@ pub type Connection = GenericConnection<crate::client::reqwest::ReqwestClient>;
 pub type Connection = GenericConnection<crate::client::surf::SurfClient>;
 
 /// Connection is the top level API for this crate.
-/// It contains a http client, information about auth, arangodb url, and a hash
-/// map of the databases Object. The `databases` Hashmap is construct once
-/// connections succeed.
+/// It contains a http client, information about authentication, arangodb url.
 #[derive(Debug, Clone)]
 pub struct GenericConnection<C: ClientExt, S = Normal> {
     session: Arc<C>,
@@ -112,9 +110,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     ///
     /// Cast `failure::Error` if
     /// - Connection failed
-    /// - response code is not 200
-    /// - no SERVER header in response header
-    /// - SERVER header in response header is not `ArangoDB`
+    /// - SERVER header in response header is not `ArangoDB` or empty
     #[maybe_async]
     pub async fn validate_server(&self) -> Result<(), ClientError> {
         let arango_url = self.arango_url.as_str();
@@ -153,6 +149,9 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     }
 
     /// Get database object with name.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn db(&self, name: &str) -> Result<Database<'_, C>, ClientError> {
         let db = Database::new(&self, name);
@@ -161,12 +160,12 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     }
 
     /// Get a list of accessible database
-    /// 1. retrieve the names of all the accessible databases
-    /// 1. for each databases, construct a `Database` object and store them in
-    /// `self.databases` for later use
     ///
     /// This function uses the API that is used to retrieve a list of
     /// all databases the current user can access.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn accessible_databases(&self) -> Result<HashMap<String, Permission>, ClientError> {
         let url = self
@@ -362,6 +361,9 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// # }
     /// ```
     /// TODO tweak options on creating database
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn create_database(&self, name: &str) -> Result<Database<'_, C>, ClientError> {
         let mut map = HashMap::new();
@@ -378,6 +380,9 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     }
 
     /// Drop database with name.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn drop_database(&self, name: &str) -> Result<(), ClientError> {
         let url_path = format!("/_api/database/{}", name);
