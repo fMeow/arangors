@@ -324,7 +324,8 @@ pub use crate::{
     connection::GenericConnection,
     database::Database,
     document::Document,
-    response::{Cursor, ServerError, Success},
+    error::{ArangoError, ClientError},
+    response::{Cursor, Success},
 };
 
 pub mod aql;
@@ -333,5 +334,6 @@ pub mod collection;
 pub mod connection;
 pub mod database;
 pub mod document;
+pub mod error;
 mod query;
 pub mod response;

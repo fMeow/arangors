@@ -9,23 +9,32 @@ use crate::client::ClientExt;
 
 use super::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ReqwestClient(pub Client);
 
 #[maybe_async::maybe_async]
 impl ClientExt for ReqwestClient {
-    async fn request(&self, method: Method, url: Url, text: &str) -> Result<ClientResponse, Error> {
+    async fn request(
+        &self,
+        method: Method,
+        url: Url,
+        text: &str,
+    ) -> Result<ClientResponse, ClientError> {
         let resp = self
             .0
             .request(method, url)
             .body(text.to_owned())
             .send()
-            .await?;
+            .await
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
         let status_code = resp.status();
         let headers = resp.headers().clone();
         let version = Some(resp.version());
-        let content = resp.text().await?;
+        let content = resp
+            .text()
+            .await
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
         Ok(ClientResponse {
             status_code,
@@ -35,7 +44,7 @@ impl ClientExt for ReqwestClient {
         })
     }
 
-    fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, Error> {
+    fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
         let client = Client::builder().gzip(true);
         match headers.into() {
             Some(h) => client.default_headers(h),
@@ -43,6 +52,6 @@ impl ClientExt for ReqwestClient {
         }
         .build()
         .map(|c| ReqwestClient(c))
-        .map_err(Error::from)
+        .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 }

@@ -4,13 +4,14 @@
 use std::fmt;
 use std::{fmt::Debug, ops::Deref};
 
-use failure::{format_err, Error as FailureError};
 use log::trace;
 use serde::{
     de::{self, DeserializeOwned, Deserializer},
     Deserialize,
 };
 use serde_json::value::Value;
+
+use crate::{ArangoError, ClientError};
 
 use super::aql::QueryStats;
 
@@ -19,12 +20,12 @@ use super::aql::QueryStats;
 /// response of success and failure.
 ///
 /// When ArangoDB server response error code, then an error would be cast.
-pub(crate) fn serialize_response<T>(text: &str) -> Result<T, FailureError>
+pub(crate) fn serialize_response<T>(text: &str) -> Result<T, ClientError>
 where
     T: DeserializeOwned + Debug,
 {
     let response: Response<T> = serde_json::from_str(text)?;
-    response.into()
+    Ok(Into::<Result<T, ArangoError>>::into(response)?)
 }
 
 /// An enum to divide into successful and failed response.
@@ -39,14 +40,14 @@ where
 #[derive(Debug)]
 pub enum Response<T> {
     Ok(Success<T>),
-    Err(ServerError),
+    Err(ArangoError),
 }
 
-impl<T> Into<Result<T, FailureError>> for Response<T> {
-    fn into(self) -> Result<T, FailureError> {
+impl<T> Into<Result<T, ArangoError>> for Response<T> {
+    fn into(self) -> Result<T, ArangoError> {
         match self {
             Response::Ok(success) => Ok(success.result),
-            Response::Err(err) => Err(format_err!("{}", err.message)),
+            Response::Err(err) => Err(err),
         }
     }
 }
@@ -69,7 +70,7 @@ where
         let rest = Value::Object(map);
 
         if error {
-            ServerError::deserialize(rest)
+            ArangoError::deserialize(rest)
                 .map(Response::Err)
                 .map_err(de::Error::custom)
         } else {
@@ -110,30 +111,6 @@ pub struct Success<T> {
 impl<T: fmt::Display> fmt::Display for Success<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(format!("Response {} (Status: {})", &self.result, &self.code).as_str())
-    }
-}
-
-#[derive(Deserialize, Debug)]
-pub struct ServerError {
-    pub(crate) code: u16,
-    #[serde(rename = "errorNum")]
-    pub(crate) error_num: u16,
-    #[serde(rename = "errorMessage")]
-    pub(crate) message: String,
-}
-
-impl ServerError {
-    /// Get the HTTP status code of an error response.
-    pub fn get_code(&self) -> u16 {
-        self.code
-    }
-
-    pub fn get_error_num(&self) -> u16 {
-        self.error_num
-    }
-
-    pub fn get_message(&self) -> &str {
-        &self.message
     }
 }
 

@@ -35,7 +35,6 @@
 
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
-use failure::{format_err, Error};
 use http::header::{HeaderMap, AUTHORIZATION, SERVER};
 use log::{info, trace};
 use serde::{Deserialize, Serialize};
@@ -43,7 +42,7 @@ use url::Url;
 
 use maybe_async::maybe_async;
 
-use crate::{client::ClientExt, response::ArangoResult};
+use crate::{client::ClientExt, response::ArangoResult, ClientError};
 
 use super::{database::Database, response::serialize_response};
 
@@ -116,22 +115,23 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     /// - no SERVER header in response header
     /// - SERVER header in response header is not `ArangoDB`
     #[maybe_async]
-    pub async fn validate_server(&self) -> Result<(), Error> {
+    pub async fn validate_server(&self) -> Result<(), ClientError> {
         let arango_url = self.arango_url.as_str();
         let client = C::new(None)?;
         let resp = client.get(arango_url.parse().unwrap(), "").await?;
         // have `Server` in header
-        if let Some(server) = resp.headers().get(SERVER) {
-            // value of `Server` is `ArangoDB`
-            let server_value = server.to_str().unwrap();
-            if server_value.eq_ignore_ascii_case("ArangoDB") {
-                trace!("Validate arangoDB server done.");
-                return Ok(());
-            } else {
-                return Err(format_err!("In HTTP header, Server is {}", server_value));
+        match resp.headers().get(SERVER) {
+            Some(server) => {
+                // value of `Server` is `ArangoDB`
+                let server_value = server.to_str().unwrap();
+                if server_value.eq_ignore_ascii_case("ArangoDB") {
+                    trace!("Validate arangoDB server done.");
+                    Ok(())
+                } else {
+                    Err(ClientError::InvalidServer(server_value.to_owned()))
+                }
             }
-        } else {
-            return Err(format_err!("Fail to find Server in HTTP header"));
+            None => Err(ClientError::InvalidServer("Unknown".to_owned())),
         }
     }
 
@@ -156,13 +156,10 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     /// This function look up accessible database in cache hash map,
     /// and return a reference of database if found.
     #[maybe_async]
-    pub async fn db(&self, name: &str) -> Result<Database<'_, C>, Error> {
-        let dbs = self.accessible_databases().await?;
-        if dbs.contains_key(name) {
-            Ok(Database::new(&self, name))
-        } else {
-            Err(format_err!("Cannot access to db: {}", name))
-        }
+    pub async fn db(&self, name: &str) -> Result<Database<'_, C>, ClientError> {
+        let db = Database::new(&self, name);
+        db.info().await?;
+        Ok(db)
     }
 
     /// Get a list of accessible database
@@ -173,7 +170,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     /// This function uses the API that is used to retrieve a list of
     /// all databases the current user can access.
     #[maybe_async]
-    pub async fn accessible_databases(&self) -> Result<HashMap<String, Permission>, Error> {
+    pub async fn accessible_databases(&self) -> Result<HashMap<String, Permission>, ClientError> {
         let url = self
             .arango_url
             .join(&format!("/_api/user/{}/database", &self.username))
@@ -199,9 +196,13 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     async fn establish<T: Into<String>>(
         arango_url: T,
         auth: Auth<'_>,
-    ) -> Result<GenericConnection<C, Normal>, Error> {
+    ) -> Result<GenericConnection<C, Normal>, ClientError> {
+        let url = arango_url.into();
         let mut conn = GenericConnection {
-            arango_url: Url::parse(arango_url.into().as_str())?.join("/").unwrap(),
+            arango_url: Url::parse(&url)
+                .expect(&format!("invaid url: {}", url))
+                .join("/")
+                .unwrap(),
             username: String::new(),
             session: Arc::new(C::new(None)?),
             state: Normal,
@@ -256,7 +257,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     #[maybe_async]
     pub async fn establish_without_auth<T: Into<String>>(
         arango_url: T,
-    ) -> Result<GenericConnection<C, Normal>, Error> {
+    ) -> Result<GenericConnection<C, Normal>, ClientError> {
         trace!("Establish without auth");
         GenericConnection::establish(arango_url.into(), Auth::None).await
     }
@@ -280,7 +281,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         arango_url: &str,
         username: &str,
         password: &str,
-    ) -> Result<GenericConnection<C, Normal>, Error> {
+    ) -> Result<GenericConnection<C, Normal>, ClientError> {
         trace!("Establish with basic auth");
         GenericConnection::establish(arango_url, Auth::basic(username, password)).await
     }
@@ -309,13 +310,17 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         arango_url: &str,
         username: &str,
         password: &str,
-    ) -> Result<GenericConnection<C, Normal>, Error> {
+    ) -> Result<GenericConnection<C, Normal>, ClientError> {
         trace!("Establish with jwt");
         GenericConnection::establish(arango_url, Auth::jwt(username, password)).await
     }
 
     #[maybe_async]
-    async fn jwt_login<T: Into<String>>(&self, username: T, password: T) -> Result<String, Error> {
+    async fn jwt_login<T: Into<String>>(
+        &self,
+        username: T,
+        password: T,
+    ) -> Result<String, ClientError> {
         #[derive(Deserialize)]
         struct JWT {
             pub jwt: String,
@@ -335,14 +340,20 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     }
 
     #[maybe_async]
-    pub async fn into_admin(self) -> Result<GenericConnection<C, Admin>, Error> {
+    pub async fn into_admin(self) -> Result<GenericConnection<C, Admin>, ClientError> {
         let dbs = self.accessible_databases().await?;
         let db = dbs
             .get("_system")
-            .ok_or(format_err!("Do not have read access to _system database"))?;
+            .ok_or(ClientError::InsufficientPermission {
+                permission: Permission::NoAccess,
+                operation: String::from("access to _system database"),
+            })?;
         match db {
             Permission::ReadWrite => Ok(self.into()),
-            _ => Err(format_err!("Do not have write access to _system database")),
+            _ => Err(ClientError::InsufficientPermission {
+                permission: Permission::ReadOnly,
+                operation: String::from("write to _system database"),
+            }),
         }
     }
 }
@@ -373,7 +384,7 @@ impl<C: ClientExt> GenericConnection<C, Admin> {
     /// ```
     /// TODO tweak options on creating database
     #[maybe_async]
-    pub async fn create_database(&self, name: &str) -> Result<Database<'_, C>, Error> {
+    pub async fn create_database(&self, name: &str) -> Result<Database<'_, C>, ClientError> {
         let mut map = HashMap::new();
         map.insert("name", name);
         let url = self.arango_url.join("/_api/database").unwrap();
@@ -382,11 +393,9 @@ impl<C: ClientExt> GenericConnection<C, Admin> {
             .session
             .post(url, &serde_json::to_string(&map)?)
             .await?;
-        let result: ArangoResult<bool> = serialize_response(resp.text())?;
-        match result.unwrap() {
-            true => self.db(name).await,
-            false => Err(format_err!("Fail to create db. Reason: {:?}", resp)),
-        }
+
+        serialize_response::<ArangoResult<bool>>(resp.text())?;
+        self.db(name).await
     }
 
     /// Drop database with name.
@@ -395,16 +404,13 @@ impl<C: ClientExt> GenericConnection<C, Admin> {
     /// to this `Connection` object are allowed. This design avoid references
     /// to drop database at compile time.
     #[maybe_async]
-    pub async fn drop_database(&mut self, name: &str) -> Result<(), Error> {
+    pub async fn drop_database(&mut self, name: &str) -> Result<(), ClientError> {
         let url_path = format!("/_api/database/{}", name);
         let url = self.arango_url.join(&url_path).unwrap();
 
         let resp = self.session.delete(url, "").await?;
-        let result: ArangoResult<bool> = serialize_response(resp.text())?;
-        match result.unwrap() {
-            true => Ok(()),
-            false => Err(format_err!("Fail to drop db. Reason: {:?}", resp)),
-        }
+        serialize_response::<ArangoResult<bool>>(resp.text())?;
+        Ok(())
     }
 
     pub fn into_normal(self) -> GenericConnection<C, Normal> {

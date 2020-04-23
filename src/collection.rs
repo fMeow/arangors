@@ -83,23 +83,23 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         )
     }
 
-    pub fn get_collection_type(&self) -> &CollectionType {
+    pub fn collection_type(&self) -> &CollectionType {
         &self.collection_type
     }
 
-    pub fn get_id(&self) -> &str {
+    pub fn id(&self) -> &str {
         self.id.as_str()
     }
 
-    pub fn get_name(&self) -> &str {
+    pub fn name(&self) -> &str {
         self.name.as_str()
     }
 
-    pub fn get_url(&self) -> &Url {
+    pub fn url(&self) -> &Url {
         &self.base_url
     }
 
-    pub fn get_session(&self) -> Arc<C> {
+    pub fn session(&self) -> Arc<C> {
         Arc::clone(&self.session)
     }
 
@@ -109,13 +109,13 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     /// Fetch the properties of collection
     #[maybe_async]
-    pub async fn fetch_properties(&self) {
+    pub async fn properties(&self) {
         unimplemented!()
     }
 
     /// Counts the documents in this collection
     #[maybe_async]
-    pub async fn fetch_document_count(&self) {
+    pub async fn document_count(&self) {
         unimplemented!()
     }
     /// Fetch the statistics of a collection
@@ -144,7 +144,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// fileSize values. Still the sum of the fileSize values can still be used
     /// as a lower bound approximation of the disk usage.
     #[maybe_async]
-    pub async fn fetch_statistics(&self) {
+    pub async fn statistics(&self) {
         unimplemented!()
     }
 
@@ -154,7 +154,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// check whether data in a collection has changed since the last revision
     /// check.
     #[maybe_async]
-    pub async fn fetch_revision_id(&self) {
+    pub async fn revision_id(&self) {
         unimplemented!()
     }
     /// Fetch a checksum for the specified collection
@@ -178,7 +178,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     // user-defined document attributes will be included in the calculation too.
     // Note: Including user-defined attributes will make the checksumming slower.
     #[maybe_async]
-    pub async fn fetch_checksum(&self) {
+    pub async fn checksum(&self) {
         unimplemented!()
     }
 
@@ -229,7 +229,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     /// Renames the collection
     #[maybe_async]
-    pub async fn rename_collection(&self) {
+    pub async fn rename(&self) {
         unimplemented!()
     }
 

@@ -3,7 +3,6 @@
 //! AQL query are all executed in database level, so Database offers AQL query.
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
-use failure::{format_err, Error};
 use log::trace;
 use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::value::Value;
@@ -17,7 +16,7 @@ use crate::{
     collection::{Collection, CollectionDetails, CollectionResponse},
     connection::{DatabaseDetails, GenericConnection, Version},
     response::{serialize_response, ArangoResult, Cursor},
-    ServerError,
+    ClientError,
 };
 
 #[derive(Debug)]
@@ -51,7 +50,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     }
     /// Retrieve all collections of this database.
     #[maybe_async]
-    pub async fn accessible_collections(&self) -> Result<Vec<CollectionResponse>, Error> {
+    pub async fn accessible_collections(&self) -> Result<Vec<CollectionResponse>, ClientError> {
         // an invalid arango_url should never running through initialization
         // so we assume arango_url is a valid url
         // When we pass an invalid path, it should panic to eliminate the bug
@@ -78,14 +77,13 @@ impl<'a, C: ClientExt> Database<'a, C> {
 
     /// Get collection object with name.
     #[maybe_async]
-    pub async fn collection(&self, name: &str) -> Result<Collection<'_, C>, Error> {
-        let collections = self.accessible_collections().await?;
-        for collection in &collections {
-            if collection.name.eq(name) {
-                return Ok(Collection::from_response(self, collection));
-            }
-        }
-        return Err(format_err!("Collection {} not found", name));
+    pub async fn collection(&self, name: &str) -> Result<Collection<'_, C>, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/collection/{}", name))
+            .unwrap();
+        let resp: CollectionResponse = serialize_response(self.session.get(url, "").await?.text())?;
+        Ok(Collection::from_response(self, &resp))
     }
 
     #[maybe_async]
@@ -97,7 +95,10 @@ impl<'a, C: ClientExt> Database<'a, C> {
     ///
     /// Return a database object if success.
     #[maybe_async]
-    pub async fn create_collection(&mut self, name: &str) -> Result<Collection<'_, C>, Error> {
+    pub async fn create_collection(
+        &mut self,
+        name: &str,
+    ) -> Result<Collection<'_, C>, ClientError> {
         let mut map = HashMap::new();
         map.insert("name", name);
         let url = self.base_url.join("_api/collection").unwrap();
@@ -112,22 +113,18 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// Drops a collection
     /// TODO
     #[maybe_async]
-    pub async fn drop_collection(&mut self, name: &str) -> Result<String, Error> {
+    pub async fn drop_collection(&mut self, name: &str) -> Result<String, ClientError> {
         let url_path = format!("_api/collection/{}", name);
         let url = self.base_url.join(&url_path).unwrap();
 
         #[derive(Debug, Deserialize)]
-        #[serde(untagged)]
-        enum DropCollectionResponse {
-            Ok { error: bool, code: u16, id: String },
-            Err(ServerError),
+        struct DropCollectionResponse {
+            id: String,
         }
 
-        let resp: DropCollectionResponse = self.session.delete(url, "").await?.json()?;
-        match resp {
-            DropCollectionResponse::Err(e) => Err(format_err!("{}", e.message)),
-            DropCollectionResponse::Ok { id, .. } => Ok(id),
-        }
+        let resp: DropCollectionResponse =
+            serialize_response(self.session.delete(url, "").await?.text())?;
+        Ok(resp.id)
     }
 
     /// Get the version remote arango database server
@@ -135,7 +132,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn arango_version(&self) -> Result<Version, Error> {
+    pub async fn arango_version(&self) -> Result<Version, ClientError> {
         let url = self.base_url.join("_api/version").unwrap();
         let resp = self.session.get(url, "").await?;
         let version: Version = serde_json::from_str(resp.text())?;
@@ -147,7 +144,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn info(&self) -> Result<DatabaseDetails, Error> {
+    pub async fn info(&self) -> Result<DatabaseDetails, ClientError> {
         let url = self.base_url.join("_api/database/current").unwrap();
         let resp = self.session.get(url, "").await?;
         let res: ArangoResult<DatabaseDetails> = serialize_response(resp.text())?;
@@ -159,7 +156,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// about the AQL query, and users can fetch results in batch to save memory
     /// resources on clients.
     #[maybe_async]
-    pub async fn aql_query_batch<R>(&self, aql: AqlQuery<'_>) -> Result<Cursor<R>, Error>
+    pub async fn aql_query_batch<R>(&self, aql: AqlQuery<'_>) -> Result<Cursor<R>, ClientError>
     where
         R: DeserializeOwned + Debug,
     {
@@ -174,7 +171,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
 
     /// Get next batch given the cursor id.
     #[maybe_async]
-    pub async fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, Error>
+    pub async fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, ClientError>
     where
         R: DeserializeOwned + Debug,
     {
@@ -188,7 +185,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     }
 
     #[maybe_async]
-    async fn aql_fetch_all<R>(&self, response: Cursor<R>) -> Result<Vec<R>, Error>
+    async fn aql_fetch_all<R>(&self, response: Cursor<R>) -> Result<Vec<R>, ClientError>
     where
         R: DeserializeOwned + Debug,
     {
@@ -214,7 +211,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// DO NOT set a small batch size, otherwise clients will have to make many
     /// HTTP requests.
     #[maybe_async]
-    pub async fn aql_query<R>(&self, aql: AqlQuery<'_>) -> Result<Vec<R>, Error>
+    pub async fn aql_query<R>(&self, aql: AqlQuery<'_>) -> Result<Vec<R>, ClientError>
     where
         R: DeserializeOwned + Debug,
     {
@@ -230,7 +227,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// Similar to `aql_query`, except that this method only accept a string of
     /// AQL query.
     #[maybe_async]
-    pub async fn aql_str<R>(&self, query: &str) -> Result<Vec<R>, Error>
+    pub async fn aql_str<R>(&self, query: &str) -> Result<Vec<R>, ClientError>
     where
         R: DeserializeOwned + Debug,
     {
@@ -245,7 +242,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
         &self,
         query: &str,
         bind_vars: HashMap<&str, Value>,
-    ) -> Result<Vec<R>, Error>
+    ) -> Result<Vec<R>, ClientError>
     where
         R: DeserializeOwned + Debug,
     {

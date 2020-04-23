@@ -1,6 +1,5 @@
 use std::str::FromStr;
 
-use failure::format_err;
 use http::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_LENGTH, SERVER};
 use url::Url;
 
@@ -8,14 +7,19 @@ use crate::client::ClientExt;
 
 use super::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SurfClient {
     pub headers: HeaderMap,
 }
 
 #[async_trait::async_trait]
 impl ClientExt for SurfClient {
-    async fn request(&self, method: Method, url: Url, text: &str) -> Result<ClientResponse, Error> {
+    async fn request(
+        &self,
+        method: Method,
+        url: Url,
+        text: &str,
+    ) -> Result<ClientResponse, ClientError> {
         use ::surf::http_types::headers::HeaderName as SurfHeaderName;
         log::trace!("{:?}({:?}): {} ", method, url, text);
 
@@ -29,7 +33,7 @@ impl ClientExt for SurfClient {
             Method::HEAD => ::surf::head(url),
             Method::OPTIONS => ::surf::options(url),
             Method::TRACE => ::surf::trace(url),
-            m @ _ => return Err(format_err!("invalid method {}", m)),
+            m @ _ => return Err(ClientError::HttpClient(format!("invalid method {}", m))),
         };
 
         let req = self.headers.iter().fold(req, |req, (k, v)| {
@@ -41,7 +45,7 @@ impl ClientExt for SurfClient {
         let mut resp = req
             .body_string(text.to_owned())
             .await
-            .map_err(|e| format_err!("{:?}", e))?;
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
         let status_code = resp.status();
 
@@ -62,7 +66,7 @@ impl ClientExt for SurfClient {
         let content = resp
             .body_string()
             .await
-            .map_err(|e| format_err!("{:?}", e))?;
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
         Ok(ClientResponse {
             status_code: status_code.into(),
@@ -72,7 +76,7 @@ impl ClientExt for SurfClient {
         })
     }
 
-    fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, Error> {
+    fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
         let headers = match headers.into() {
             Some(h) => h,
             None => HeaderMap::new(),
