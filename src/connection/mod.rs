@@ -351,9 +351,9 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
     /// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
     /// # async fn main() {
-    /// let conn= Connection::establish_jwt("http://localhost:8529", "root", "KWNngteTps7XjrNv")
-    ///         .await
-    ///         .unwrap();
+    /// let conn = Connection::establish_jwt("http://localhost:8529", "root", "KWNngteTps7XjrNv")
+    ///     .await
+    ///     .unwrap();
     /// let result = conn.create_database("new_db").await.unwrap();
     /// println!("{:?}", result);
     ///

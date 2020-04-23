@@ -72,24 +72,25 @@
 //!
 //! ### Use Different HTTP Ecosystem, Regardless of Async or Sync
 //!
-//! You can switch to different HTTP ecosystem with a feature gate, or implement the Client yourself(
-//! see examples).
+//! You can switch to different HTTP ecosystem with a feature gate, or implement
+//! the Client yourself( see examples).
 //!
 //! Currently out-of-box supported ecosystem are:
 //! - `reqwest_async`
 //! - `reqwest_blocking`
 //! - `surf_async`
 //!
-//! By default, `arangors` use `reqwest_async` as underling HTTP Client to connect with ArangoDB.
-//! You can switch other ecosystem in feature gate:
+//! By default, `arangors` use `reqwest_async` as underling HTTP Client to
+//! connect with ArangoDB. You can switch other ecosystem in feature gate:
 //!
 //! ```toml
 //! [dependencies]
 //! arangors = { version = "0.3", features = ["surf_async"], no-default-features = true }
 //! ```
 //!
-//! Or if you want to stick with other ecosystem that are not listed in the feature gate,
-//! you can get vanilla `arangors` without any HTTP client dependecies:
+//! Or if you want to stick with other ecosystem that are not listed in the
+//! feature gate, you can get vanilla `arangors` without any HTTP client
+//! dependecies:
 //!
 //! ```toml
 //! [dependencies]
@@ -99,8 +100,8 @@
 //! arangors = { version = "0.3", features = ["blocking"], no-default-features = true }
 //! ```
 //!
-//! Thanks to `maybe_async`, `arangors` can unify sync and async API and toggle with a
-//! feature gate. Arangors adopts async first policy.
+//! Thanks to `maybe_async`, `arangors` can unify sync and async API and toggle
+//! with a feature gate. Arangors adopts async first policy.
 //!
 //! ### Connection
 //!
