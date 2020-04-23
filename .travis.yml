@@ -9,10 +9,10 @@ matrix:
       rust: stable
       script:
         - RUSTDOCFLAGS=-Dwarnings cargo doc --all --no-deps
-cache:
-  cargo: true
-  # directories:
-  #   - /var/lib/docker
+#cache:
+#  cargo: true
+#  directories:
+#    - /var/lib/docker
 
 sudo: required
 
