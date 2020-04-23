@@ -1,15 +1,15 @@
 language: rust
-rust:
-  - stable
-  - beta
 matrix:
   fast_finish: true
   include:
+    - name: stable
+      rust: stable
+      env:
+        - TRAVIS_DEPLOY_JOB=1
     - name: cargo doc
       rust: stable
       script:
         - RUSTDOCFLAGS=-Dwarnings cargo doc --all --no-deps
-#cache:
 #  cargo: true
 #  directories:
 #    - /var/lib/docker
@@ -75,4 +75,4 @@ deploy:
   on:
     tags: true
     branch: master
-    condition: "$TRAVIS_RUST_VERSION = stable"
+    condition: "$TRAVIS_DEPLOY_JOB = 1"
