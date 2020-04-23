@@ -13,6 +13,7 @@
 //! `surf`(async-std) and later `awc`.
 use anyhow::Error;
 use http::{HeaderMap, Method};
+#[cfg(feature = "reqwest_async")]
 use reqwest::Client;
 use url::Url;
 
@@ -22,15 +23,18 @@ use arangors::{
 };
 
 /// when use async http client, `blocking` feature MUST be disabled
+// This cfg is only to make rust compiler happy, you can just ignore it
+#[cfg(feature = "reqwest_async")]
 #[derive(Debug, Clone)]
 pub struct ReqwestClient(pub Client);
 
-// you can also use macro: maybe_async::async_impl, with which the whole code
-// block will just vanish when you enabled `blocking` feature.
-// Also, the API of reqwest is almost the same for async and sync. You can also
-// use maybe_async::maybe_async to remove async/await keyword in need, and just
-// import reqwesat::Client and rewest::blocking::Client respectively in async
-// and sync implementation. See `arangors::client::reqwest` source code.
+/// you can also use macro: maybe_async::async_impl, with which the whole code
+/// block will just vanish when you enabled `blocking` feature.
+/// Also, the API of reqwest is almost the same for async and sync. You can also
+/// use maybe_async::maybe_async to remove async/await keyword in need, and just
+/// import reqwesat::Client and rewest::blocking::Client respectively in async
+/// and sync implementation. See `arangors::client::reqwest` source code.
+// This cfg is only to make rust compiler happy, you can just ignore it
 #[cfg(feature = "reqwest_async")]
 #[async_trait::async_trait]
 impl ClientExt for ReqwestClient {
@@ -70,7 +74,7 @@ impl ClientExt for ReqwestClient {
     }
 }
 
-// this cfg is only to make rust compiler happy, you can just ignore it
+// This cfg is only to make rust compiler happy, you can just ignore it
 #[cfg(feature = "reqwest_async")]
 #[tokio::main]
 async fn main() -> Result<(), Error> {
