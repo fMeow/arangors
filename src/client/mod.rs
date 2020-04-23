@@ -104,6 +104,20 @@ pub struct ClientResponse {
 }
 
 impl ClientResponse {
+    pub fn new(
+        status_code: http::StatusCode,
+        headers: http::HeaderMap,
+        content: String,
+        version: Option<http::Version>,
+    ) -> Self {
+        Self {
+            status_code,
+            headers,
+            content,
+            version,
+        }
+    }
+
     /// Get the `StatusCode` of this `Response`.
     #[inline]
     pub fn status(&self) -> http::StatusCode {

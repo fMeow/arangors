@@ -56,12 +56,7 @@ impl ClientExt for ReqwestClient {
             .await
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
-        Ok(ClientResponse {
-            status_code,
-            headers,
-            version,
-            content,
-        })
+        Ok(ClientResponse::new(status_code, headers, content, version))
     }
 
     fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
@@ -79,10 +74,13 @@ impl ClientExt for ReqwestClient {
 #[cfg(feature = "reqwest_async")]
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    const URL: &str = "http://localhost:8529";
     let conn =
         GenericConnection::<ReqwestClient>::establish_jwt(URL, "username", "password").await?;
-    // from here the API is the same as other examples
+    // from here the API is the same
     let db = conn.db("test_db").await?;
+    let info = db.info().await?;
+    println!("{:?}", info);
 
     Ok(())
 }
