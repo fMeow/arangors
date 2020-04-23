@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+#![allow(unused_parens)]
 use log::trace;
 use pretty_assertions::assert_eq;
 

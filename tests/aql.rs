@@ -1,3 +1,6 @@
+#![allow(unused_imports)]
+#![allow(unused_parens)]
+
 use pretty_assertions::assert_eq;
 use serde::Deserialize;
 

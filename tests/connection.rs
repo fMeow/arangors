@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+#![allow(unused_parens)]
 use pretty_assertions::assert_eq;
 
 use arangors::{client::ClientExt, connection::Permission, Connection};

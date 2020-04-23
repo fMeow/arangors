@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+#![allow(unused_parens)]
 use log::trace;
 use pretty_assertions::assert_eq;
 
@@ -68,7 +70,7 @@ async fn test_fetch_current_database_info() {
                 trace!("{:?}", info);
                 assert_eq!(info.is_system, false)
             }
-            Err(e) => assert!(false, "Fail to drop database: {:?}", e),
+            Err(e) => assert!(false, "Fail to fetch database: {:?}", e),
         }
     }
     test_root_and_normal(fetch_current_database).await;

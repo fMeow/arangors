@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+#![allow(unused_parens)]
 use std::{env, future::Future};
 
 pub const ARANGODB_HOST: &str = "http://localhost:8529/";
