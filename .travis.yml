@@ -5,7 +5,7 @@ matrix:
     - name: stable
       rust: stable
       env:
-        - TRAVIS_DEPLOY_JOB=1
+        - TRAVIS_DEPLOY_JOB=1 DOCKER_COMPOSE_VERSION=1.22.0 RUST_LOG=arangors=trace
     - name: cargo doc
       rust: stable
       script:
