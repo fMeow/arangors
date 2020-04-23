@@ -30,7 +30,7 @@
 //! - No authentication
 //! ```rust, ignore
 //! use arangors::Connection;
-//! let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
+//! let conn = Connection::establish_without_auth("http://localhost:8529").await.unwrap();
 //! ```
 
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
@@ -179,8 +179,8 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
             .join(&format!("/_api/user/{}/database", &self.username))
             .unwrap();
         let resp = self.session.get(url, "").await?;
-        let result: ArangoResult<_> = serialize_response(resp.text())?;
-        Ok(result.inner)
+        let result: ArangoResult<HashMap<String, Permission>> = serialize_response(resp.text())?;
+        Ok(result.unwrap())
     }
 }
 
@@ -251,7 +251,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// ```rust, ignore
     /// use arangors::Connection;
     ///
-    /// let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
+    /// let conn = Connection::establish_without_auth("http://localhost:8529").await.unwrap();
     /// ```
     #[maybe_async]
     pub async fn establish_without_auth<T: Into<String>>(
@@ -383,7 +383,7 @@ impl<C: ClientExt> GenericConnection<C, Admin> {
             .post(url, &serde_json::to_string(&map)?)
             .await?;
         let result: ArangoResult<bool> = serialize_response(resp.text())?;
-        match result.inner {
+        match result.unwrap() {
             true => self.db(name).await,
             false => Err(format_err!("Fail to create db. Reason: {:?}", resp)),
         }
@@ -401,7 +401,7 @@ impl<C: ClientExt> GenericConnection<C, Admin> {
 
         let resp = self.session.delete(url, "").await?;
         let result: ArangoResult<bool> = serialize_response(resp.text())?;
-        match result.inner {
+        match result.unwrap() {
             true => Ok(()),
             false => Err(format_err!("Fail to drop db. Reason: {:?}", resp)),
         }

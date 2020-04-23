@@ -101,8 +101,8 @@
 //! - Without authentication, only use in evaluation setting
 //!
 //! ``` rust, ignore
-//! use arangors::Connection;
-//! let conn = Connection::establish_without_auth("http://localhost:8529").unwrap();
+//! # use arangors::Connection;
+//! let conn = Connection::establish_without_auth("http://localhost:8529").await.unwrap();
 //! ```
 //!
 //! ### Database && Collection

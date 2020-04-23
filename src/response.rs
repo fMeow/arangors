@@ -2,10 +2,10 @@
 /// server via HTTP request, as well as convenient functions to deserialize
 /// `Response`.
 use std::fmt;
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Deref};
 
 use failure::{format_err, Error as FailureError};
-use log::{error, trace};
+use log::trace;
 use serde::{
     de::{self, DeserializeOwned, Deserializer},
     Deserialize,
@@ -13,20 +13,6 @@ use serde::{
 use serde_json::value::Value;
 
 use super::aql::QueryStats;
-
-pub(crate) fn serialize_query_response<T>(resp: &str) -> Result<Cursor<T>, FailureError>
-where
-    T: DeserializeOwned + Debug,
-{
-    let response: QueryResponse<T> = serde_json::from_str(resp).map_err(|err| {
-        error!("Failed to serialize: {:?}", resp);
-        err
-    })?;
-    match response {
-        QueryResponse::Ok(resp) => Ok(resp),
-        QueryResponse::Err(error) => Err(format_err!("{}", error.message)),
-    }
-}
 
 /// There are different type of json object when requests to arangoDB
 /// server is accepted or not. Here provides an abstraction for
@@ -38,65 +24,31 @@ where
     T: DeserializeOwned + Debug,
 {
     let response: Response<T> = serde_json::from_str(text)?;
-    match response {
-        Response::Ok(resp) => Ok(resp.result),
-        Response::Err(error) => Err(format_err!("{}", error.message)),
-    }
+    response.into()
 }
 
-/// A enum of response contains all the case clients will encounter:
-/// - Query result (Cursor)
-/// - Error
-/// - successful request but not query result
+/// An enum to divide into successful and failed response.
 ///
-/// Never transpose the order of `Query` and `Success` as serde deserialize
-/// response in order. And `Query` is just a super set of `Success`
-#[derive(Debug)]
-pub enum QueryResponse<T> {
-    Ok(Cursor<T>),
-    Err(ServerError),
-}
-
-impl<'de, T> Deserialize<'de> for QueryResponse<T>
-where
-    T: Deserialize<'de>,
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let map = serde_json::Map::deserialize(deserializer)?;
-        trace!("Deserialize QueryResponse: {:?}", map);
-        let error = map
-            .get("error")
-            .ok_or_else(|| de::Error::missing_field("error"))
-            .map(Deserialize::deserialize)?
-            .map_err(de::Error::custom)?;
-        let rest = Value::Object(map);
-
-        if error {
-            ServerError::deserialize(rest)
-                .map(QueryResponse::Err)
-                .map_err(de::Error::custom)
-        } else {
-            Cursor::<T>::deserialize(rest)
-                .map(QueryResponse::Ok)
-                .map_err(de::Error::custom)
-        }
-    }
-}
-
-/// A enum of response contains all the case clients will encounter:
-/// - Query result (Cursor)
-/// - Error
-/// - successful request but not query result
+/// Request to server can failed at application level, like insufficient
+/// permission, database not found and etc. Response from arangoDB can tell
+/// whether the query succeeded and why if it failed.
 ///
-/// Never transpose the order of `Query` and `Success` as serde deserialize
-/// response in order. And `Query` is just a super set of `Success`
+/// The function of this enum is almost the same as
+/// Result, except that it's used to deserialize from
+/// server response.
 #[derive(Debug)]
 pub enum Response<T> {
     Ok(Success<T>),
     Err(ServerError),
+}
+
+impl<T> Into<Result<T, FailureError>> for Response<T> {
+    fn into(self) -> Result<T, FailureError> {
+        match self {
+            Response::Ok(success) => Ok(success.result),
+            Response::Err(err) => Err(format_err!("{}", err.message)),
+        }
+    }
 }
 
 impl<'de, T> Deserialize<'de> for Response<T>
@@ -129,16 +81,30 @@ where
 }
 
 #[derive(Deserialize, Debug)]
-pub struct Success<T> {
-    pub(crate) code: u16,
-    #[serde(flatten)]
-    pub(crate) result: T,
+pub struct ArangoResult<T> {
+    #[serde(rename = "result")]
+    result: T,
+}
+
+impl<T> ArangoResult<T> {
+    pub fn unwrap(self) -> T {
+        self.result
+    }
+}
+
+impl<T> Deref for ArangoResult<T> {
+    type Target = T;
+    fn deref(&self) -> &Self::Target {
+        &self.result
+    }
 }
 
 #[derive(Deserialize, Debug)]
-pub struct ArangoResult<T> {
-    #[serde(rename = "result")]
-    pub inner: T,
+pub struct Success<T> {
+    pub error: bool,
+    pub code: u16,
+    #[serde(flatten)]
+    pub result: T,
 }
 
 impl<T: fmt::Display> fmt::Display for Success<T> {
@@ -173,11 +139,6 @@ impl ServerError {
 
 #[derive(Deserialize, Debug)]
 pub struct Cursor<T> {
-    pub error: bool,
-
-    /// HTTP status code
-    pub code: u16,
-
     /// the total number of result documents available
     ///
     /// only available if the query was executed with the count attribute
