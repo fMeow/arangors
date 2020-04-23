@@ -1,6 +1,5 @@
 use std::fmt;
 
-// use std::backtrace::Backtrace;
 use serde::Deserialize;
 use thiserror::Error;
 
@@ -8,17 +7,6 @@ use crate::connection::Permission;
 
 #[derive(Error, Debug)]
 pub enum ClientError {
-    // #[error("data store disconnected")]
-    // Disconnect(#[from] io::Error),
-    // #[error("the data for key `{0}` is not available")]
-    // Redaction(String),
-    // #[error("invalid header (expected {expected:?}, found {found:?})")]
-    // InvalidHeader {
-    //     expected: String,
-    //     found: String,
-    // },
-    // #[error("unknown data store error")]
-    // Unknown,
     #[error("Insufficient permission ({permission:?}) to operate: {operation}")]
     InsufficientPermission {
         permission: Permission,
@@ -26,10 +14,8 @@ pub enum ClientError {
     },
     #[error("Server is not ArangoDB: {0}")]
     InvalidServer(String),
-
     #[error("Error from server: {0}")]
     Arango(#[from] ArangoError),
-
     #[error("error from serde")]
     Serde(#[from] serde_json::error::Error),
     #[error("HTTP client error: {0}")]
