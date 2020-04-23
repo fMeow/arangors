@@ -39,7 +39,7 @@ pub struct CollectionDetails {
     pub write_concern: u16,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Collection<'a, C: ClientExt> {
     id: String,
     name: String,

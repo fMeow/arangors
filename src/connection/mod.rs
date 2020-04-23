@@ -97,7 +97,7 @@ pub type Connection = GenericConnection<crate::client::surf::SurfClient>;
 /// It contains a http client, information about auth, arangodb url, and a hash
 /// map of the databases Object. The `databases` Hashmap is construct once
 /// connections succeed.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GenericConnection<C: ClientExt, S = Normal> {
     session: Arc<C>,
     arango_url: Url,
