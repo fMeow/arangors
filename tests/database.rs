@@ -27,9 +27,6 @@ async fn test_create_and_drop_database() {
 
     let conn = Connection::establish_jwt(&host, &root_user, &root_password)
         .await
-        .unwrap()
-        .into_admin()
-        .await
         .unwrap();
 
     let result = conn.create_database(NEW_DB_NAME).await;
@@ -39,7 +36,6 @@ async fn test_create_and_drop_database() {
     let result = conn.db(NEW_DB_NAME).await;
     assert_eq!(result.is_err(), false);
 
-    let mut conn = conn;
     let result = conn.drop_database(NEW_DB_NAME).await;
     if let Err(e) = result {
         assert!(false, "Fail to drop database: {:?}", e)

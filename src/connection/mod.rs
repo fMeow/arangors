@@ -339,6 +339,55 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         Ok(jwt.jwt)
     }
 
+    /// Create a database via HTTP request and add it into `self.databases`.
+    ///
+    /// If creation fails, an Error is cast. Otherwise, a bool is returned to
+    /// indicate whether the database is correctly created.
+    ///
+    /// # Example
+    /// ```rust
+    /// use arangors::Connection;
+    /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+    /// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+    /// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
+    /// # async fn main() {
+    /// let conn= Connection::establish_jwt("http://localhost:8529", "root", "KWNngteTps7XjrNv")
+    ///         .await
+    ///         .unwrap();
+    /// let result = conn.create_database("new_db").await.unwrap();
+    /// println!("{:?}", result);
+    ///
+    /// let result = conn.drop_database("new_db").await.unwrap();
+    /// println!("{:?}", result);
+    /// # }
+    /// ```
+    /// TODO tweak options on creating database
+    #[maybe_async]
+    pub async fn create_database(&self, name: &str) -> Result<Database<'_, C>, ClientError> {
+        let mut map = HashMap::new();
+        map.insert("name", name);
+        let url = self.arango_url.join("/_api/database").unwrap();
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&map)?)
+            .await?;
+
+        serialize_response::<ArangoResult<bool>>(resp.text())?;
+        self.db(name).await
+    }
+
+    /// Drop database with name.
+    #[maybe_async]
+    pub async fn drop_database(&self, name: &str) -> Result<(), ClientError> {
+        let url_path = format!("/_api/database/{}", name);
+        let url = self.arango_url.join(&url_path).unwrap();
+
+        let resp = self.session.delete(url, "").await?;
+        serialize_response::<ArangoResult<bool>>(resp.text())?;
+        Ok(())
+    }
+
     #[maybe_async]
     pub async fn into_admin(self) -> Result<GenericConnection<C, Admin>, ClientError> {
         let dbs = self.accessible_databases().await?;
@@ -359,61 +408,6 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
 }
 
 impl<C: ClientExt> GenericConnection<C, Admin> {
-    /// Create a database via HTTP request and add it into `self.databases`.
-    ///
-    /// If creation fails, an Error is cast. Otherwise, a bool is returned to
-    /// indicate whether the database is correctly created.
-    ///
-    /// # Example
-    /// ```rust
-    /// use arangors::Connection;
-    /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-    /// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
-    /// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
-    /// # async fn main() {
-    /// let conn_normal =
-    ///     Connection::establish_jwt("http://localhost:8529", "root", "KWNngteTps7XjrNv")
-    ///         .await
-    ///         .unwrap();
-    /// // consume normal connection and convert it into admin connection
-    /// let conn_admin = conn_normal.into_admin().await.unwrap();
-    /// let result = conn_admin.create_database("new_db").await.unwrap();
-    ///
-    /// let mut conn_admin = conn_admin;
-    /// let result = conn_admin.drop_database("new_db").await.unwrap();
-    /// # }
-    /// ```
-    /// TODO tweak options on creating database
-    #[maybe_async]
-    pub async fn create_database(&self, name: &str) -> Result<Database<'_, C>, ClientError> {
-        let mut map = HashMap::new();
-        map.insert("name", name);
-        let url = self.arango_url.join("/_api/database").unwrap();
-
-        let resp = self
-            .session
-            .post(url, &serde_json::to_string(&map)?)
-            .await?;
-
-        serialize_response::<ArangoResult<bool>>(resp.text())?;
-        self.db(name).await
-    }
-
-    /// Drop database with name.
-    ///
-    /// This method require a `&mut self`, which means no other reference
-    /// to this `Connection` object are allowed. This design avoid references
-    /// to drop database at compile time.
-    #[maybe_async]
-    pub async fn drop_database(&mut self, name: &str) -> Result<(), ClientError> {
-        let url_path = format!("/_api/database/{}", name);
-        let url = self.arango_url.join(&url_path).unwrap();
-
-        let resp = self.session.delete(url, "").await?;
-        serialize_response::<ArangoResult<bool>>(resp.text())?;
-        Ok(())
-    }
-
     pub fn into_normal(self) -> GenericConnection<C, Normal> {
         self.into()
     }
