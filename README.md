@@ -7,11 +7,11 @@
 [![Crates.io](https://img.shields.io/crates/v/arangors.svg)](https://crates.io/crates/arangors)
 [![arangors](https://docs.rs/arangors/badge.svg)](https://docs.rs/arangors)
 
-`arangors` is an intuitive rust client for [arangoDB](https://www.arangodb.com/),
+`arangors` is an intuitive rust client for [ArangoDB](https://www.arangodb.com/),
 inspired by [pyArango](https://github.com/tariqdaouda/pyArango).
 
-`arangors` enables you to connect with arangoDB server, access to database,
-execute AQL query, manage arangoDB in an easy and intuitive way,
+`arangors` enables you to connect with ArangoDB server, access to database,
+execute AQL query, manage ArangoDB in an easy and intuitive way,
 both `async` and plain synchronous code with any HTTP ecosystem you love.
 
 ## Philosophy of arangors
@@ -19,7 +19,7 @@ both `async` and plain synchronous code with any HTTP ecosystem you love.
 `arangors` is targeted at ergonomic, intuitive and OOP-like API for
 ArangoDB, both top level and low level API for users' choice.
 
-Overall architecture of arangoDB:
+Overall architecture of ArangoDB:
 
 > databases -> collections -> documents/edges
 
@@ -152,7 +152,7 @@ let collection = db.collection("test_collection").await.unwrap();
 
 ### AQL Query
 
-All aql query related functions are associated with database, as AQL query
+All [AQL](https://www.arangodb.com/docs/stable/aql/index.html) query related functions are associated with database, as AQL query
 is performed at database level.
 
 There are several way to execute AQL query, and can be categorized into two
@@ -172,7 +172,7 @@ queries offer more control.
 
 #### Typed or Not Typed
 
-Note that results from arangoDB server, e.x. fetched documents, can be
+Note that results from ArangoDB server, e.x. fetched documents, can be
 strong typed given deserializable struct, or arbitrary JSON object with
 `serde::Value`.
 
