@@ -114,7 +114,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     #[maybe_async]
     pub async fn validate_server(&self) -> Result<(), ClientError> {
         let arango_url = self.arango_url.as_str();
-        let client = C::new(None)?;
+        let client = &self.session;
         let resp = client.get(arango_url.parse().unwrap(), "").await?;
         // have `Server` in header
         match resp.headers().get(SERVER) {
