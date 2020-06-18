@@ -9,6 +9,11 @@ description = "Rust driver for ArangoDB"
 repository = "https://github.com/fMeow/arangors"
 documentation = "https://docs.rs/arangors"
 keywords = ["nosql", "database", "client", "driver", "arangoDB"]
+exclude = [
+    ".gitignore",
+    ".travis.yml",
+    "tests/**/*",
+]
 
 [package.metadata.docs.rs]
 all-features = false
@@ -26,7 +31,7 @@ default = ["rocksdb", "reqwest_async"]
 blocking = ["maybe-async/is_sync"]
 reqwest_async = ["reqwest"]
 reqwest_blocking = ["reqwest/blocking", "blocking"]
-surf_async = ["surf"]
+surf_async = ["surf", "http-types"]
 
 cluster = []
 enterprise = []
@@ -45,7 +50,8 @@ thiserror = "1"
 url = "2"
 
 reqwest  = { version = "0.10", features = ["gzip", "json"], optional = true }
-surf  = { version = "2.0.0-alpha.1", optional = true }
+surf  = { version = "2.0.0-alpha.4", optional = true }
+http-types  = { version = "2.2", optional = true }
 
 [dev-dependencies]
 env_logger = "0.7.1"

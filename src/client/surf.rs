@@ -1,6 +1,9 @@
 use std::str::FromStr;
 
-use http::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_LENGTH, SERVER};
+use http::{
+    header::{HeaderMap, HeaderName, HeaderValue, CONTENT_LENGTH, SERVER},
+    StatusCode, Version,
+};
 use url::Url;
 
 use crate::client::ClientExt;
@@ -69,9 +72,16 @@ impl ClientExt for SurfClient {
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
         Ok(ClientResponse {
-            status_code: status_code.into(),
+            status_code: StatusCode::from_u16(status_code.into()).unwrap(),
             headers,
-            version: version.map(|v| v.into()),
+            version: version.map(|v| match v {
+                http_types::Version::Http0_9 => Version::HTTP_09,
+                http_types::Version::Http1_0 => Version::HTTP_10,
+                http_types::Version::Http1_1 => Version::HTTP_11,
+                http_types::Version::Http2_0 => Version::HTTP_2,
+                http_types::Version::Http3_0 => Version::HTTP_3,
+                _ => unreachable!(),
+            }),
             content,
         })
     }
