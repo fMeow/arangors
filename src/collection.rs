@@ -44,14 +44,14 @@ pub struct CollectionDetails {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ArangoIndex {
-    count: Option<u32>,
-    size: Option<u32>,
+    pub count: Option<u32>,
+    pub size: Option<u32>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Figures {
-    indexes: ArangoIndex,
+    pub indexes: ArangoIndex,
 }
 
 #[derive(Debug, Deserialize)]
