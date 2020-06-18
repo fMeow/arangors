@@ -200,8 +200,11 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn statistics(&self) {
-        unimplemented!()
+    pub async fn statistics(&self) -> Result<CollectionStatistics, ClientError> {
+        let url = self.base_url.join(&format!("figures")).unwrap();
+        let resp: CollectionStatistics =
+            serialize_response(self.session.get(url, "").await?.text())?;
+        Ok(resp)
     }
 
     /// Retrieve the collections revision id
