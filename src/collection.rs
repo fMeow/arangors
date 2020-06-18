@@ -40,6 +40,7 @@ pub struct CollectionDetails {
     pub wait_for_sync: bool,
     pub write_concern: u16,
 }
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ArangoIndex {
