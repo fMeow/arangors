@@ -162,3 +162,53 @@ async fn test_get_document_count() {
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 }
+
+#[maybe_async::test(
+    sync = r#"any(feature="reqwest_blocking")"#,
+    async = r#"any(feature="reqwest_async")"#,
+    test = "tokio::test"
+)]
+#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
+async fn test_get_statistics() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_statistics";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+    let coll = coll.unwrap();
+    let count = coll.statistics().await;
+
+    let result = count.unwrap();
+    eprintln!("{:?}", result);
+    assert_eq!(result.count, Some(0));
+    assert_eq!(result.name, collection_name);
+    assert_eq!(result.cache_enabled, false);
+    assert_eq!(result.is_system, false);
+    assert_eq!(result.wait_for_sync, false);
+    assert_eq!(result.key_options.allow_user_keys, true);
+    assert_eq!(result.key_options.r#type, Some("traditional".to_string()));
+    assert_eq!(result.key_options.last_value, Some(0));
+    assert_eq!(result.status, 3);
+    assert_eq!(result.write_concern, 1);
+
+    assert_eq!(result.figures.indexes.count, Some(1));
+    assert_eq!(result.figures.indexes.size, Some(0));
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+}
