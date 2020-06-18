@@ -40,6 +40,39 @@ pub struct CollectionDetails {
     pub wait_for_sync: bool,
     pub write_concern: u16,
 }
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ArangoIndex {
+    count: Option<u32>,
+    size: Option<u32>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Figures {
+    indexes: ArangoIndex,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionStatistics {
+    /// The number of documents currently present in the collection.
+    pub count: Option<u32>,
+    /// metrics of the collection
+    pub figures: Figures,
+    pub cache_enabled: bool,
+    pub globally_unique_id: String,
+    pub id: String,
+    pub is_system: bool,
+    pub key_options: CollectionKeyOptions,
+    pub name: String,
+    pub object_id: String,
+    pub status: u16,
+    pub status_string: String,
+    pub r#type: u16,
+    pub wait_for_sync: bool,
+    pub write_concern: u16,
+}
 
 #[derive(Debug, Clone)]
 pub struct Collection<'a, C: ClientExt> {
