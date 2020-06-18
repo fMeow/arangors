@@ -165,8 +165,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn document_count(&self) {
-        unimplemented!()
+    pub async fn document_count(&self) -> Result<CollectionDetails, ClientError> {
+        let url = self.base_url.join(&format!("count")).unwrap();
+        let resp: CollectionDetails = serialize_response(self.session.get(url, "").await?.text())?;
+        Ok(resp)
     }
     /// Fetch the statistics of a collection
     ///
