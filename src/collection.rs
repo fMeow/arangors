@@ -238,8 +238,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn revision_id(&self) {
-        unimplemented!()
+    pub async fn revision_id(&self) -> Result<CollectionRevision, ClientError> {
+        let url = self.base_url.join(&format!("revision")).unwrap();
+        let resp: CollectionRevision = serialize_response(self.session.get(url, "").await?.text())?;
+        Ok(resp)
     }
     /// Fetch a checksum for the specified collection
     ///
