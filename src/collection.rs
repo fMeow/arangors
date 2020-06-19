@@ -75,6 +75,28 @@ pub struct CollectionStatistics {
     pub write_concern: u16,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionRevision {
+    // pub uses_revisions_as_document_ids: Option<bool>,
+    // pub sync_by_revision: bool,
+    // pub min_revision: u32,
+    /// These 3 properties are for Arangodb 3.7
+    pub revision: String,
+    pub cache_enabled: bool,
+    pub globally_unique_id: String,
+    pub id: String,
+    pub is_system: bool,
+    pub key_options: CollectionKeyOptions,
+    pub name: String,
+    pub object_id: String,
+    pub status: u16,
+    pub status_string: String,
+    pub r#type: u16,
+    pub wait_for_sync: bool,
+    pub write_concern: u16,
+}
+
 #[derive(Debug, Clone)]
 pub struct Collection<'a, C: ClientExt> {
     id: String,
