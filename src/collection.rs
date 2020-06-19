@@ -97,6 +97,19 @@ pub struct CollectionRevision {
     pub write_concern: u16,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionChecksum {
+    pub revision: String,
+    pub checksum: String,
+    pub globally_unique_id: String,
+    pub id: String,
+    pub is_system: bool,
+    pub name: String,
+    pub status: u16,
+    pub r#type: u16,
+}
+
 #[derive(Debug, Clone)]
 pub struct Collection<'a, C: ClientExt> {
     id: String,
