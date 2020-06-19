@@ -280,8 +280,8 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn checksum(&self) {
-        unimplemented!()
+    pub async fn checksum(&self) -> Result<CollectionChecksum, ClientError> {
+        self.checksum_with_options(None, None).await
     }
 
     // By setting the optional query parameter withRevisions to true, then revision
