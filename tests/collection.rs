@@ -259,3 +259,83 @@ async fn test_get_revision_id() {
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 }
+
+#[maybe_async::test(
+    sync = r#"any(feature="reqwest_blocking")"#,
+    async = r#"any(feature="reqwest_async")"#,
+    test = "tokio::test"
+)]
+#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
+async fn test_get_checksum() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_checksum";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+    let coll = coll.unwrap();
+    let checksum = coll.checksum().await;
+
+    let result = checksum.unwrap();
+    eprintln!("{:?}", result);
+    assert_eq!(result.revision, "0");
+    assert_eq!(result.name, collection_name);
+    assert_eq!(result.is_system, false);
+    assert_eq!(result.status, 3);
+    assert_eq!(result.r#type, 2);
+    assert_eq!(result.checksum, "0");
+    assert_eq!(result.checksum.is_empty(), false);
+
+    let checksum = coll.checksum_with_options(Some(true), Some(true)).await;
+
+    let updated_result = checksum.unwrap();
+    assert_eq!(updated_result.revision, "0");
+    assert_eq!(updated_result.name, collection_name);
+    assert_eq!(updated_result.is_system, false);
+    assert_eq!(updated_result.status, 3);
+    assert_eq!(updated_result.r#type, 2);
+    assert_eq!(updated_result.checksum, "0");
+    assert_eq!(updated_result.checksum.is_empty(), false);
+
+    eprintln!("{:?}", updated_result);
+
+    let query: Vec<Value> = database
+        .aql_str(r#"INSERT {  "name": "test_user" } INTO test_collection_checksum"#)
+        .await
+        .unwrap();
+
+    let checksum = coll.checksum().await;
+
+    let updated_result = checksum.unwrap();
+
+    eprintln!("{:?}", updated_result);
+
+    let changed = if updated_result.revision != result.revision {
+        true
+    } else {
+        false
+    };
+    assert_eq!(changed, true);
+    assert_eq!(updated_result.name, collection_name);
+    assert_eq!(updated_result.is_system, false);
+    assert_eq!(updated_result.status, 3);
+    assert_eq!(updated_result.r#type, 2);
+    assert_eq!(updated_result.checksum.is_empty(), false);
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+}
