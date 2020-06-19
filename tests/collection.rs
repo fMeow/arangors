@@ -191,9 +191,9 @@ async fn test_get_statistics() {
     let coll = database.collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
     let coll = coll.unwrap();
-    let count = coll.statistics().await;
+    let statistics = coll.statistics().await;
 
-    let result = count.unwrap();
+    let result = statistics.unwrap();
     eprintln!("{:?}", result);
     assert_eq!(result.count, Some(0));
     assert_eq!(result.name, collection_name);
@@ -241,9 +241,9 @@ async fn test_get_revision_id() {
     let coll = database.collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
     let coll = coll.unwrap();
-    let count = coll.revision_id().await;
+    let revision = coll.revision_id().await;
 
-    let result = count.unwrap();
+    let result = revision.unwrap();
     eprintln!("{:?}", result);
     assert_eq!(result.revision, "0");
     assert_eq!(result.name, collection_name);
