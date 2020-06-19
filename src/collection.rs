@@ -284,6 +284,36 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         unimplemented!()
     }
 
+    // By setting the optional query parameter withRevisions to true, then revision
+    // ids (_rev system attributes) are included in the checksumming.
+    //
+    // By providing the optional query parameter withData with a value of true, the
+    // user-defined document attributes will be included in the calculation too.
+    // Note: Including user-defined attributes will make the checksumming slower.
+    #[maybe_async]
+    pub async fn checksum_with_options(
+        &self,
+        with_revisions: Option<bool>,
+        with_data: Option<bool>,
+    ) -> Result<CollectionChecksum, ClientError> {
+        let mut query_parameters = "".to_owned();
+
+        if with_revisions.is_some() || with_data.is_some() {
+            query_parameters.push_str(&format!(
+                "?withRevisions={}&withData={}",
+                with_revisions.unwrap_or(false),
+                with_data.unwrap_or(false)
+            ));
+        }
+
+        let url = self
+            .base_url
+            .join(&format!("checksum{}", query_parameters))
+            .unwrap();
+
+        let resp: CollectionChecksum = serialize_response(self.session.get(url, "").await?.text())?;
+        Ok(resp)
+    }
     /// Loads a collection into memory.
     ///
     /// # Note
