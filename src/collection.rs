@@ -281,7 +281,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn checksum(&self) -> Result<CollectionChecksum, ClientError> {
-        self.checksum_with_options(None, None).await
+        self.checksum_with_options(false, false).await
     }
 
     // By setting the optional query parameter withRevisions to true, then revision
@@ -293,16 +293,15 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     #[maybe_async]
     pub async fn checksum_with_options(
         &self,
-        with_revisions: Option<bool>,
-        with_data: Option<bool>,
+        with_revisions: bool,
+        with_data: bool,
     ) -> Result<CollectionChecksum, ClientError> {
         let mut query_parameters = "".to_owned();
 
-        if with_revisions.is_some() || with_data.is_some() {
+        if with_revisions == true || with_data == true {
             query_parameters.push_str(&format!(
                 "?withRevisions={}&withData={}",
-                with_revisions.unwrap_or(false),
-                with_data.unwrap_or(false)
+                with_revisions, with_data
             ));
         }
 
