@@ -300,7 +300,7 @@ async fn test_get_checksum() {
     assert_eq!(result.checksum, "0");
     assert_eq!(result.checksum.is_empty(), false);
 
-    let checksum = coll.checksum_with_options(Some(true), Some(true)).await;
+    let checksum = coll.checksum_with_options(true, true).await;
 
     let updated_result = checksum.unwrap();
     assert_eq!(updated_result.revision, "0");
