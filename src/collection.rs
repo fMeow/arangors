@@ -187,8 +187,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     /// Fetch the properties of collection
     ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn properties(&self) -> Result<CollectionDetails, ClientError> {
         let url = self.base_url.join(&format!("properties")).unwrap();
@@ -198,8 +196,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     /// Counts the documents in this collection
     ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn document_count(&self) -> Result<CollectionDetails, ClientError> {
         let url = self.base_url.join(&format!("count")).unwrap();
@@ -232,8 +228,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// fileSize values. Still the sum of the fileSize values can still be used
     /// as a lower bound approximation of the disk usage.
     ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn statistics(&self) -> Result<CollectionStatistics, ClientError> {
         let url = self.base_url.join(&format!("figures")).unwrap();
@@ -248,8 +242,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// check whether data in a collection has changed since the last revision
     /// check.
     ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn revision_id(&self) -> Result<CollectionRevision, ClientError> {
         let url = self.base_url.join(&format!("revision")).unwrap();
@@ -276,8 +268,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// By providing the optional query parameter withData with a value of true, the
     /// user-defined document attributes will be included in the calculation too.
     /// Note: Including user-defined attributes will make the checksumming slower.
-    ///
-    /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn checksum(&self) -> Result<CollectionChecksum, ClientError> {
