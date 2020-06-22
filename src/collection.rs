@@ -35,7 +35,7 @@ pub struct CollectionDetails {
     pub object_id: String,
     pub status: u16,
     pub status_string: String,
-    pub r#type: u16,
+    pub r#type: CollectionType,
     pub wait_for_sync: bool,
     pub write_concern: u16,
 }
@@ -69,7 +69,7 @@ pub struct CollectionStatistics {
     pub object_id: String,
     pub status: u16,
     pub status_string: String,
-    pub r#type: u16,
+    pub r#type: CollectionType,
     pub wait_for_sync: bool,
     pub write_concern: u16,
 }
@@ -91,7 +91,7 @@ pub struct CollectionRevision {
     pub object_id: String,
     pub status: u16,
     pub status_string: String,
-    pub r#type: u16,
+    pub r#type: CollectionType,
     pub wait_for_sync: bool,
     pub write_concern: u16,
 }
@@ -106,7 +106,7 @@ pub struct CollectionChecksum {
     pub is_system: bool,
     pub name: String,
     pub status: u16,
-    pub r#type: u16,
+    pub r#type: CollectionType,
 }
 
 #[derive(Debug, Deserialize)]
@@ -118,7 +118,7 @@ pub struct CollectionLoad {
     pub globally_unique_id: String,
     pub is_system: bool,
     pub status: u16,
-    pub r#type: u16,
+    pub r#type: CollectionType,
 }
 
 #[derive(Debug, Clone)]
