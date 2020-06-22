@@ -339,8 +339,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn unload(&self) {
-        unimplemented!()
+    pub async fn unload(&self) -> Result<CollectionLoad, ClientError> {
+        let url = self.base_url.join(&format!("unload")).unwrap();
+        let resp: CollectionLoad = serialize_response(self.session.put(url, "").await?.text())?;
+        Ok(resp)
     }
 
     /// Load Indexes into Memory
