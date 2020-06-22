@@ -109,6 +109,18 @@ pub struct CollectionChecksum {
     pub r#type: u16,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionLoad {
+    pub id: String,
+    pub name: String,
+    pub count: Option<u32>,
+    pub globally_unique_id: String,
+    pub is_system: bool,
+    pub status: u16,
+    pub r#type: u16,
+}
+
 #[derive(Debug, Clone)]
 pub struct Collection<'a, C: ClientExt> {
     id: String,
