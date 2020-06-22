@@ -10,8 +10,7 @@ use url::Url;
 use crate::client::ClientExt;
 
 use super::{Database, Document};
-use crate::response::serialize_response;
-use crate::ClientError;
+use crate::{response::serialize_response, ClientError};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -117,7 +116,8 @@ pub struct Collection<'a, C: ClientExt> {
     collection_type: CollectionType,
     ///
     /// https://www.arangodb.com/docs/devel/http/collection-getting.html
-    ///  Weirdly the good path for a collection is different from what the official doc says.
+    ///  Weirdly the good path for a collection is different from what the
+    /// official doc says.
     base_url: Url,
     session: Arc<C>,
     phantom: &'a (),
@@ -298,10 +298,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ) -> Result<CollectionChecksum, ClientError> {
         let mut url = self.base_url.join("checksum").unwrap();
 
-        if with_revisions == true {
+        if with_revisions {
             url.query_pairs_mut().append_pair("withRevisions", "true");
         }
-        if with_data == true {
+        if with_data {
             url.query_pairs_mut().append_pair("withData", "true");
         }
 

@@ -313,7 +313,7 @@ async fn test_get_checksum() {
 
     eprintln!("{:?}", updated_result);
 
-    let query: Vec<Value> = database
+    let _query: Vec<Value> = database
         .aql_str(r#"INSERT {  "name": "test_user" } INTO test_collection_checksum"#)
         .await
         .unwrap();
