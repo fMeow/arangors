@@ -308,8 +308,12 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         let resp: CollectionChecksum = serialize_response(self.session.get(url, "").await?.text())?;
         Ok(resp)
     }
-    /// Loads a collection into memory.
+
+    /// Loads a collection into memory. Returns the collection on success.
     ///
+    /// The request body object might optionally contain the following attribute:
+    /// - count: If set, this controls whether the return value should include the number of documents in the collection.
+    /// Setting count to false may speed up loading a collection. The default value for count is true.
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
