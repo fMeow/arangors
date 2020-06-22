@@ -190,7 +190,6 @@ async fn test_get_statistics() {
     let statistics = coll.statistics().await;
 
     let result = statistics.unwrap();
-    eprintln!("{:?}", result);
     assert_eq!(result.count, Some(0));
     assert_eq!(result.name, collection_name);
     assert_eq!(result.cache_enabled, false);
@@ -239,7 +238,6 @@ async fn test_get_revision_id() {
     let revision = coll.revision_id().await;
 
     let result = revision.unwrap();
-    eprintln!("{:?}", result);
     assert_eq!(result.revision, "0");
     assert_eq!(result.name, collection_name);
     assert_eq!(result.cache_enabled, false);
@@ -304,8 +302,6 @@ async fn test_get_checksum() {
     assert_eq!(updated_result.checksum, "0");
     assert_eq!(updated_result.checksum.is_empty(), false);
 
-    eprintln!("{:?}", updated_result);
-
     let _query: Vec<Value> = database
         .aql_str(r#"INSERT {  "name": "test_user" } INTO test_collection_checksum"#)
         .await
@@ -314,8 +310,6 @@ async fn test_get_checksum() {
     let checksum = coll.checksum().await;
 
     let updated_result = checksum.unwrap();
-
-    eprintln!("{:?}", updated_result);
 
     let changed = if updated_result.revision != result.revision {
         true
