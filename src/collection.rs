@@ -11,6 +11,7 @@ use crate::client::ClientExt;
 
 use super::{Database, Document};
 use crate::{response::serialize_response, ClientError};
+use serde_json::json;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -319,8 +320,16 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn load(&self) {
-        unimplemented!()
+    pub async fn load(&self, count: bool) -> Result<CollectionLoad, ClientError> {
+        let url = self.base_url.join(&format!("load")).unwrap();
+        let body = json!({ "count": count });
+        let resp: CollectionLoad = serialize_response(
+            self.session
+                .put(url, body.to_string().as_str())
+                .await?
+                .text(),
+        )?;
+        Ok(resp)
     }
 
     /// Removes a collection from memory. This call does not delete any
