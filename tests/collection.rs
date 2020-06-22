@@ -333,3 +333,68 @@ async fn test_get_checksum() {
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 }
+
+#[maybe_async::test(
+    sync = r#"any(feature="reqwest_blocking")"#,
+    async = r#"any(feature="reqwest_async")"#,
+    test = "tokio::test"
+)]
+#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
+async fn test_put_load() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_load";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+    let coll = coll.unwrap();
+    let load = coll.load(true).await;
+
+    let result = load.unwrap();
+
+    assert_eq!(result.name, collection_name);
+    assert_eq!(result.is_system, false);
+    assert_eq!(result.count, Some(0));
+    assert_eq!(result.status, 3);
+    assert_eq!(result.r#type, CollectionType::Document);
+
+    let load = coll.load(false).await;
+
+    let updated_result = load.unwrap();
+    assert_eq!(updated_result.name, collection_name);
+    assert_eq!(updated_result.is_system, false);
+    assert_eq!(updated_result.count, None);
+    assert_eq!(updated_result.status, 3);
+    assert_eq!(updated_result.r#type, CollectionType::Document);
+
+    let _query: Vec<Value> = database
+        .aql_str(r#"INSERT {  "name": "test_user" } INTO test_collection_load"#)
+        .await
+        .unwrap();
+
+    let load = coll.load(true).await;
+
+    let updated_result = load.unwrap();
+    assert_eq!(updated_result.name, collection_name);
+    assert_eq!(updated_result.is_system, false);
+    assert_eq!(updated_result.count, Some(1));
+    assert_eq!(updated_result.status, 3);
+    assert_eq!(updated_result.r#type, CollectionType::Document);
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+}
