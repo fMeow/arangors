@@ -202,7 +202,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     #[maybe_async]
     pub async fn properties(&self) -> Result<CollectionDetails, ClientError> {
-        let url = self.base_url.join(&format!("properties")).unwrap();
+        let url = self.base_url.join("properties").unwrap();
         let resp: CollectionDetails = serialize_response(self.session.get(url, "").await?.text())?;
         Ok(resp)
     }
@@ -211,7 +211,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     #[maybe_async]
     pub async fn document_count(&self) -> Result<CollectionDetails, ClientError> {
-        let url = self.base_url.join(&format!("count")).unwrap();
+        let url = self.base_url.join("count").unwrap();
         let resp: CollectionDetails = serialize_response(self.session.get(url, "").await?.text())?;
         Ok(resp)
     }
@@ -243,7 +243,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     #[maybe_async]
     pub async fn statistics(&self) -> Result<CollectionStatistics, ClientError> {
-        let url = self.base_url.join(&format!("figures")).unwrap();
+        let url = self.base_url.join("figures").unwrap();
         let resp: CollectionStatistics =
             serialize_response(self.session.get(url, "").await?.text())?;
         Ok(resp)
@@ -257,7 +257,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     #[maybe_async]
     pub async fn revision_id(&self) -> Result<CollectionRevision, ClientError> {
-        let url = self.base_url.join(&format!("revision")).unwrap();
+        let url = self.base_url.join("revision").unwrap();
         let resp: CollectionRevision = serialize_response(self.session.get(url, "").await?.text())?;
         Ok(resp)
     }
@@ -321,7 +321,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn load(&self, count: bool) -> Result<CollectionLoad, ClientError> {
-        let url = self.base_url.join(&format!("load")).unwrap();
+        let url = self.base_url.join("load").unwrap();
         let body = json!({ "count": count });
         let resp: CollectionLoad = serialize_response(
             self.session
@@ -340,7 +340,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn unload(&self) -> Result<CollectionLoad, ClientError> {
-        let url = self.base_url.join(&format!("unload")).unwrap();
+        let url = self.base_url.join("unload").unwrap();
         let resp: CollectionLoad = serialize_response(self.session.put(url, "").await?.text())?;
         Ok(resp)
     }
