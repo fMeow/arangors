@@ -296,19 +296,14 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         with_revisions: bool,
         with_data: bool,
     ) -> Result<CollectionChecksum, ClientError> {
-        let mut query_parameters = "".to_owned();
+        let mut url = self.base_url.join("checksum").unwrap();
 
-        if with_revisions == true || with_data == true {
-            query_parameters.push_str(&format!(
-                "?withRevisions={}&withData={}",
-                with_revisions, with_data
-            ));
+        if with_revisions == true {
+            url.query_pairs_mut().append_pair("withRevisions", "true");
         }
-
-        let url = self
-            .base_url
-            .join(&format!("checksum{}", query_parameters))
-            .unwrap();
+        if with_data == true {
+            url.query_pairs_mut().append_pair("withData", "true");
+        }
 
         let resp: CollectionChecksum = serialize_response(self.session.get(url, "").await?.text())?;
         Ok(resp)
