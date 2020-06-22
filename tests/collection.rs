@@ -4,6 +4,7 @@
 use log::trace;
 use pretty_assertions::assert_eq;
 
+use arangors::collection::CollectionType;
 use arangors::{ClientError, Connection, Document};
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
 use serde_json::Value;
@@ -284,12 +285,11 @@ async fn test_get_checksum() {
     let checksum = coll.checksum().await;
 
     let result = checksum.unwrap();
-    eprintln!("{:?}", result);
     assert_eq!(result.revision, "0");
     assert_eq!(result.name, collection_name);
     assert_eq!(result.is_system, false);
     assert_eq!(result.status, 3);
-    assert_eq!(result.r#type, 2);
+    assert_eq!(result.r#type, CollectionType::Document);
     assert_eq!(result.checksum, "0");
     assert_eq!(result.checksum.is_empty(), false);
 
@@ -300,7 +300,7 @@ async fn test_get_checksum() {
     assert_eq!(updated_result.name, collection_name);
     assert_eq!(updated_result.is_system, false);
     assert_eq!(updated_result.status, 3);
-    assert_eq!(updated_result.r#type, 2);
+    assert_eq!(updated_result.r#type, CollectionType::Document);
     assert_eq!(updated_result.checksum, "0");
     assert_eq!(updated_result.checksum.is_empty(), false);
 
@@ -326,7 +326,7 @@ async fn test_get_checksum() {
     assert_eq!(updated_result.name, collection_name);
     assert_eq!(updated_result.is_system, false);
     assert_eq!(updated_result.status, 3);
-    assert_eq!(updated_result.r#type, 2);
+    assert_eq!(updated_result.r#type, CollectionType::Document);
     assert_eq!(updated_result.checksum.is_empty(), false);
 
     let coll = database.drop_collection(collection_name).await;
