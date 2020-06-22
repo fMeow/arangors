@@ -80,7 +80,7 @@ pub struct CollectionRevision {
     // pub uses_revisions_as_document_ids: Option<bool>,
     // pub sync_by_revision: bool,
     // pub min_revision: u32,
-    /// These 3 properties are for Arangodb 3.7
+    // These 3 properties are for Arangodb 3.7
     pub revision: String,
     pub cache_enabled: bool,
     pub globally_unique_id: String,
@@ -125,7 +125,7 @@ pub struct Collection<'a, C: ClientExt> {
 
 impl<'a, C: ClientExt> Collection<'a, C> {
     /// Construct Collection given
-    ///  Base url should be like `http://localhost:8529/_db/mydb/_api/collection/{collection-name}`
+    /// Base url should be like `http://localhost:8529/_db/mydb/_api/collection/{collection-name}`
     pub(crate) fn new<T: Into<String>>(
         database: &'a Database<C>,
         name: T,
@@ -260,22 +260,22 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     /// Will calculate a checksum of the meta-data (keys and optionally
     /// revision ids) and optionally the document data in the collection.
-    // The checksum can be used to compare if two collections on different ArangoDB
-    // instances contain the same contents. The current revision of the collection
-    // is returned too so one can make sure the checksums are calculated for the
-    // same state of data.
-    //
-    // By default, the checksum will only be calculated on the _key system
-    // attribute of the documents contained in the collection. For edge
-    // collections, the system attributes _from and _to will also be included in
-    // the calculation.
-    //
-    // By setting the optional query parameter withRevisions to true, then revision
-    // ids (_rev system attributes) are included in the checksumming.
-    //
-    // By providing the optional query parameter withData with a value of true, the
-    // user-defined document attributes will be included in the calculation too.
-    // Note: Including user-defined attributes will make the checksumming slower.
+    /// The checksum can be used to compare if two collections on different ArangoDB
+    /// instances contain the same contents. The current revision of the collection
+    /// is returned too so one can make sure the checksums are calculated for the
+    /// same state of data.
+    ///
+    /// By default, the checksum will only be calculated on the _key system
+    /// attribute of the documents contained in the collection. For edge
+    /// collections, the system attributes _from and _to will also be included in
+    /// the calculation.
+    ///
+    /// By setting the optional query parameter withRevisions to true, then revision
+    /// ids (_rev system attributes) are included in the checksumming.
+    ///
+    /// By providing the optional query parameter withData with a value of true, the
+    /// user-defined document attributes will be included in the calculation too.
+    /// Note: Including user-defined attributes will make the checksumming slower.
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -284,12 +284,12 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         self.checksum_with_options(false, false).await
     }
 
-    // By setting the optional query parameter withRevisions to true, then revision
-    // ids (_rev system attributes) are included in the checksumming.
-    //
-    // By providing the optional query parameter withData with a value of true, the
-    // user-defined document attributes will be included in the calculation too.
-    // Note: Including user-defined attributes will make the checksumming slower.
+    /// By setting the optional query parameter withRevisions to true, then revision
+    /// ids (_rev system attributes) are included in the checksumming.
+    ///
+    /// By providing the optional query parameter withData with a value of true, the
+    /// user-defined document attributes will be included in the calculation too.
+    /// Note: Including user-defined attributes will make the checksumming slower.
     #[maybe_async]
     pub async fn checksum_with_options(
         &self,
@@ -351,7 +351,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// limit and for the time being there is no way to control which indexes
     /// of the collection should have priority over others.
     ///
-    /// On sucess this function returns an object with attribute result set to
+    /// On success this function returns an object with attribute result set to
     /// true
     ///
     /// # Note
