@@ -137,6 +137,17 @@ pub struct CollectionPropertiesOptions {
     //pub schema: Option<SchemaRules>,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionRename {
+    pub id: String,
+    pub name: String,
+    pub globally_unique_id: String,
+    pub is_system: bool,
+    pub status: u16,
+    pub r#type: CollectionType,
+}
+
 #[derive(Debug, Clone)]
 pub struct Collection<'a, C: ClientExt> {
     id: String,
@@ -420,8 +431,16 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn rename(&self) {
-        unimplemented!()
+    pub async fn rename(&self, name: &str) -> Result<CollectionRename, ClientError> {
+        let url = self.base_url.join("rename").unwrap();
+        let body = json!({ "name": name });
+        let resp: CollectionRename = serialize_response(
+            self.session
+                .put(url, body.to_string().as_str())
+                .await?
+                .text(),
+        )?;
+        Ok(resp)
     }
 
     /// Rotates the journal of a collection.

@@ -527,3 +527,46 @@ async fn test_put_changes_properties() {
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 }
+
+#[maybe_async::test(
+    sync = r#"any(feature="reqwest_blocking")"#,
+    async = r#"any(feature="reqwest_async")"#,
+    test = "tokio::test"
+)]
+#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
+async fn test_put_rename() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_rename";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+    let coll = coll.unwrap();
+    let new_name = "test_collection_renamed_2";
+    let renamed = coll.rename(new_name).await;
+
+    let result = renamed.unwrap();
+    assert_eq!(result.name, new_name);
+    assert_eq!(result.is_system, false);
+    assert_eq!(result.status, 3);
+    assert_eq!(result.r#type, CollectionType::Document);
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+    let coll = database.drop_collection(new_name).await;
+    assert_eq!(coll.is_err(), false);
+}
