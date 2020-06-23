@@ -128,6 +128,15 @@ pub struct CollectionIndexLoad {
     pub result: bool,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionPropertiesOptions {
+    /// If true then creating or changing a document will wait until the data has been synchronized to disk.
+    pub wait_for_sync: Option<bool>,
+    // for ArangoDb 3.7
+    //pub schema: Option<SchemaRules>,
+}
+
 #[derive(Debug, Clone)]
 pub struct Collection<'a, C: ClientExt> {
     id: String,
@@ -388,8 +397,22 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn change_properties(&self) {
-        unimplemented!()
+    pub async fn change_properties(
+        &self,
+        properties: CollectionPropertiesOptions,
+    ) -> Result<CollectionDetails, ClientError> {
+        let url = self.base_url.join("properties").unwrap();
+        let mut body = json!({});
+        if properties.wait_for_sync.is_some() {
+            body["waitForSync"] = json!(properties.wait_for_sync.unwrap());
+        }
+        let resp: CollectionDetails = serialize_response(
+            self.session
+                .put(url, body.to_string().as_str())
+                .await?
+                .text(),
+        )?;
+        Ok(resp)
     }
 
     /// Renames the collection
