@@ -122,6 +122,12 @@ pub struct CollectionLoad {
     pub r#type: CollectionType,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CollectionIndexLoad {
+    pub result: bool,
+}
+
 #[derive(Debug, Clone)]
 pub struct Collection<'a, C: ClientExt> {
     id: String,
@@ -370,8 +376,11 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn load_indexes(&self) {
-        unimplemented!()
+    pub async fn load_indexes(&self) -> Result<CollectionIndexLoad, ClientError> {
+        let url = self.base_url.join("loadIndexesIntoMemory").unwrap();
+        let resp: CollectionIndexLoad =
+            serialize_response(self.session.put(url, "").await?.text())?;
+        Ok(resp)
     }
 
     /// Changes the properties of a collection.
