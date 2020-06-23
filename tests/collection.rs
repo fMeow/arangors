@@ -4,7 +4,7 @@
 use log::trace;
 use pretty_assertions::assert_eq;
 
-use arangors::collection::CollectionType;
+use arangors::collection::{CollectionPropertiesOptions, CollectionType};
 use arangors::{ClientError, Connection, Document};
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
 use serde_json::Value;
@@ -473,6 +473,56 @@ async fn test_put_load_indexes_into_memory() {
 
     let result = load_index.unwrap();
     assert_eq!(result.result, true);
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+}
+
+#[maybe_async::test(
+    sync = r#"any(feature="reqwest_blocking")"#,
+    async = r#"any(feature="reqwest_async")"#,
+    test = "tokio::test"
+)]
+#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
+async fn test_put_changes_properties() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_changes_properties";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+    let coll = coll.unwrap();
+
+    let updated_properties = coll
+        .change_properties(CollectionPropertiesOptions {
+            wait_for_sync: Some(true),
+        })
+        .await;
+
+    let result = updated_properties.unwrap();
+    assert_eq!(result.name, collection_name);
+    assert_eq!(result.cache_enabled, false);
+    assert_eq!(result.is_system, false);
+    assert_eq!(result.wait_for_sync, true);
+    assert_eq!(result.key_options.allow_user_keys, true);
+    assert_eq!(result.key_options.r#type, Some("traditional".to_string()));
+    assert_eq!(result.key_options.last_value, Some(0));
+    assert_eq!(result.status, 3);
+    assert_eq!(result.write_concern, 1);
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
