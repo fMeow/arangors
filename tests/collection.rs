@@ -433,3 +433,40 @@ async fn test_put_unload() {
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 }
+
+#[maybe_async::test(
+    sync = r#"any(feature="reqwest_blocking")"#,
+    async = r#"any(feature="reqwest_async")"#,
+    test = "tokio::test"
+)]
+#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
+async fn test_put_load_indexes_into_memory() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_load_indexes_into_memory";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+    let coll = coll.unwrap();
+    let load_index = coll.load_indexes().await;
+
+    let result = load_index.unwrap();
+    assert_eq!(result.result, true);
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+}
