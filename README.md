@@ -2,7 +2,7 @@
 
 # arangors
 
-[![Build Status](https://travis-ci.org/fMeow/arangors.svg?branch=master)](https://travis-ci.org/fMeow/arangors)
+[![Build Status](https://github.com/fMeow/arangors/workflows/CI%20%28Linux%29/badge.svg)](https://github.com/fMeow/arangors/actions)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/arangors.svg)](https://crates.io/crates/arangors)
 [![arangors](https://docs.rs/arangors/badge.svg)](https://docs.rs/arangors)
@@ -35,7 +35,7 @@ Hierarchy of arangors:
 
 By now, the available features of arangors are:
 
-- make connection to arangoDB
+- make connection to ArangoDB
 - get list of databases and collections
 - fetch database and collection info
 - create and delete database or collections
@@ -114,10 +114,6 @@ There is three way to establish connections:
 - no authentication
 
 So are the `arangors` API.
-
-When a connection is successfully established,
-`arangors` will automatically fetch the structure of arangoDB
-by get the list of database, and then lists of collections per database.
 
 Example:
 
@@ -314,6 +310,6 @@ Contributions and feed back are welcome following Github workflow.
 ### License
 
 `arangors` is provided under the MIT license. See [LICENSE](./LICENSE).
-An ergonomic [arangoDB](https://www.arangodb.com/) client for rust.
+An ergonomic [ArangoDB](https://www.arangodb.com/) client for rust.
 
 <!-- cargo-sync-readme end -->

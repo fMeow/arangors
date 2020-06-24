@@ -1,15 +1,15 @@
 //! # arangors
 //!
-//! [![Build Status](https://travis-ci.org/fMeow/arangors.svg?branch=master)](https://travis-ci.org/fMeow/arangors)
+//! [![Build Status](https://github.com/fMeow/arangors/workflows/CI%20%28Linux%29/badge.svg?branch=master)](https://github.com/fMeow/arangors/actions)
 //! [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 //! [![Crates.io](https://img.shields.io/crates/v/arangors.svg)](https://crates.io/crates/arangors)
 //! [![arangors](https://docs.rs/arangors/badge.svg)](https://docs.rs/arangors)
 //!
-//! `arangors` is an intuitive rust client for [arangoDB](https://www.arangodb.com/),
+//! `arangors` is an intuitive rust client for [ArangoDB](https://www.arangodb.com/),
 //! inspired by [pyArango](https://github.com/tariqdaouda/pyArango).
 //!
-//! `arangors` enables you to connect with arangoDB server, access to database,
-//! execute AQL query, manage arangoDB in an easy and intuitive way,
+//! `arangors` enables you to connect with ArangoDB server, access to database,
+//! execute AQL query, manage ArangoDB in an easy and intuitive way,
 //! both `async` and plain synchronous code with any HTTP ecosystem you love.
 //!
 //! ## Philosophy of arangors
@@ -17,7 +17,7 @@
 //! `arangors` is targeted at ergonomic, intuitive and OOP-like API for
 //! ArangoDB, both top level and low level API for users' choice.
 //!
-//! Overall architecture of arangoDB:
+//! Overall architecture of ArangoDB:
 //!
 //! > databases -> collections -> documents/edges
 //!
@@ -33,7 +33,7 @@
 //!
 //! By now, the available features of arangors are:
 //!
-//! - make connection to arangoDB
+//! - make connection to ArangoDB
 //! - get list of databases and collections
 //! - fetch database and collection info
 //! - create and delete database or collections
@@ -160,7 +160,7 @@
 //!
 //! ### AQL Query
 //!
-//! All aql query related functions are associated with database, as AQL query
+//! All [AQL](https://www.arangodb.com/docs/stable/aql/index.html) query related functions are associated with database, as AQL query
 //! is performed at database level.
 //!
 //! There are several way to execute AQL query, and can be categorized into two
@@ -180,7 +180,7 @@
 //!
 //! #### Typed or Not Typed
 //!
-//! Note that results from arangoDB server, e.x. fetched documents, can be
+//! Note that results from ArangoDB server, e.x. fetched documents, can be
 //! strong typed given deserializable struct, or arbitrary JSON object with
 //! `serde::Value`.
 //!
@@ -374,7 +374,7 @@
 //! ### License
 //!
 //! `arangors` is provided under the MIT license. See [LICENSE](./LICENSE).
-//! An ergonomic [arangoDB](https://www.arangodb.com/) client for rust.
+//! An ergonomic [ArangoDB](https://www.arangodb.com/) client for rust.
 #![allow(unused_parens)]
 
 #[cfg(any(
