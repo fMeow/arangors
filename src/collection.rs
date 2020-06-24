@@ -153,7 +153,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         let path = format!("_api/collection/{}/", name.as_str());
         let url = database.get_url().join(path.as_str()).unwrap();
         Collection {
-            name: name,
+            name,
             id: id.into(),
             session: database.get_session(),
             base_url: url,
