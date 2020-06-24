@@ -162,6 +162,20 @@ jobs:
           command: test
           args: --all --no-fail-fast --no-default-features --features "mmfiles cluster enterprise reqwest_async"
 
+  doc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: doc
+        uses: actions-rs/cargo@v1
+        env:
+          RUSTDOCFLAGS: -Dwarnings
+        with:
+          command: doc
+          args: --all --no-deps
+
   publish:
     name: Publish Package
     needs: build_and_test
