@@ -11,7 +11,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Start ArangoDB by docker-compose
-        run: docker-compose up -d && sleep 30 && docker-compose logs
+        run: |
+        docker-compose up -d
+        sleep 30
+        docker-compose logs
 
       - name: Set up ArangoDB for test
         run: bash tests/init_db.sh
@@ -47,7 +50,7 @@ jobs:
           RUST_LOG: arangors=trace
         with:
           command: check
-          args: --no-default-features --features "rocksdb mmfiles cluster enterprise" --lib
+          args: --no-default-features --features "rocksdb cluster enterprise" --lib
 
       - name: test (async)
         uses: actions-rs/cargo@v1
@@ -56,7 +59,7 @@ jobs:
         timeout-minutes: 40
         with:
           command: test
-          args: --no-fail-fast --no-default-features --features "rocksdb mmfiles cluster enterprise" --lib
+          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise" --lib
 
       - name: check build (blocking)
         uses: actions-rs/cargo@v1
@@ -64,7 +67,7 @@ jobs:
           RUST_LOG: arangors=trace
         with:
           command: check
-          args: --no-default-features --features "rocksdb mmfiles cluster enterprise blocking" --lib
+          args: --no-default-features --features "rocksdb cluster enterprise blocking" --lib
 
       - name: test (blocking)
         uses: actions-rs/cargo@v1
@@ -73,7 +76,7 @@ jobs:
         timeout-minutes: 40
         with:
           command: test
-          args: --no-fail-fast --no-default-features --features "rocksdb mmfiles cluster enterprise blocking" --lib
+          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise blocking" --lib
 
       - name: check build (reqwest_async)
         uses: actions-rs/cargo@v1
@@ -81,7 +84,7 @@ jobs:
           RUST_LOG: arangors=trace
         with:
           command: check
-          args: --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_async" --lib
+          args: --no-default-features --features "rocksdb cluster enterprise reqwest_async" --lib
 
       - name: test (reqwest_async)
         uses: actions-rs/cargo@v1
@@ -90,7 +93,7 @@ jobs:
         timeout-minutes: 40
         with:
           command: test
-          args: --no-fail-fast --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_async" --lib
+          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_async" --lib
 
       - name: check build (reqwest_blocking)
         uses: actions-rs/cargo@v1
@@ -98,7 +101,7 @@ jobs:
           RUST_LOG: arangors=trace
         with:
           command: check
-          args: --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_blocking" --lib
+          args: --no-default-features --features "rocksdb cluster enterprise reqwest_blocking" --lib
 
       - name: test (reqwest_blocking)
         uses: actions-rs/cargo@v1
@@ -107,7 +110,7 @@ jobs:
         timeout-minutes: 40
         with:
           command: test
-          args: --no-fail-fast --no-default-features --features "rocksdb mmfiles cluster enterprise reqwest_blocking" --lib
+          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_blocking" --lib
 
       - name: check build (surf_async)
         uses: actions-rs/cargo@v1
@@ -115,7 +118,7 @@ jobs:
           RUST_LOG: arangors=trace
         with:
           command: check
-          args: --no-default-features --features "rocksdb mmfiles cluster enterprise surf_async" --lib
+          args: --no-default-features --features "rocksdb cluster enterprise surf_async" --lib
 
       - name: test (surf_async)
         uses: actions-rs/cargo@v1
@@ -124,7 +127,40 @@ jobs:
         timeout-minutes: 40
         with:
           command: test
-          args: --no-fail-fast --no-default-features --features "rocksdb mmfiles cluster enterprise surf_async" --lib
+          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise surf_async" --lib
+
+  mmfiles:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Start ArangoDB by docker
+        run: |
+        docker run -e ARANGO_STORAGE_ENGINE=mmfiles ARANGO_ROOT_PASSWORD=KWNngteTps7XjrNv -p 8529:8529 -d --name arangodb arangodb/arangodb
+        sleep 30
+        docker logs arangodb
+
+      - name: Set up ArangoDB for test
+        run: bash tests/init_db.sh
+
+      - name: check build
+        uses: actions-rs/cargo@v1
+        env:
+          RUST_LOG: arangors=trace
+        with:
+          command: check
+          args: --all --bins --examples --tests --features "mmfiles cluster enterprise reqwest_async" --lib
+
+      - name: tests
+        uses: actions-rs/cargo@v1
+        env:
+          RUST_LOG: arangors=trace
+        timeout-minutes: 40
+        with:
+          command: test
+          args: --all --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_async"
 
   publish:
     name: Publish Package
