@@ -1,17 +1,18 @@
 use std::sync::Arc;
 
-use maybe_async::maybe_async;
 use serde::{
     de::{Deserializer, Error as DeError},
     Deserialize,
 };
+use serde_json::json;
 use url::Url;
 
+use maybe_async::maybe_async;
+
 use crate::client::ClientExt;
+use crate::{response::serialize_response, ClientError};
 
 use super::{Database, Document};
-use crate::{response::serialize_response, ClientError};
-use serde_json::json;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -25,16 +26,18 @@ pub struct CollectionKeyOptions {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CollectionProperties {
+    #[serde(flatten)]
+    pub info: CollectionInfo,
+    #[serde(flatten)]
+    pub detail: CollectionDetails,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CollectionDetails {
-    pub count: Option<u32>,
-    pub globally_unique_id: String,
-    pub id: String,
-    pub is_system: bool,
-    pub key_options: CollectionKeyOptions,
-    pub name: String,
-    pub status: u16,
     pub status_string: String,
-    pub r#type: CollectionType,
+    pub key_options: CollectionKeyOptions,
     pub wait_for_sync: bool,
     pub write_concern: u16,
     #[cfg(rocksdb)]
@@ -71,18 +74,11 @@ pub struct CollectionStatistics {
     pub count: Option<u32>,
     /// metrics of the collection
     pub figures: Figures,
-    pub cache_enabled: bool,
-    pub globally_unique_id: String,
-    pub id: String,
-    pub is_system: bool,
-    pub key_options: CollectionKeyOptions,
-    pub name: String,
-    pub object_id: String,
-    pub status: u16,
-    pub status_string: String,
-    pub r#type: CollectionType,
-    pub wait_for_sync: bool,
-    pub write_concern: u16,
+
+    #[serde(flatten)]
+    pub info: CollectionInfo,
+    #[serde(flatten)]
+    pub detail: CollectionDetails,
 }
 
 #[derive(Debug, Deserialize)]
@@ -93,18 +89,10 @@ pub struct CollectionRevision {
     // pub min_revision: u32,
     // These 3 properties are for Arangodb 3.7
     pub revision: String,
-    pub cache_enabled: bool,
-    pub globally_unique_id: String,
-    pub id: String,
-    pub is_system: bool,
-    pub key_options: CollectionKeyOptions,
-    pub name: String,
-    pub object_id: String,
-    pub status: u16,
-    pub status_string: String,
-    pub r#type: CollectionType,
-    pub wait_for_sync: bool,
-    pub write_concern: u16,
+    #[serde(flatten)]
+    pub info: CollectionInfo,
+    #[serde(flatten)]
+    pub detail: CollectionDetails,
 }
 
 #[derive(Debug, Deserialize)]
@@ -112,24 +100,8 @@ pub struct CollectionRevision {
 pub struct CollectionChecksum {
     pub revision: String,
     pub checksum: String,
-    pub globally_unique_id: String,
-    pub id: String,
-    pub is_system: bool,
-    pub name: String,
-    pub status: u16,
-    pub r#type: CollectionType,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CollectionLoad {
-    pub id: String,
-    pub name: String,
-    pub count: Option<u32>,
-    pub globally_unique_id: String,
-    pub is_system: bool,
-    pub status: u16,
-    pub r#type: CollectionType,
+    #[serde(flatten)]
+    pub info: CollectionInfo,
 }
 
 #[derive(Debug, Deserialize)]
@@ -150,7 +122,8 @@ pub struct CollectionPropertiesOptions {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CollectionRename {
+pub struct CollectionInfo {
+    pub count: Option<u32>,
     pub id: String,
     pub name: String,
     pub globally_unique_id: String,
@@ -238,18 +211,20 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// Fetch the properties of collection
     ///
     #[maybe_async]
-    pub async fn properties(&self) -> Result<CollectionDetails, ClientError> {
+    pub async fn properties(&self) -> Result<CollectionProperties, ClientError> {
         let url = self.base_url.join("properties").unwrap();
-        let resp: CollectionDetails = serialize_response(self.session.get(url, "").await?.text())?;
+        let resp: CollectionProperties =
+            serialize_response(self.session.get(url, "").await?.text())?;
         Ok(resp)
     }
 
     /// Counts the documents in this collection
     ///
     #[maybe_async]
-    pub async fn document_count(&self) -> Result<CollectionDetails, ClientError> {
+    pub async fn document_count(&self) -> Result<CollectionProperties, ClientError> {
         let url = self.base_url.join("count").unwrap();
-        let resp: CollectionDetails = serialize_response(self.session.get(url, "").await?.text())?;
+        let resp: CollectionProperties =
+            serialize_response(self.session.get(url, "").await?.text())?;
         Ok(resp)
     }
     /// Fetch the statistics of a collection
@@ -355,10 +330,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// - count: If set, this controls whether the return value should include the number of documents in the collection.
     /// Setting count to false may speed up loading a collection. The default value for count is true.
     #[maybe_async]
-    pub async fn load(&self, count: bool) -> Result<CollectionLoad, ClientError> {
+    pub async fn load(&self, count: bool) -> Result<CollectionInfo, ClientError> {
         let url = self.base_url.join("load").unwrap();
         let body = json!({ "count": count });
-        let resp: CollectionLoad = serialize_response(
+        let resp: CollectionInfo = serialize_response(
             self.session
                 .put(url, body.to_string().as_str())
                 .await?
@@ -371,9 +346,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// documents. You can use the collection afterwards; in which case it will
     /// be loaded into memory, again.
     #[maybe_async]
-    pub async fn unload(&self) -> Result<CollectionLoad, ClientError> {
+    pub async fn unload(&self) -> Result<CollectionInfo, ClientError> {
         let url = self.base_url.join("unload").unwrap();
-        let resp: CollectionLoad = serialize_response(self.session.put(url, "").await?.text())?;
+        let resp: CollectionInfo = serialize_response(self.session.put(url, "").await?.text())?;
         Ok(resp)
     }
 
@@ -410,13 +385,13 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn change_properties(
         &self,
         properties: CollectionPropertiesOptions,
-    ) -> Result<CollectionDetails, ClientError> {
+    ) -> Result<CollectionProperties, ClientError> {
         let url = self.base_url.join("properties").unwrap();
         let mut body = json!({});
         if properties.wait_for_sync.is_some() {
             body["waitForSync"] = json!(properties.wait_for_sync.unwrap());
         }
-        let resp: CollectionDetails = serialize_response(
+        let resp: CollectionProperties = serialize_response(
             self.session
                 .put(url, body.to_string().as_str())
                 .await?
@@ -427,10 +402,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     /// Renames the collection
     #[maybe_async]
-    pub async fn rename(&self, name: &str) -> Result<CollectionRename, ClientError> {
+    pub async fn rename(&self, name: &str) -> Result<CollectionInfo, ClientError> {
         let url = self.base_url.join("rename").unwrap();
         let body = json!({ "name": name });
-        let resp: CollectionRename = serialize_response(
+        let resp: CollectionInfo = serialize_response(
             self.session
                 .put(url, body.to_string().as_str())
                 .await?
@@ -441,6 +416,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     /// recalculates the document count of a collection
     /// Note: this method is specific for the RocksDB storage engine
+    #[cfg(feature = "rocksdb")]
     #[maybe_async]
     pub async fn recalculate_count(&self) -> Result<CollectionResult, ClientError> {
         let url = self.base_url.join("recalculateCount").unwrap();
@@ -460,7 +436,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// This methods is not documented on 3.7
     /// Note: this method is specific for the MMFiles storage engine, and there it is not available in a cluster.
     /// TODO Need to be tested on mmfiles with unit test
-    #[cfg(any(feature = "mmfiles"))]
+    #[cfg(feature = "mmfiles")]
     #[maybe_async]
     pub async fn rotate_journal(&self) -> Result<CollectionResult, ClientError> {
         let url = self.base_url.join("rotate").unwrap();

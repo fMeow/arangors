@@ -10,10 +10,11 @@ use url::Url;
 
 use maybe_async::maybe_async;
 
+use crate::collection::CollectionProperties;
 use crate::{
     aql::AqlQuery,
     client::ClientExt,
-    collection::{Collection, CollectionDetails, CollectionResponse},
+    collection::{Collection, CollectionResponse},
     connection::{DatabaseDetails, GenericConnection, Version},
     response::{serialize_response, ArangoResult, Cursor},
     ClientError,
@@ -115,7 +116,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
             .session
             .post(url, &serde_json::to_string(&map)?)
             .await?;
-        let _result: CollectionDetails = serialize_response(resp.text())?;
+        let _result: CollectionProperties = serialize_response(resp.text())?;
         self.collection(name).await
     }
 
