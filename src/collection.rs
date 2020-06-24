@@ -447,11 +447,15 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// Saving new data in the collection subsequently will create a new
     /// journal file automatically if there is no current journal.
     ///
-    /// # Note
-    /// this function would make a request to arango server.
+    /// This methods is not documented on 3.7
+    /// Note: this method is specific for the MMFiles storage engine, and there it is not available in a cluster.
+    /// TODO Need to be tested on mmfiles with unit test
+    #[cfg(any(feature = "mmfiles"))]
     #[maybe_async]
-    pub async fn rotate_journal(&self) {
-        unimplemented!()
+    pub async fn rotate_journal(&self) -> Result<CollectionResult, ClientError> {
+        let url = self.base_url.join("rotate").unwrap();
+        let resp: CollectionResult = serialize_response(self.session.put(url, "").await?.text())?;
+        Ok(resp)
     }
 
     /// Creates a new document from the document given in the body, unless
