@@ -628,11 +628,9 @@ async fn test_put_rotate_journal() {
     {
         let rotate = coll.rotate_journal().await;
         assert_eq!(rotate.is_ok(), true);
-        assert_eq!(rotate.unwrap(), true);
+        let result = rotate.unwrap();
+        assert_eq!(result.result, true);
     }
-
-    let result = rotate.unwrap();
-    assert_eq!(result.result, true);
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);

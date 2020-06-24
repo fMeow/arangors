@@ -12,6 +12,7 @@ export ARANGO_PASSWORD=${ARANGO_PASSWORD:="password"}
 # set up database
 curl -X POST "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_api/database" --data '{"name":"test_db"}'
 curl -X POST "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_db/test_db/_api/collection" --data '{"name":"test_collection"}'
+curl -X POST "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_db/test_db/_api/collection" --data '{"name":"test_collection1"}'
 curl -X POST "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_db/test_db/_api/collection" --data '{"name":"test_collection2"}'
 curl -X POST "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_db/test_db/_api/collection" --data '{"name":"test_collection3"}'
 curl -X POST "http://${ARANGO_ROOT_USER}:${ARANGO_ROOT_PASSWORD}@${ARANGODB_HOST}_db/test_db/_api/collection" --data '{"name":"test_collection4"}'
