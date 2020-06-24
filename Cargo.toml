@@ -11,7 +11,7 @@ documentation = "https://docs.rs/arangors"
 keywords = ["nosql", "database", "client", "driver", "arangoDB"]
 exclude = [
     ".gitignore",
-    ".travis.yml",
+    ".github",
     "tests/**/*",
 ]
 
@@ -23,7 +23,6 @@ features = [
 ]
 
 [badges]
-travis-ci = { repository = "fMeow/arangors", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [features]
