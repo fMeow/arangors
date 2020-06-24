@@ -14,11 +14,10 @@ pub mod common;
 const NEW_DB_NAME: &str = "example";
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_create_and_drop_database() {
     test_setup();
     let host = get_arangodb_host();
@@ -45,11 +44,10 @@ async fn test_create_and_drop_database() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_fetch_current_database_info() {
     test_setup();
 
@@ -73,11 +71,10 @@ async fn test_fetch_current_database_info() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_get_version() {
     test_setup();
     let host = get_arangodb_host();

@@ -10,11 +10,10 @@ use common::{
 pub mod common;
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_list_databases() {
     test_setup();
     let host = get_arangodb_host();
@@ -37,11 +36,10 @@ async fn test_list_databases() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_get_url() {
     test_setup();
     let host = get_arangodb_host();
@@ -56,11 +54,10 @@ async fn test_get_url() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_get_database() {
     test_setup();
     let host = get_arangodb_host();
@@ -77,11 +74,10 @@ async fn test_get_database() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_basic_auth() {
     test_setup();
     let host = get_arangodb_host();
@@ -98,11 +94,10 @@ async fn test_basic_auth() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_jwt() {
     test_setup();
     #[maybe_async::maybe_async]

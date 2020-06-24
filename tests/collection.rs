@@ -11,11 +11,10 @@ use serde_json::Value;
 pub mod common;
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_get_collection() {
     test_setup();
     let host = get_arangodb_host();
@@ -35,11 +34,10 @@ async fn test_get_collection() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_create_and_drop_collection() {
     test_setup();
     let host = get_arangodb_host();
@@ -62,11 +60,10 @@ async fn test_create_and_drop_collection() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_get_properties() {
     test_setup();
     let host = get_arangodb_host();
@@ -109,11 +106,10 @@ async fn test_get_properties() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_get_document_count() {
     test_setup();
     let host = get_arangodb_host();
@@ -150,7 +146,7 @@ async fn test_get_document_count() {
     assert_eq!(result.status, 3);
     assert_eq!(result.write_concern, 1);
 
-    let query: Vec<Value> = database
+    let _query: Vec<Value> = database
         .aql_str(r#"INSERT {  "name": "test_user" } INTO test_collection_count"#)
         .await
         .unwrap();
@@ -164,11 +160,10 @@ async fn test_get_document_count() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_get_statistics() {
     test_setup();
     let host = get_arangodb_host();
@@ -214,11 +209,10 @@ async fn test_get_statistics() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_get_revision_id() {
     test_setup();
     let host = get_arangodb_host();
@@ -261,11 +255,10 @@ async fn test_get_revision_id() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_get_checksum() {
     test_setup();
     let host = get_arangodb_host();

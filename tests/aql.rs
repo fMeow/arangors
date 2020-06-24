@@ -18,11 +18,10 @@ struct User {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_aql_str() {
     test_setup();
     let host = get_arangodb_host();
@@ -42,11 +41,10 @@ async fn test_aql_str() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_aql() {
     test_setup();
     let host = get_arangodb_host();
@@ -67,11 +65,10 @@ async fn test_aql() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_aql_bind_vars() {
     test_setup();
     let host = get_arangodb_host();

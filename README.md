@@ -2,7 +2,7 @@
 
 # arangors
 
-[![Build Status](https://github.com/fMeow/arangors/workflows/CI%20%28Linux%29/badge.svg)](https://github.com/fMeow/arangors/actions)
+[![Build Status](https://github.com/fMeow/arangors/workflows/CI%20%28Linux%29/badge.svg?branch=master)](https://github.com/fMeow/arangors/actions)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/arangors.svg)](https://crates.io/crates/arangors)
 [![arangors](https://docs.rs/arangors/badge.svg)](https://docs.rs/arangors)
