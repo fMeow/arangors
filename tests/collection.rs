@@ -3,11 +3,11 @@
 
 use log::trace;
 use pretty_assertions::assert_eq;
+use serde_json::Value;
 
 use arangors::collection::{CollectionPropertiesOptions, CollectionType};
 use arangors::{ClientError, Connection, Document};
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
-use serde_json::Value;
 
 pub mod common;
 
@@ -623,7 +623,12 @@ async fn test_put_rotate_journal() {
     let coll = database.collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
     let coll = coll.unwrap();
-    let rotate = coll.rotate_journal().await;
+
+    #[cfg(any(feature = "mmfiles"))]
+    {
+        let rotate = coll.rotate_journal().await;
+        assert_eq!(coll.is_ok(), true);
+    }
 
     let result = rotate.unwrap();
     assert_eq!(result.result, true);
