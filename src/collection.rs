@@ -124,7 +124,7 @@ pub struct CollectionLoad {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CollectionIndexLoad {
+pub struct CollectionResult {
     pub result: bool,
 }
 
@@ -396,10 +396,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn load_indexes(&self) -> Result<CollectionIndexLoad, ClientError> {
+    pub async fn load_indexes(&self) -> Result<CollectionResult, ClientError> {
         let url = self.base_url.join("loadIndexesIntoMemory").unwrap();
-        let resp: CollectionIndexLoad =
-            serialize_response(self.session.put(url, "").await?.text())?;
+        let resp: CollectionResult = serialize_response(self.session.put(url, "").await?.text())?;
         Ok(resp)
     }
 
