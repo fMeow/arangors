@@ -134,7 +134,8 @@ pub struct CollectionPropertiesOptions {
     /// If true then creating or changing a document will wait until the data has been synchronized to disk.
     pub wait_for_sync: Option<bool>,
     // for ArangoDb 3.7
-    //pub schema: Option<SchemaRules>,
+    // TODO need to implement this with feature gate between versions maybe
+    // pub schema: Option<SchemaRules>,
 }
 
 #[derive(Debug, Deserialize)]
