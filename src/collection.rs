@@ -132,10 +132,8 @@ pub struct Collection<'a, C: ClientExt> {
     id: String,
     name: String,
     collection_type: CollectionType,
-    ///
-    /// https://www.arangodb.com/docs/devel/http/collection-getting.html
-    ///  Weirdly the good path for a collection is different from what the
-    /// official doc says.
+    /// Collection url: http://server:port/_db/mydb/_api/collection/{collection-name}
+    /// This url is used to work on the collection itself
     base_url: Url,
     session: Arc<C>,
     phantom: &'a (),
@@ -143,7 +141,8 @@ pub struct Collection<'a, C: ClientExt> {
 
 impl<'a, C: ClientExt> Collection<'a, C> {
     /// Construct Collection given
-    /// Base url should be like `http://localhost:8529/_db/mydb/_api/collection/{collection-name}`
+    /// Base url should be like `http://server:port/_db/mydb/_api/collection/{collection-name}`
+    /// Document root should be like: http://server:port/_db/mydb/_api/document/
     pub(crate) fn new<T: Into<String>>(
         database: &'a Database<C>,
         name: T,
