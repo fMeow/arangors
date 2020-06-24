@@ -442,6 +442,14 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
+    /// recalculates the document count of a collection
+    /// Note: this method is specific for the RocksDB storage engine
+    #[maybe_async]
+    pub async fn recalculate_count(&self) -> Result<CollectionResult, ClientError> {
+        let url = self.base_url.join("recalculateCount").unwrap();
+        let resp: CollectionResult = serialize_response(self.session.put(url, "").await?.text())?;
+        Ok(resp)
+    }
     /// Rotates the journal of a collection.
     ///
     /// The current journal of the collection will be closed and made a
