@@ -328,11 +328,10 @@ async fn test_get_checksum() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_put_load() {
     test_setup();
     let host = get_arangodb_host();
@@ -393,11 +392,10 @@ async fn test_put_load() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_put_unload() {
     test_setup();
     let host = get_arangodb_host();
@@ -435,11 +433,10 @@ async fn test_put_unload() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_put_load_indexes_into_memory() {
     test_setup();
     let host = get_arangodb_host();
@@ -472,11 +469,10 @@ async fn test_put_load_indexes_into_memory() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_put_changes_properties() {
     test_setup();
     let host = get_arangodb_host();
@@ -522,11 +518,10 @@ async fn test_put_changes_properties() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_put_rename() {
     test_setup();
     let host = get_arangodb_host();
@@ -565,11 +560,10 @@ async fn test_put_rename() {
 }
 
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_put_recalculate() {
     test_setup();
     let host = get_arangodb_host();
@@ -603,11 +597,10 @@ async fn test_put_recalculate() {
 
 #[cfg(any(feature = "mmfiles"))]
 #[maybe_async::test(
-    sync = r#"any(feature="reqwest_blocking")"#,
-    async = r#"any(feature="reqwest_async")"#,
-    test = "tokio::test"
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
-#[cfg_attr(feature = "surf_async", maybe_async::must_be_async, async_std::test)]
 async fn test_put_rotate_journal() {
     test_setup();
     let host = get_arangodb_host();
