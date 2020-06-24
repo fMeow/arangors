@@ -627,7 +627,8 @@ async fn test_put_rotate_journal() {
     #[cfg(any(feature = "mmfiles"))]
     {
         let rotate = coll.rotate_journal().await;
-        assert_eq!(coll.is_ok(), true);
+        assert_eq!(rotate.is_ok(), true);
+        assert_eq!(rotate.unwrap(), true);
     }
 
     let result = rotate.unwrap();
