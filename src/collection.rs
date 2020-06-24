@@ -344,8 +344,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// The request body object might optionally contain the following attribute:
     /// - count: If set, this controls whether the return value should include the number of documents in the collection.
     /// Setting count to false may speed up loading a collection. The default value for count is true.
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn load(&self, count: bool) -> Result<CollectionLoad, ClientError> {
         let url = self.base_url.join("load").unwrap();
@@ -362,9 +360,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// Removes a collection from memory. This call does not delete any
     /// documents. You can use the collection afterwards; in which case it will
     /// be loaded into memory, again.
-    ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn unload(&self) -> Result<CollectionLoad, ClientError> {
         let url = self.base_url.join("unload").unwrap();
@@ -393,9 +388,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     /// On success this function returns an object with attribute result set to
     /// true
-    ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn load_indexes(&self) -> Result<CollectionResult, ClientError> {
         let url = self.base_url.join("loadIndexesIntoMemory").unwrap();
@@ -404,9 +396,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Changes the properties of a collection.
-    ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn change_properties(
         &self,
@@ -427,9 +416,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Renames the collection
-    ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn rename(&self, name: &str) -> Result<CollectionRename, ClientError> {
         let url = self.base_url.join("rename").unwrap();
