@@ -12,9 +12,9 @@ jobs:
 
       - name: Start ArangoDB by docker-compose
         run: |
-        docker-compose up -d
-        sleep 30
-        docker-compose logs
+          docker-compose up -d
+          sleep 30
+          docker-compose logs
 
       - name: Set up ArangoDB for test
         run: bash tests/init_db.sh
@@ -138,9 +138,9 @@ jobs:
 
       - name: Start ArangoDB by docker
         run: |
-        docker run -e ARANGO_STORAGE_ENGINE=mmfiles ARANGO_ROOT_PASSWORD=KWNngteTps7XjrNv -p 8529:8529 -d --name arangodb arangodb/arangodb
-        sleep 30
-        docker logs arangodb
+          docker run -e ARANGO_STORAGE_ENGINE=mmfiles -e ARANGO_ROOT_PASSWORD=KWNngteTps7XjrNv -p 8529:8529 -d --name arangodb arangodb/arangodb
+          sleep 30
+          docker logs arangodb
 
       - name: Set up ArangoDB for test
         run: bash tests/init_db.sh
@@ -160,7 +160,7 @@ jobs:
         timeout-minutes: 40
         with:
           command: test
-          args: --all --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_async"
+          args: --all --no-fail-fast --no-default-features --features "mmfiles cluster enterprise reqwest_async"
 
   publish:
     name: Publish Package
