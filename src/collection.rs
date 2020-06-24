@@ -135,6 +135,9 @@ pub struct Collection<'a, C: ClientExt> {
     /// Collection url: http://server:port/_db/mydb/_api/collection/{collection-name}
     /// This url is used to work on the collection itself
     base_url: Url,
+    /// Document base url: http://server:port/_db/mydb/_api/document/{collection-name}
+    /// This url is used to work with documents
+    document_base_url: Url,
     session: Arc<C>,
     phantom: &'a (),
 }
@@ -152,11 +155,14 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         let name = name.into();
         let path = format!("_api/collection/{}/", name.as_str());
         let url = database.get_url().join(path.as_str()).unwrap();
+        let document_path = format!("_api/document/{}/", name.as_str());
+        let document_base_url = database.get_url().join(document_path.as_str()).unwrap();
         Collection {
             name,
             id: id.into(),
             session: database.get_session(),
             base_url: url,
+            document_base_url,
             collection_type,
             phantom: database.phantom,
         }
