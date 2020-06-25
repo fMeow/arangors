@@ -435,7 +435,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     /// This methods is not documented on 3.7
     /// Note: this method is specific for the MMFiles storage engine, and there it is not available in a cluster.
-    /// TODO Need to be tested on mmfiles with unit test
     #[cfg(feature = "mmfiles")]
     #[maybe_async]
     pub async fn rotate_journal(&self) -> Result<bool, ClientError> {
