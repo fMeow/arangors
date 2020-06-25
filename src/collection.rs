@@ -447,7 +447,30 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// Creates a new document from the document given in the body, unless
     /// there is already a document with the _key given. If no _key is given, a
     /// new unique _key is generated automatically.
+    /// Possibly given _id and _rev attributes in the body are always ignored,
+    /// the URL part or the query parameter collection respectively counts.
     ///
+    /// If the document was created successfully, then the Location header contains
+    /// the path to the newly created document.
+    /// The Etag header field contains the revision of the document.
+    /// Both are only set in the single document case.
+    ///
+    /// If silent is not set to true, the body of the response contains a JSON object with the following attributes:
+    ///
+    /// _id contains the document identifier of the newly created document
+    /// _key contains the document key
+    /// _rev contains the document revision
+    /// If the collection parameter waitForSync is false, then the call returns as soon as the document has been accepted.
+    /// It will not wait until the documents have been synced to disk.
+    ///
+    /// Optionally, the query parameter waitForSync can be used to force synchronization of the document creation
+    /// operation to disk even in case that the waitForSync flag had been disabled for the entire collection.
+    /// Thus, the waitForSync query parameter can be used to force synchronization of just this specific operations.
+    /// To use this, set the waitForSync parameter to true. If the waitForSync parameter is not specified or set to false,
+    /// then the collection’s default waitForSync behavior is applied.
+    /// The waitForSync query parameter cannot be used to disable synchronization for collections that have a default waitForSync value of true.
+    ///
+    /// If the query parameter returnNew is true, then, for each generated document, the complete new document is returned under the new attribute in the result.
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
