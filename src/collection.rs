@@ -14,6 +14,7 @@ use crate::response::ArangoResult;
 use crate::{response::serialize_response, ClientError};
 
 use super::{Database, Document};
+use crate::document::DocumentInsertOptions;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -450,7 +451,11 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn create_document<T>(&self, _doc: Document<T>) {
+    pub async fn create_document<T>(
+        &self,
+        _doc: Document<T>,
+        insert_options: DocumentInsertOptions,
+    ) {
         unimplemented!()
     }
 
