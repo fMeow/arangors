@@ -10,6 +10,7 @@ use url::Url;
 use maybe_async::maybe_async;
 
 use crate::client::ClientExt;
+use crate::response::ArangoResult;
 use crate::{response::serialize_response, ClientError};
 
 use super::{Database, Document};
@@ -102,12 +103,6 @@ pub struct CollectionChecksum {
     pub checksum: String,
     #[serde(flatten)]
     pub info: CollectionInfo,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CollectionResult {
-    pub result: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -374,10 +369,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// On success this function returns an object with attribute result set to
     /// true
     #[maybe_async]
-    pub async fn load_indexes(&self) -> Result<CollectionResult, ClientError> {
+    pub async fn load_indexes(&self) -> Result<bool, ClientError> {
         let url = self.base_url.join("loadIndexesIntoMemory").unwrap();
-        let resp: CollectionResult = serialize_response(self.session.put(url, "").await?.text())?;
-        Ok(resp)
+        let resp: ArangoResult<bool> = serialize_response(self.session.put(url, "").await?.text())?;
+        Ok(resp.unwrap())
     }
 
     /// Changes the properties of a collection.
@@ -418,10 +413,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// Note: this method is specific for the RocksDB storage engine
     #[cfg(feature = "rocksdb")]
     #[maybe_async]
-    pub async fn recalculate_count(&self) -> Result<CollectionResult, ClientError> {
+    pub async fn recalculate_count(&self) -> Result<bool, ClientError> {
         let url = self.base_url.join("recalculateCount").unwrap();
-        let resp: CollectionResult = serialize_response(self.session.put(url, "").await?.text())?;
-        Ok(resp)
+        let resp: ArangoResult<bool> = serialize_response(self.session.put(url, "").await?.text())?;
+        Ok(resp.unwrap())
     }
     /// Rotates the journal of a collection.
     ///
@@ -438,10 +433,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// TODO Need to be tested on mmfiles with unit test
     #[cfg(feature = "mmfiles")]
     #[maybe_async]
-    pub async fn rotate_journal(&self) -> Result<CollectionResult, ClientError> {
+    pub async fn rotate_journal(&self) -> Result<bool, ClientError> {
         let url = self.base_url.join("rotate").unwrap();
-        let resp: CollectionResult = serialize_response(self.session.put(url, "").await?.text())?;
-        Ok(resp)
+        let resp: ArangoResult<bool> = serialize_response(self.session.put(url, "").await?.text())?;
+        Ok(resp.unwrap())
     }
 
     /// Creates a new document from the document given in the body, unless

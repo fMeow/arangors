@@ -222,7 +222,8 @@ async fn test_get_statistics() {
     assert_eq!(result.detail.write_concern, 1);
 
     assert_eq!(result.figures.indexes.count, Some(1));
-    // assert_eq!(result.figures.indexes.size, Some(0), "indexes size");
+    #[cfg(not(feature = "mmfiles"))]
+    assert_eq!(result.figures.indexes.size, Some(0), "indexes size");
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false, "fail to drop collection: {:?}", coll);
@@ -486,7 +487,7 @@ async fn test_put_load_indexes_into_memory() {
     let load_index = coll.load_indexes().await;
 
     let result = load_index.unwrap();
-    assert_eq!(result.result, true);
+    assert_eq!(result, true);
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
@@ -618,7 +619,7 @@ async fn test_put_recalculate() {
     let recalculate = coll.recalculate_count().await;
 
     let result = recalculate.unwrap();
-    assert_eq!(result.result, true);
+    assert_eq!(result, true);
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
@@ -666,7 +667,7 @@ async fn test_put_rotate_journal() {
 
     // assert_eq!(rotate.is_ok(), true, "fail to rotate journal: {:?}", rotate);
     // let result = rotate.unwrap();
-    // assert_eq!(result.result, true, "rotate result should be true");
+    // assert_eq!(result, true, "rotate result should be true");
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
