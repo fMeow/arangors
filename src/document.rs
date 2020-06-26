@@ -2,14 +2,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+
+/// Options for document insertion.
 pub struct DocumentInsertOptions {
-    /// The name of the collection.
-    /// This is only for backward compatibility.
-    /// In ArangoDB versions < 3.0, the URL path was /_api/document and this query parameter was required.
-    /// This combination still works, but the recommended way is to specify the collection in the URL path.
-    /// # Note
-    /// Maybe this is useless and we should not implement it because version prior to 3 are very old.
-    pub collection_name: Option<String>,
     /// Wait until document has been synced to disk.
     pub wait_for_sync: Option<bool>,
     /// Additionally return the complete new document under the attribute new in the result.
