@@ -1031,7 +1031,7 @@ async fn test_get_read_document() {
     let user = get_normal_user();
     let password = get_normal_password();
 
-    let collection_name = "test_collection_create_document_3_7";
+    let collection_name = "test_collection_read_document";
 
     let conn = Connection::establish_jwt(&host, &user, &password)
         .await
