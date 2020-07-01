@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use serde::{
     de::{Deserializer, Error as DeError},
-    Deserialize,
+    Deserialize, Serialize,
 };
 use serde_json::json;
 use url::Url;
@@ -14,7 +14,10 @@ use crate::response::ArangoResult;
 use crate::{response::serialize_response, ClientError};
 
 use super::{Database, Document};
-use crate::document::DocumentInsertOptions;
+use crate::document::{DocumentInsertOptions, DocumentResponse};
+use serde::de::DeserializeOwned;
+use std::borrow::Borrow;
+use std::fmt::Debug;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -477,9 +480,36 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn create_document<T>(
         &self,
         _doc: Document<T>,
-        insert_options: DocumentInsertOptions,
-    ) {
-        unimplemented!()
+        _insert_options: Option<DocumentInsertOptions>,
+    ) -> Result<DocumentResponse<T>, ClientError>
+    where
+        T: Serialize + Debug + DeserializeOwned,
+    {
+        let mut url = self.document_base_url.join("").unwrap();
+        let body = serde_json::to_string(&_doc)?;
+
+        if let Some(options) = _insert_options {
+            if let Some(return_new) = options.borrow().return_new {
+                url.query_pairs_mut()
+                    .append_pair("returnNew", return_new.to_string().as_str());
+            }
+            if let Some(wait_for_sync) = options.borrow().wait_for_sync {
+                url.query_pairs_mut()
+                    .append_pair("waitForSync", wait_for_sync.to_string().as_str());
+            }
+            if let Some(return_old) = options.borrow().return_old {
+                url.query_pairs_mut()
+                    .append_pair("returnOld", return_old.to_string().as_str());
+            }
+            if let Some(silent) = options.borrow().silent {
+                url.query_pairs_mut()
+                    .append_pair("silent", silent.to_string().as_str());
+            }
+        }
+
+        let resp: DocumentResponse<T> =
+            serde_json::from_str(self.session.post(url, body.as_str()).await?.text())?;
+        Ok(resp)
     }
 
     /// Partially updates the document
