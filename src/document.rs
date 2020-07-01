@@ -24,7 +24,6 @@ pub struct DocumentInsertOptions {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-
 pub enum DocumentOverwriteMode {
     Ignore,
     Replace,
