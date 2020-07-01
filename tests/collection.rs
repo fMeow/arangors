@@ -673,6 +673,7 @@ async fn test_put_rotate_journal() {
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 }
+
 #[cfg(not(feature = "dev"))]
 #[maybe_async::test(
     any(feature = "reqwest_blocking"),
