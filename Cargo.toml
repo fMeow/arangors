@@ -36,6 +36,7 @@ cluster = []
 enterprise = []
 mmfiles = []
 rocksdb = []
+dev=[]
 
 [dependencies]
 async-trait = "0.1"
