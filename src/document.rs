@@ -31,6 +31,18 @@ pub enum DocumentOverwriteMode {
     Conflict,
 }
 
+/// Options for document reading.
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DocumentReadOptions {
+    /// If the “If-None-Match” header is given, then it must contain exactly one Etag.
+    /// The document is returned, if it has a different revision than the given Etag. Otherwise an HTTP 304 is returned.
+    pub if_none_match: Option<String>,
+    ///  If the “If-Match” header is given, then it must contain exactly one Etag.
+    /// The document is returned, if it has the same revision as the given Etag. Otherwise a HTTP 412 is returned.
+    pub if_match: Option<String>,
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DocumentHeader {
     pub _id: String,

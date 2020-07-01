@@ -14,7 +14,9 @@ use crate::response::ArangoResult;
 use crate::{response::serialize_response, ClientError};
 
 use super::{Database, Document};
-use crate::document::{DocumentInsertOptions, DocumentOverwriteMode, DocumentResponse};
+use crate::document::{
+    DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions, DocumentResponse,
+};
 use serde::de::DeserializeOwned;
 use std::borrow::Borrow;
 use std::fmt::Debug;
@@ -526,6 +528,34 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
+    /// Reads a single document
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn read_document<T>(&self, _key: &str) -> Result<Document<T>, ClientError>
+    where
+        T: Serialize + Debug + DeserializeOwned,
+    {
+        self.read_document_with_options(_key, None).await
+    }
+
+    #[maybe_async]
+    pub async fn read_document_with_options<T>(
+        &self,
+        _key: &str,
+        read_options: Option<DocumentReadOptions>,
+    ) -> Result<Document<T>, ClientError>
+    where
+        T: Serialize + Debug + DeserializeOwned,
+    {
+        let url = self.document_base_url.join(_key).unwrap();
+
+        if let Some(options) = read_options {}
+
+        let resp: Document<T> = serde_json::from_str(self.session.get(url, "").await?.text())?;
+        Ok(resp)
+    }
     /// Partially updates the document
     ///
     /// # Note

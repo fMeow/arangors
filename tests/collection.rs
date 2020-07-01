@@ -1018,3 +1018,50 @@ async fn test_post_create_document_3_7() {
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 }
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_get_read_document() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_create_document_3_7";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await.unwrap();
+
+    let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
+    "testDescription":"read a document"
+    }));
+
+    // First test is to read a simple document without options
+    let create = coll.create_document(test_doc, None).await;
+    assert_eq!(create.is_ok(), true, "succeed create a document");
+
+    let _key = create.unwrap().header.unwrap()._key;
+
+    let read = coll.read_document(_key.as_str()).await;
+
+    let result: Document<Value> = read.unwrap();
+
+    assert_eq!(result.document["no"], 1);
+    assert_eq!(result.document["testDescription"], "read a document");
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+}
