@@ -804,6 +804,7 @@ async fn test_post_create_document() {
     assert_eq!(coll.is_err(), false);
 }
 
+/// TODO need to use CI to validate this test
 #[cfg(any(feature = "dev"))]
 #[maybe_async::test(
     any(feature = "reqwest_blocking"),
