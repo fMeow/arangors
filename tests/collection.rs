@@ -726,6 +726,7 @@ async fn test_post_create_document() {
                 return_new: Some(true),
                 return_old: None,
                 silent: None,
+                overwrite: None,
             }),
         )
         .await;
@@ -745,8 +746,6 @@ async fn test_post_create_document() {
     assert_eq!(header._key.is_empty(), false);
 
     let key = header._key;
-    // let _id = header._id;
-    let _rev = header._rev;
     // Third test is to update a simple document with option return old
     // Should not return  anything according to doc if overWriteMode is not used for now
     // TODO update this test with overwriteMode later
@@ -762,14 +761,21 @@ async fn test_post_create_document() {
                 return_new: None,
                 return_old: Some(true),
                 silent: None,
+                overwrite: Some(true),
             }),
         )
         .await;
 
     let result = update.unwrap();
-    assert_eq!(result.old.is_none(), true);
-    assert_eq!(result.new.is_none(), true);
-    assert_eq!(result.header.is_none(), true);
+    assert_eq!(result.old.is_some(), true);
+
+    let old_doc = result.old.unwrap();
+    assert_eq!(old_doc.document["testDescription"], "Test with new");
+
+    let header = result.header.unwrap();
+    assert_eq!(header._id.is_empty(), false);
+    assert_eq!(header._rev.is_empty(), false);
+    assert_eq!(header._key.is_empty(), false);
 
     // Fourth testis about the silent option
     let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
@@ -784,6 +790,7 @@ async fn test_post_create_document() {
                 return_new: None,
                 return_old: None,
                 silent: Some(true),
+                overwrite: None,
             }),
         )
         .await;

@@ -505,6 +505,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
                 url.query_pairs_mut()
                     .append_pair("silent", silent.to_string().as_str());
             }
+            if let Some(overwrite) = options.borrow().overwrite {
+                url.query_pairs_mut()
+                    .append_pair("overwrite", overwrite.to_string().as_str());
+            }
         }
 
         let resp: DocumentResponse<T> =

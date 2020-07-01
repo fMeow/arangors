@@ -17,8 +17,9 @@ pub struct DocumentInsertOptions {
     pub silent: Option<bool>,
     // If set to true, the insert becomes a replace-insert.
     // If a document with the same _key already exists the new document is not rejected with unique constraint violated but will replace the old document.
-    // TODO need to implement this to test return old
-    //  pub overwrite: Option<DocumentOverwriteMode>,
+    // TODO need to implement later because not priority for now
+    //pub overwrite_mode: Option<DocumentOverwriteMode>,
+    pub overwrite: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
