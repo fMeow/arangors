@@ -6,7 +6,7 @@ use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
 use arangors::collection::{CollectionPropertiesOptions, CollectionType};
-use arangors::document::DocumentInsertOptions;
+use arangors::document::{DocumentInsertOptions, DocumentOverwriteMode};
 use arangors::{ClientError, Connection, Document};
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
 
@@ -673,7 +673,7 @@ async fn test_put_rotate_journal() {
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 }
-
+#[cfg(not(feature = "dev"))]
 #[maybe_async::test(
     any(feature = "reqwest_blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
@@ -800,6 +800,219 @@ async fn test_post_create_document() {
     assert_eq!(result.old.is_none(), true);
     assert_eq!(result.new.is_none(), true);
     assert_eq!(result.header.is_none(), true);
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+}
+
+#[cfg(any(feature = "dev"))]
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_post_create_document_3_7() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_create_document_3_7";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await.unwrap();
+
+    let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
+    "testDescription":"Trying to make unit test for createDocument but there are many cases to handle"
+    }));
+
+    // First test is to create a simple document without options
+    let create = coll.create_document(test_doc, None).await;
+    assert_eq!(create.is_ok(), true, "succeed create a document");
+
+    let result = create.unwrap();
+    let header = result.header.unwrap();
+    assert_eq!(header._id.is_empty(), false);
+    assert_eq!(header._rev.is_empty(), false);
+    assert_eq!(header._key.is_empty(), false);
+    // Second test is to create a simple document with option to get the new document back
+    let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
+    "testDescription":"Test with new"
+    }));
+
+    let create = coll
+        .create_document(
+            test_doc,
+            Some(DocumentInsertOptions {
+                wait_for_sync: None,
+                return_new: Some(true),
+                return_old: None,
+                silent: None,
+                overwrite_mode: None,
+                overwrite: None,
+            }),
+        )
+        .await;
+    assert_eq!(create.is_ok(), true, "succeed create a document");
+
+    let result = create.unwrap();
+
+    assert_eq!(result.new.is_some(), true);
+
+    let doc = result.new.unwrap();
+
+    assert_eq!(doc.document["testDescription"], "Test with new");
+
+    let header = result.header.unwrap();
+    assert_eq!(header._id.is_empty(), false);
+    assert_eq!(header._rev.is_empty(), false);
+    assert_eq!(header._key.is_empty(), false);
+
+    let key = header._key;
+    // Third test is to update a simple document with option return old
+    // Should not return  anything according to doc if overWriteMode is not used for now
+    // TODO update this test with overwriteMode later
+    let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
+    "_key" : key,
+    "testDescription":"Test with old"
+    }));
+    let update = coll
+        .create_document(
+            test_doc,
+            Some(DocumentInsertOptions {
+                wait_for_sync: None,
+                return_new: None,
+                return_old: Some(true),
+                silent: None,
+                overwrite_mode: None,
+                overwrite: Some(true),
+            }),
+        )
+        .await;
+
+    let result = update.unwrap();
+    assert_eq!(result.old.is_some(), true);
+
+    let old_doc = result.old.unwrap();
+    assert_eq!(old_doc.document["testDescription"], "Test with new");
+
+    let header = result.header.unwrap();
+    assert_eq!(header._id.is_empty(), false);
+    assert_eq!(header._rev.is_empty(), false);
+    assert_eq!(header._key.is_empty(), false);
+
+    // Fourth testis about the silent option
+    let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
+    "_key" : key,
+    "testDescription":"Test with silent"
+    }));
+    let update = coll
+        .create_document(
+            test_doc,
+            Some(DocumentInsertOptions {
+                wait_for_sync: None,
+                return_new: None,
+                return_old: None,
+                silent: Some(true),
+                overwrite_mode: None,
+                overwrite: None,
+            }),
+        )
+        .await;
+
+    let result = update.unwrap();
+
+    assert_eq!(result.old.is_none(), true);
+    assert_eq!(result.new.is_none(), true);
+    assert_eq!(result.header.is_none(), true);
+
+    // Fifth test is about the overwrite _mode option ignore
+    let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
+    "_key" : key,
+    "testDescription":"Test with overwrite mode"
+    }));
+    let update = coll
+        .create_document(
+            test_doc,
+            Some(DocumentInsertOptions {
+                wait_for_sync: None,
+                return_new: Some(true),
+                return_old: None,
+                silent: None,
+                overwrite_mode: Some(DocumentOverwriteMode::Ignore),
+                overwrite: None,
+            }),
+        )
+        .await;
+
+    let result = update.unwrap();
+
+    assert_eq!(result.old.is_none(), true);
+    assert_eq!(result.new.is_none(), true);
+    assert_eq!(result.header.is_none(), true);
+
+    // Sixth test is about the overwrite _mode option replace
+    let test_doc: Document<Value> = Document::new(json!({ "no":3 ,
+    "_key" : key,
+    "testDescription":"Test with overwrite mode"
+    }));
+    let update = coll
+        .create_document(
+            test_doc,
+            Some(DocumentInsertOptions {
+                wait_for_sync: None,
+                return_new: None,
+                return_old: None,
+                silent: None,
+                overwrite_mode: Some(DocumentOverwriteMode::Replace),
+                overwrite: None,
+            }),
+        )
+        .await;
+
+    let result = update.unwrap();
+    assert_eq!(result.old.is_none(), true);
+    assert_eq!(result.new.is_none(), false);
+
+    let doc = result.new.unwrap();
+    assert_eq!(doc.document["no"], 3);
+
+    assert_eq!(result.header.is_none(), false);
+    // Seventh test is about the overwrite _mode option update
+    let test_doc: Document<Value> = Document::new(json!({ "no":4 ,
+    "_key" : key,
+    }));
+    let update = coll
+        .create_document(
+            test_doc,
+            Some(DocumentInsertOptions {
+                wait_for_sync: None,
+                return_new: None,
+                return_old: None,
+                silent: None,
+                overwrite_mode: Some(DocumentOverwriteMode::Update),
+                overwrite: None,
+            }),
+        )
+        .await;
+
+    let result = update.unwrap();
+    assert_eq!(result.old.is_none(), true);
+    assert_eq!(result.new.is_none(), false);
+
+    let doc = result.new.unwrap();
+    assert_eq!(doc.document["no"], 4);
+
+    assert_eq!(result.header.is_none(), false);
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);

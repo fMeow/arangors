@@ -14,7 +14,7 @@ use crate::response::ArangoResult;
 use crate::{response::serialize_response, ClientError};
 
 use super::{Database, Document};
-use crate::document::{DocumentInsertOptions, DocumentResponse};
+use crate::document::{DocumentInsertOptions, DocumentOverwriteMode, DocumentResponse};
 use serde::de::DeserializeOwned;
 use std::borrow::Borrow;
 use std::fmt::Debug;
@@ -508,6 +508,16 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             if let Some(overwrite) = options.borrow().overwrite {
                 url.query_pairs_mut()
                     .append_pair("overwrite", overwrite.to_string().as_str());
+            }
+            #[cfg(feature = "dev")]
+            if let Some(overwrite_mode) = options.overwrite_mode {
+                let mode = match overwrite_mode {
+                    DocumentOverwriteMode::Ignore => "ignore",
+                    DocumentOverwriteMode::Replace => "replace",
+                    DocumentOverwriteMode::Update => "update",
+                    DocumentOverwriteMode::Conflict => "conflict",
+                };
+                url.query_pairs_mut().append_pair("overwriteMode", mode);
             }
         }
 
