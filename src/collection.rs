@@ -482,16 +482,16 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     #[maybe_async]
     pub async fn create_document<T>(
         &self,
-        _doc: Document<T>,
-        _insert_options: Option<DocumentInsertOptions>,
+        doc: Document<T>,
+        insert_options: Option<DocumentInsertOptions>,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
     {
         let mut url = self.document_base_url.join("").unwrap();
-        let body = serde_json::to_string(&_doc)?;
+        let body = serde_json::to_string(&doc)?;
 
-        if let Some(options) = _insert_options {
+        if let Some(options) = insert_options {
             if let Some(return_new) = options.borrow().return_new {
                 url.query_pairs_mut()
                     .append_pair("returnNew", return_new.to_string().as_str());
@@ -562,7 +562,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn update_document<T>(&self, _doc: Document<T>) {
+    pub async fn update_document<T>(&self, doc: Document<T>) {
         unimplemented!()
     }
 
@@ -571,7 +571,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn replace_document<T>(&self, _doc: Document<T>) {
+    pub async fn replace_document<T>(&self, doc: Document<T>) {
         unimplemented!()
     }
 
@@ -580,7 +580,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn remove_document<T>(&self, _doc: Document<T>) {
+    pub async fn remove_document<T>(&self, doc: Document<T>) {
         unimplemented!()
     }
 }
