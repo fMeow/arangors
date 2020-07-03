@@ -15,7 +15,8 @@ use crate::{response::serialize_response, ClientError};
 
 use super::{Database, Document};
 use crate::document::{
-    DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions, DocumentResponse,
+    DocumentHeader, DocumentHeaderOptions, DocumentInsertOptions, DocumentOverwriteMode,
+    DocumentReadOptions, DocumentResponse,
 };
 use serde::de::DeserializeOwned;
 use std::borrow::Borrow;
@@ -485,7 +486,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         _insert_options: Option<DocumentInsertOptions>,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
-        T: Serialize + Debug + DeserializeOwned,
+        T: Serialize + DeserializeOwned,
     {
         let mut url = self.document_base_url.join("").unwrap();
         let body = serde_json::to_string(&_doc)?;
@@ -511,7 +512,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
                 url.query_pairs_mut()
                     .append_pair("overwrite", overwrite.to_string().as_str());
             }
-            #[cfg(feature = "dev")]
+            #[cfg(feature = "arango3_7")]
             if let Some(overwrite_mode) = options.overwrite_mode {
                 let mode = match overwrite_mode {
                     DocumentOverwriteMode::Ignore => "ignore",

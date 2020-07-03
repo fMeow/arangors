@@ -19,7 +19,7 @@ pub struct DocumentInsertOptions {
     /// If a document with the same _key already exists the new document is not rejected with unique constraint violated but will replace the old document.
     pub overwrite: Option<bool>,
     /// TODO add nice formatted documentation from official doc
-    #[cfg(dev)]
+    #[cfg(arango3_7)]
     pub overwrite_mode: Option<DocumentOverwriteMode>,
 }
 
@@ -45,8 +45,21 @@ pub struct DocumentReadOptions {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DocumentHeader {
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub _id: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub _key: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub _rev: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DocumentHeaderOptions {
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub _id: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub _key: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub _rev: String,
 }
 
@@ -62,15 +75,8 @@ pub struct DocumentResponse<T> {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Document<T> {
-    #[serde(skip_serializing_if = "String::is_empty")]
-    _id: String,
-
-    #[serde(skip_serializing_if = "String::is_empty")]
-    _key: String,
-
-    #[serde(skip_serializing_if = "String::is_empty")]
-    _rev: String,
-
+    #[serde(flatten)]
+    pub header: DocumentHeader,
     #[serde(flatten)]
     pub document: T,
 }
@@ -82,9 +88,11 @@ where
     pub fn new(data: T) -> Self {
         Document {
             document: data,
-            _id: String::new(),
-            _key: String::new(),
-            _rev: String::new(),
+            header: DocumentHeader {
+                _id: String::new(),
+                _key: String::new(),
+                _rev: String::new(),
+            },
         }
     }
 }

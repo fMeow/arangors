@@ -674,7 +674,7 @@ async fn test_put_rotate_journal() {
     assert_eq!(coll.is_err(), false);
 }
 
-#[cfg(not(feature = "dev"))]
+#[cfg(not(feature = "arango3_7"))]
 #[maybe_async::test(
     any(feature = "reqwest_blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
@@ -806,7 +806,7 @@ async fn test_post_create_document() {
 }
 
 /// TODO need to use CI to validate this test
-#[cfg(any(feature = "dev"))]
+#[cfg(any(feature = "arango3_7"))]
 #[maybe_async::test(
     any(feature = "reqwest_blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
