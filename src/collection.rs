@@ -482,7 +482,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     #[maybe_async]
     pub async fn create_document<T>(
         &self,
-        doc: Document<T>,
+        doc: T,
         insert_options: Option<DocumentInsertOptions>,
     ) -> Result<DocumentResponse<T>, ClientError>
     where

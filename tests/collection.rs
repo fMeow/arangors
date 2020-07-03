@@ -732,7 +732,6 @@ async fn test_post_create_document() {
         )
         .await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
-
     let result = create.unwrap();
 
     assert_eq!(result.new.is_some(), true);
@@ -766,7 +765,7 @@ async fn test_post_create_document() {
             }),
         )
         .await;
-
+    assert_eq!(update.is_ok(), true, "succeed update a document");
     let result = update.unwrap();
     assert_eq!(result.old.is_some(), true);
 
@@ -795,6 +794,8 @@ async fn test_post_create_document() {
             }),
         )
         .await;
+
+    assert_eq!(update.is_ok(), true, "succeed create a document silently");
 
     let result = update.unwrap();
 
@@ -865,7 +866,6 @@ async fn test_post_create_document_3_7() {
         )
         .await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
-
     let result = create.unwrap();
 
     assert_eq!(result.new.is_some(), true);

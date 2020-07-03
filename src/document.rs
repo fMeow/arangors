@@ -67,10 +67,10 @@ pub struct DocumentHeaderOptions {
 pub struct DocumentResponse<T> {
     #[serde(flatten)]
     pub header: Option<DocumentHeader>,
-    pub new: Option<Document<T>>,
+    pub new: Option<T>,
     #[serde(rename = "_oldRev")]
     pub _old_red: Option<String>,
-    pub old: Option<Document<T>>,
+    pub old: Option<T>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -83,7 +83,7 @@ pub struct Document<T> {
 
 impl<'de, T> Document<T>
 where
-    T: Serialize + Deserialize<'de> + Debug,
+    T: Serialize + Deserialize<'de>,
 {
     pub fn new(data: T) -> Self {
         Document {
