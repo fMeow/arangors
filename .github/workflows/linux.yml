@@ -27,6 +27,23 @@ jobs:
           command: fmt
           args: --all -- --check
 
+      - name: check build (blocking)
+        uses: actions-rs/cargo@v1
+        env:
+          RUST_LOG: arangors=trace
+        with:
+          command: check
+          args: --no-default-features --features "rocksdb cluster enterprise blocking" --lib
+
+      - name: test (blocking)
+        uses: actions-rs/cargo@v1
+        env:
+          RUST_LOG: arangors=trace
+        timeout-minutes: 40
+        with:
+          command: test
+          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise blocking" --lib
+
       - name: check build (default features)
         uses: actions-rs/cargo@v1
         env:
@@ -60,23 +77,6 @@ jobs:
         with:
           command: test
           args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise" --lib
-
-      - name: check build (blocking)
-        uses: actions-rs/cargo@v1
-        env:
-          RUST_LOG: arangors=trace
-        with:
-          command: check
-          args: --no-default-features --features "rocksdb cluster enterprise blocking" --lib
-
-      - name: test (blocking)
-        uses: actions-rs/cargo@v1
-        env:
-          RUST_LOG: arangors=trace
-        timeout-minutes: 40
-        with:
-          command: test
-          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise blocking" --lib
 
       - name: check build (reqwest_async)
         uses: actions-rs/cargo@v1
@@ -151,7 +151,7 @@ jobs:
           RUST_LOG: arangors=trace
         with:
           command: check
-          args: --all --bins --examples --tests --features "mmfiles cluster enterprise reqwest_async" --lib
+          args: --all --bins --examples --tests --no-default-features --features "mmfiles cluster enterprise reqwest_blocking" --lib
 
       - name: tests
         uses: actions-rs/cargo@v1
@@ -160,7 +160,7 @@ jobs:
         timeout-minutes: 40
         with:
           command: test
-          args: --all --no-fail-fast --no-default-features --features "mmfiles cluster enterprise reqwest_async"
+          args: --all --no-fail-fast --no-default-features --features "mmfiles cluster enterprise reqwest_blocking"
 
   doc:
     runs-on: ubuntu-latest
