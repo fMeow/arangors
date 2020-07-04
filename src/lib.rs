@@ -390,7 +390,7 @@ pub use crate::{
     database::Database,
     document::Document,
     error::{ArangoError, ClientError},
-    response::{Cursor, Success},
+    response::Cursor,
 };
 
 pub mod aql;

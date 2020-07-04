@@ -1,7 +1,6 @@
 /// This module contains structures to deserialize responses from arangoDB
 /// server via HTTP request, as well as convenient functions to deserialize
 /// `Response`.
-use std::fmt;
 use std::{fmt::Debug, ops::Deref};
 
 use log::trace;
@@ -38,8 +37,8 @@ where
 /// Result, except that it's used to deserialize from
 /// server response.
 #[derive(Debug)]
-pub enum Response<T> {
-    Ok(Success<T>),
+pub(crate) enum Response<T> {
+    Ok(ArangoResult<T>),
     Err(ArangoError),
 }
 
@@ -74,7 +73,7 @@ where
                 .map(Response::Err)
                 .map_err(de::Error::custom)
         } else {
-            Success::<T>::deserialize(rest)
+            ArangoResult::<T>::deserialize(rest)
                 .map(Response::Ok)
                 .map_err(de::Error::custom)
         }
@@ -97,20 +96,6 @@ impl<T> Deref for ArangoResult<T> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         &self.result
-    }
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Success<T> {
-    pub error: bool,
-    pub code: u16,
-    #[serde(flatten)]
-    pub result: T,
-}
-
-impl<T: fmt::Display> fmt::Display for Success<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(format!("Response {} (Status: {})", &self.result, &self.code).as_str())
     }
 }
 
