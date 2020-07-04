@@ -123,7 +123,7 @@ pub struct CollectionInfo {
     pub name: String,
     pub globally_unique_id: String,
     pub is_system: bool,
-    pub status: u16,
+    pub status: CollectionStatus,
     pub r#type: CollectionType,
 }
 
@@ -490,14 +490,14 @@ pub struct CollectionResponse {
     pub global_unique_id: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum CollectionStatus {
-    NewBorn,
-    Unloaded,
-    Loaded,
-    BeingUnload,
-    Deleted,
-    Loading,
+    NewBorn = 1,
+    Unloaded = 2,
+    Loaded = 3,
+    Unloading = 4,
+    Deleted = 5,
+    Loading = 6,
 }
 
 impl<'de> Deserialize<'de> for CollectionStatus {
@@ -510,7 +510,7 @@ impl<'de> Deserialize<'de> for CollectionStatus {
             1 => Ok(CollectionStatus::NewBorn),
             2 => Ok(CollectionStatus::Unloaded),
             3 => Ok(CollectionStatus::Loaded),
-            4 => Ok(CollectionStatus::BeingUnload),
+            4 => Ok(CollectionStatus::Unloading),
             5 => Ok(CollectionStatus::Deleted),
             6 => Ok(CollectionStatus::Loading),
             _ => Err(DeError::custom(
@@ -521,10 +521,10 @@ impl<'de> Deserialize<'de> for CollectionStatus {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub enum CollectionType {
-    Document,
-    Edge,
+    Document = 2,
+    Edge = 3,
 }
 
 impl<'de> Deserialize<'de> for CollectionType {
