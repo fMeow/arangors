@@ -1,6 +1,14 @@
 /// This module contains structures to deserialize responses from arangoDB
 /// server via HTTP request, as well as convenient functions to deserialize
 /// `Response`.
+///
+/// For response with `error` and `code` fields indicating the whether the
+/// request is succesful, use `Response` to abstract over request status
+/// and data of concerns.
+///
+/// For response storing all information in `result` filed, use
+/// `ArangoResult`.
+use std::fmt;
 use std::{fmt::Debug, ops::Deref};
 
 use log::trace;
@@ -38,7 +46,7 @@ where
 /// server response.
 #[derive(Debug)]
 pub(crate) enum Response<T> {
-    Ok(ArangoResult<T>),
+    Ok(Success<T>),
     Err(ArangoError),
 }
 
@@ -73,15 +81,17 @@ where
                 .map(Response::Err)
                 .map_err(de::Error::custom)
         } else {
-            ArangoResult::<T>::deserialize(rest)
+            Success::<T>::deserialize(rest)
                 .map(Response::Ok)
                 .map_err(de::Error::custom)
         }
     }
 }
 
+/// Helper struct to deserialize json result that store
+/// information in "result" field.
 #[derive(Deserialize, Debug)]
-pub struct ArangoResult<T> {
+pub(crate) struct ArangoResult<T> {
     #[serde(rename = "result")]
     result: T,
 }
@@ -96,6 +106,25 @@ impl<T> Deref for ArangoResult<T> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         &self.result
+    }
+}
+
+/// Helper struct to separate error code and fields
+/// of concerns.
+///
+/// With this struct, we no longer need to contains
+/// `error` and `code` field in every result struct.
+#[derive(Deserialize, Debug)]
+pub(crate) struct Success<T> {
+    pub error: bool,
+    pub code: u16,
+    #[serde(flatten)]
+    pub result: T,
+}
+
+impl<T: fmt::Display> fmt::Display for Success<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(format!("Response {} (Status: {})", &self.result, &self.code).as_str())
     }
 }
 
