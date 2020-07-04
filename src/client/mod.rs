@@ -6,6 +6,27 @@ use url::Url;
 
 use crate::ClientError;
 
+#[cfg(all(feature = "reqwest_async", feature = "reqwest_blocking"))]
+compile_error!(
+    r#"feature "reqwest_async" and "reqwest_blocking" cannot be set at the same time. 
+If what you want is "reqwest_blocking", please turn off default features by adding "default-features=false" in your Cargo.toml"#
+);
+
+#[cfg(all(feature = "reqwest_async", feature = "surf_async"))]
+compile_error!(
+    r#"feature "reqwest_async" and "surf_async" cannot be set at the same time. 
+If what you want is "surf_async", please turn off default features by adding "default-features=false" in your Cargo.toml"#
+);
+
+#[cfg(all(
+    feature = "reqwest_async",
+    feature = "reqwest_blocking",
+    feature = "surf_async"
+))]
+compile_error!(
+    r#"only one of features "reqwest_async", "reqwest_blocking" and "surf_async" can be"#
+);
+
 #[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
 pub mod reqwest;
 #[cfg(any(feature = "surf_async"))]
