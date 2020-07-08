@@ -71,16 +71,6 @@ pub struct DocumentHeader {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct DocumentHeaderOptions {
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub _id: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub _key: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub _rev: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub struct DocumentResponse<T> {
     #[serde(flatten)]
     pub header: Option<DocumentHeader>,
