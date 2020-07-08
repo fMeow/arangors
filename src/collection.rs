@@ -16,7 +16,7 @@ use crate::{response::serialize_response, ClientError};
 use super::{Database, Document};
 use crate::document::{
     DocumentHeader, DocumentHeaderOptions, DocumentInsertOptions, DocumentOverwriteMode,
-    DocumentReadOptions, DocumentResponse,
+    DocumentReadOptions, DocumentResponse, DocumentUpdateOptions,
 };
 use serde::de::DeserializeOwned;
 use std::borrow::Borrow;
@@ -562,8 +562,47 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn update_document<T>(&self, doc: Document<T>) {
-        unimplemented!()
+    pub async fn update_document<T>(
+        &self,
+        _key: &str,
+        doc: T,
+        update_options: Option<DocumentUpdateOptions>,
+    ) -> Result<DocumentResponse<T>, ClientError>
+    where
+        T: Serialize + DeserializeOwned,
+    {
+        let mut url = self.document_base_url.join(_key).unwrap();
+        let body = serde_json::to_string(&doc)?;
+        if let Some(options) = update_options {
+            if let Some(keep_null) = options.borrow().keep_null {
+                url.query_pairs_mut()
+                    .append_pair("keep_null", keep_null.to_string().as_str());
+            }
+            if let Some(return_new) = options.borrow().return_new {
+                url.query_pairs_mut()
+                    .append_pair("returnNew", return_new.to_string().as_str());
+            }
+            if let Some(wait_for_sync) = options.borrow().wait_for_sync {
+                url.query_pairs_mut()
+                    .append_pair("waitForSync", wait_for_sync.to_string().as_str());
+            }
+            if let Some(ignore_revs) = options.borrow().ignore_revs {
+                url.query_pairs_mut()
+                    .append_pair("ignore_revs", ignore_revs.to_string().as_str());
+            }
+            if let Some(return_old) = options.borrow().return_old {
+                url.query_pairs_mut()
+                    .append_pair("returnOld", return_old.to_string().as_str());
+            }
+            if let Some(silent) = options.borrow().silent {
+                url.query_pairs_mut()
+                    .append_pair("silent", silent.to_string().as_str());
+            }
+        }
+
+        let resp: DocumentResponse<T> =
+            serde_json::from_str(self.session.patch(url, body.as_str()).await?.text())?;
+        Ok(resp)
     }
 
     /// Replaces the document

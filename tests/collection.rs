@@ -6,7 +6,10 @@ use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
 use arangors::collection::{CollectionPropertiesOptions, CollectionType};
-use arangors::document::{DocumentInsertOptions, DocumentOverwriteMode};
+use arangors::document::{
+    DocumentHeaderOptions, DocumentInsertOptions, DocumentOverwriteMode, DocumentResponse,
+    DocumentUpdateOptions,
+};
 use arangors::{ClientError, Connection, Document};
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
 
@@ -710,6 +713,7 @@ async fn test_post_create_document() {
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
     let result = create.unwrap();
+
     let header = result.header.unwrap();
     assert_eq!(header._id.is_empty(), false);
     assert_eq!(header._rev.is_empty(), false);
@@ -767,6 +771,7 @@ async fn test_post_create_document() {
         .await;
     assert_eq!(update.is_ok(), true, "succeed update a document");
     let result = update.unwrap();
+
     assert_eq!(result.old.is_some(), true);
 
     let old_doc = result.old.unwrap();
@@ -1062,6 +1067,87 @@ async fn test_get_read_document() {
 
     assert_eq!(result.document["no"], 1);
     assert_eq!(result.document["testDescription"], "read a document");
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_patch_update_document() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_update_document";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await.unwrap();
+
+    let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
+    "testDescription":"update document"
+    }));
+
+    // First test is to read a simple document without options
+    let create = coll.create_document(test_doc, None).await;
+
+    assert_eq!(create.is_ok(), true, "succeed create a document");
+
+    let _key = create.unwrap().header.unwrap()._key;
+
+    let update = coll
+        .update_document(
+            _key.as_str(),
+            json!({ "no":2}),
+            Some(DocumentUpdateOptions {
+                keep_null: None,
+                merge_objects: None,
+                wait_for_sync: None,
+                ignore_revs: None,
+                return_new: Some(true),
+                return_old: None,
+                silent: None,
+            }),
+        )
+        .await;
+
+    let result: DocumentResponse<Value> = update.unwrap();
+    assert_eq!(result.new.unwrap()["no"], 2);
+
+    let _rev = result.header.unwrap()._rev;
+    let update = coll
+        .update_document(
+            _key.as_str(),
+            json!({ "no":3}),
+            Some(DocumentUpdateOptions {
+                keep_null: None,
+                merge_objects: None,
+                wait_for_sync: None,
+                ignore_revs: None,
+                return_new: None,
+                return_old: None,
+                silent: None,
+            }),
+        )
+        .await;
+
+    let result: DocumentResponse<Value> = update.unwrap();
+
+    assert_eq!(result.header.unwrap()._rev != _rev, true);
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
