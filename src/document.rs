@@ -86,7 +86,7 @@ pub struct DocumentResponse<T> {
     pub header: Option<DocumentHeader>,
     pub new: Option<T>,
     #[serde(rename = "_oldRev")]
-    pub _old_red: Option<String>,
+    pub _old_rev: Option<String>,
     pub old: Option<T>,
 }
 
