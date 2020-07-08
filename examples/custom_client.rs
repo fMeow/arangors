@@ -38,17 +38,10 @@ pub struct ReqwestClient(pub Client);
 #[cfg(feature = "reqwest_async")]
 #[async_trait::async_trait]
 impl ClientExt for ReqwestClient {
-    async fn request(
-        &self,
-        method: Method,
-        url: Url,
-        text: &str,
-    ) -> Result<ClientResponse, ClientError> {
+    async fn request(&self, request: http::Request<String>) -> Result<ClientResponse, ClientError> {
         let resp = self
             .0
-            .request(method, url)
-            .body(text.to_owned())
-            .send()
+            .execute(request.into())
             .await
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
