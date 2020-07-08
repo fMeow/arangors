@@ -21,10 +21,10 @@ impl ClientExt for ReqwestClient {
         text: &str,
         header: Option<RequestHeader>,
     ) -> Result<ClientResponse, ClientError> {
-        let req = self.0.request(method, url).body(text.to_owned());
+        let mut req = self.0.request(method, url).body(text.to_owned());
 
         if let Some(request_header) = header {
-            req.header(request_header.key, request_header.value);
+            req = req.header(request_header.key.as_str(), request_header.value.as_str());
         }
 
         let resp = req

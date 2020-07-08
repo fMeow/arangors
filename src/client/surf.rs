@@ -22,6 +22,7 @@ impl ClientExt for SurfClient {
         method: Method,
         url: Url,
         text: &str,
+        header: Option<RequestHeader>,
     ) -> Result<ClientResponse, ClientError> {
         use ::surf::http_types::headers::HeaderName as SurfHeaderName;
         log::trace!("{:?}({:?}): {} ", method, url, text);
@@ -39,12 +40,17 @@ impl ClientExt for SurfClient {
             m @ _ => return Err(ClientError::HttpClient(format!("invalid method {}", m))),
         };
 
-        let req = self.headers.iter().fold(req, |req, (k, v)| {
+        let mut req = self.headers.iter().fold(req, |req, (k, v)| {
             req.set_header(
                 SurfHeaderName::from_str(k.as_str()).unwrap(),
                 v.to_str().unwrap(),
             )
         });
+
+        if let Some(request_header) = header {
+            req = req.set_header(request_header.key.as_str(), request_header.value.as_str());
+        }
+
         let mut resp = req
             .body_string(text.to_owned())
             .await

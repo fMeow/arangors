@@ -86,16 +86,11 @@ pub trait ClientExt: Sync + Debug + Clone {
     }
 
     #[inline]
-    async fn build_request(
-        &self,
-        method: Method,
-        url: Url,
-        text: &str,
-    ) -> ClientRequestBuilder<Self>
+    fn build_request(&self, method: Method, url: Url, text: &str) -> ClientRequestBuilder<Self>
     where
         Self: Sized,
     {
-        ClientRequestBuilder::new(self, method, url, text)
+        ClientRequestBuilder::new(self.clone(), method, url, text)
     }
 
     async fn request(
@@ -115,53 +110,6 @@ pub struct ClientResponse {
     headers: http::HeaderMap,
     content: String,
     version: Option<http::Version>,
-}
-
-#[derive(Debug)]
-pub struct RequestHeader {
-    pub key: String,
-    pub value: String,
-}
-
-#[derive(Debug)]
-pub struct ClientRequestBuilder<T>
-where
-    T: ClientExt,
-{
-    header: Option<RequestHeader>,
-    method: Method,
-    url: Url,
-    text: String,
-    client: T,
-}
-
-impl<T> ClientRequestBuilder<T>
-where
-    T: ClientExt,
-{
-    pub fn new(client: T, method: Method, url: Url, text: &str) -> ClientRequestBuilder<T> {
-        ClientRequestBuilder {
-            client,
-            header: None,
-            method,
-            url,
-            text: text.to_string(),
-        }
-    }
-
-    fn set_headers(mut self, key: String, value: String) -> ClientRequestBuilder<T> {
-        self.header = Some(RequestHeader { key, value });
-        self
-    }
-
-    async fn send(self) -> Result<ClientResponse, ClientError>
-    where
-        Self: Sized,
-    {
-        self.client
-            .request(self.method, self.url, self.text.as_str(), self.header)
-            .await
-    }
 }
 
 impl ClientResponse {
@@ -207,5 +155,60 @@ impl ClientResponse {
     #[inline]
     pub fn json<T: DeserializeOwned>(&self) -> Result<T, ClientError> {
         Ok(serde_json::from_str(self.text())?)
+    }
+}
+
+/// Request header for ClientRequestBuilder
+#[derive(Debug)]
+pub struct RequestHeader {
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(Debug)]
+pub struct ClientRequestBuilder<T>
+where
+    T: ClientExt,
+{
+    header: Option<RequestHeader>,
+    method: Method,
+    url: Url,
+    text: String,
+    client: T,
+}
+
+impl<T> ClientRequestBuilder<T>
+where
+    T: ClientExt,
+{
+    pub fn new(client: T, method: Method, url: Url, text: &str) -> ClientRequestBuilder<T> {
+        ClientRequestBuilder {
+            client,
+            header: None,
+            method,
+            url,
+            text: text.to_string(),
+        }
+    }
+
+    /// Set custom header for one request
+    /// If "" injected, it will be ignored
+    pub fn set_header(mut self, key: &str, value: &str) -> ClientRequestBuilder<T> {
+        if !key.is_empty() && !value.is_empty() {
+            self.header = Some(RequestHeader {
+                key: key.to_string(),
+                value: value.to_string(),
+            });
+        }
+        self
+    }
+
+    pub async fn send(self) -> Result<ClientResponse, ClientError>
+    where
+        Self: Sized,
+    {
+        self.client
+            .request(self.method, self.url, self.text.as_str(), self.header)
+            .await
     }
 }
