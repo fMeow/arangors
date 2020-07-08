@@ -1,34 +1,38 @@
 #[cfg(feature = "reqwest_blocking")]
-use ::reqwest::blocking::Client;
+use ::reqwest::blocking::{Client, Request};
 #[cfg(feature = "reqwest_async")]
-use ::reqwest::Client;
+use ::reqwest::{Client, Request};
+
 use http::header::HeaderMap;
 use url::Url;
 
 use crate::client::ClientExt;
 
 use super::*;
+use std::convert::TryFrom;
 
 #[derive(Debug, Clone)]
 pub struct ReqwestClient(pub Client);
 
 #[maybe_async::maybe_async]
 impl ClientExt for ReqwestClient {
-    async fn request(
-        &self,
-        method: Method,
-        url: Url,
-        text: &str,
-        header: Option<RequestHeader>,
-    ) -> Result<ClientResponse, ClientError> {
-        let mut req = self.0.request(method, url).body(text.to_owned());
-
-        if let Some(request_header) = header {
-            req = req.header(request_header.key.as_str(), request_header.value.as_str());
+    fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
+        let client = Client::builder().gzip(true);
+        match headers.into() {
+            Some(h) => client.default_headers(h),
+            None => client,
         }
+        .build()
+        .map(|c| ReqwestClient(c))
+        .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
+    }
 
-        let resp = req
-            .send()
+    async fn request(&self, request: http::Request<String>) -> Result<ClientResponse, ClientError> {
+        let req: Request = request.into();
+
+        let resp = self
+            .0
+            .execute(req)
             .await
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
@@ -46,16 +50,5 @@ impl ClientExt for ReqwestClient {
             version,
             content,
         })
-    }
-
-    fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
-        let client = Client::builder().gzip(true);
-        match headers.into() {
-            Some(h) => client.default_headers(h),
-            None => client,
-        }
-        .build()
-        .map(|c| ReqwestClient(c))
-        .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 }

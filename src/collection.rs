@@ -18,7 +18,7 @@ use crate::document::{
     DocumentHeader, DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions,
     DocumentResponse, DocumentUpdateOptions,
 };
-use http::Method;
+use http::{Method, Request};
 use serde::de::DeserializeOwned;
 use std::borrow::Borrow;
 use std::fmt::Debug;
@@ -566,18 +566,23 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             header_value = key_value.1;
         }
 
-        let resp: Document<T> = serde_json::from_str(
-            self.session
-                .build_request(Method::GET, url, "")
-                .set_header(header_key.as_str(), header_value.as_str())
-                .send()
-                .await?
-                .text(),
-        )?;
+        let req = Request::get(url.to_string())
+            .header(header_key.as_str(), header_value.as_str())
+            .body("".to_string())
+            .unwrap();
+        let resp: Document<T> = serde_json::from_str(self.session.request(req).await?.text())?;
         Ok(resp)
     }
 
-        let resp: Document<T> = serde_json::from_str(self.session.get(url, "").await?.text())?;
+    /// Reads a single document header
+    /// Like GET, but only returns the header fields and not the body. You can use this call to get the current revision of a document or check if the document was deleted.
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn read_document_header(&self, _key: &str) -> Result<DocumentHeader, ClientError> {
+        let url = self.document_base_url.join(_key).unwrap();
+
+        let resp: DocumentHeader = serde_json::from_str(self.session.head(url, "").await?.text())?;
         Ok(resp)
     }
     /// Partially updates the document

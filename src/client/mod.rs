@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use http::{method::Method, HeaderMap};
+use http::{method::Method, HeaderMap, Request};
 use serde::de::DeserializeOwned;
 use url::Url;
 
@@ -22,35 +22,60 @@ pub trait ClientExt: Sync + Debug + Clone {
     where
         Self: Sized,
     {
-        self.request(Method::GET, url, text, None).await
+        self.request(
+            Request::get(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
     #[inline]
     async fn post(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::POST, url, text, None).await
+        self.request(
+            Request::post(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
     #[inline]
     async fn put(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::PUT, url, text, None).await
+        self.request(
+            Request::put(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
     #[inline]
     async fn delete(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::DELETE, url, text, None).await
+        self.request(
+            Request::delete(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
     #[inline]
     async fn patch(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::PATCH, url, text, None).await
+        self.request(
+            Request::patch(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
 
     #[inline]
@@ -58,7 +83,12 @@ pub trait ClientExt: Sync + Debug + Clone {
     where
         Self: Sized,
     {
-        self.request(Method::CONNECT, url, text, None).await
+        self.request(
+            Request::connect(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
 
     #[inline]
@@ -66,7 +96,12 @@ pub trait ClientExt: Sync + Debug + Clone {
     where
         Self: Sized,
     {
-        self.request(Method::HEAD, url, text, None).await
+        self.request(
+            Request::head(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
 
     #[inline]
@@ -74,7 +109,12 @@ pub trait ClientExt: Sync + Debug + Clone {
     where
         Self: Sized,
     {
-        self.request(Method::OPTIONS, url, text, None).await
+        self.request(
+            Request::options(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
 
     #[inline]
@@ -82,24 +122,22 @@ pub trait ClientExt: Sync + Debug + Clone {
     where
         Self: Sized,
     {
-        self.request(Method::TRACE, url, text, None).await
+        self.request(
+            Request::trace(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
 
-    #[inline]
-    fn build_request(&self, method: Method, url: Url, text: &str) -> ClientRequestBuilder<Self>
-    where
-        Self: Sized,
-    {
-        ClientRequestBuilder::new(self.clone(), method, url, text)
-    }
-
-    async fn request(
-        &self,
-        method: Method,
-        url: Url,
-        text: &str,
-        header: Option<RequestHeader>,
-    ) -> Result<ClientResponse, ClientError>
+    // #[inline]
+    // fn build_request(&self, method: Method, url: Url, text: &str) -> ClientRequestBuilder<Self>
+    // where
+    //     Self: Sized,
+    // {
+    //     ClientRequestBuilder::new(self.clone(), method, url, text)
+    // }
+    async fn request(&self, request: Request<String>) -> Result<ClientResponse, ClientError>
     where
         Self: Sized;
 }
@@ -155,60 +193,5 @@ impl ClientResponse {
     #[inline]
     pub fn json<T: DeserializeOwned>(&self) -> Result<T, ClientError> {
         Ok(serde_json::from_str(self.text())?)
-    }
-}
-
-/// Request header for ClientRequestBuilder
-#[derive(Debug)]
-pub struct RequestHeader {
-    pub key: String,
-    pub value: String,
-}
-
-#[derive(Debug)]
-pub struct ClientRequestBuilder<T>
-where
-    T: ClientExt,
-{
-    header: Option<RequestHeader>,
-    method: Method,
-    url: Url,
-    text: String,
-    client: T,
-}
-
-impl<T> ClientRequestBuilder<T>
-where
-    T: ClientExt,
-{
-    pub fn new(client: T, method: Method, url: Url, text: &str) -> ClientRequestBuilder<T> {
-        ClientRequestBuilder {
-            client,
-            header: None,
-            method,
-            url,
-            text: text.to_string(),
-        }
-    }
-
-    /// Set custom header for one request
-    /// If "" injected, it will be ignored
-    pub fn set_header(mut self, key: &str, value: &str) -> ClientRequestBuilder<T> {
-        if !key.is_empty() && !value.is_empty() {
-            self.header = Some(RequestHeader {
-                key: key.to_string(),
-                value: value.to_string(),
-            });
-        }
-        self
-    }
-
-    pub async fn send(self) -> Result<ClientResponse, ClientError>
-    where
-        Self: Sized,
-    {
-        self.client
-            .request(self.method, self.url, self.text.as_str(), self.header)
-            .await
     }
 }
