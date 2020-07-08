@@ -7,7 +7,7 @@ use serde_json::{json, Value};
 
 use arangors::collection::{CollectionPropertiesOptions, CollectionType};
 use arangors::document::{
-    DocumentHeaderOptions, DocumentInsertOptions, DocumentOverwriteMode, DocumentResponse,
+    DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions, DocumentResponse,
     DocumentUpdateOptions,
 };
 use arangors::{ClientError, Connection, Document};
@@ -845,6 +845,7 @@ async fn test_post_create_document_3_7() {
 
     // First test is to create a simple document without options
     let create = coll.create_document(test_doc, None).await;
+
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
     let result = create.unwrap();
@@ -1059,14 +1060,35 @@ async fn test_get_read_document() {
     let create = coll.create_document(test_doc, None).await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
-    let _key = create.unwrap().header.unwrap()._key;
-
+    let header = create.unwrap().header.unwrap();
+    let _key = header._key;
+    let _rev = header._rev;
     let read = coll.read_document(_key.as_str()).await;
 
     let result: Document<Value> = read.unwrap();
 
     assert_eq!(result.document["no"], 1);
     assert_eq!(result.document["testDescription"], "read a document");
+    // Test if we get the right doc when it does match
+    let read: Result<Document<Value>, ClientError> = coll
+        .read_document_with_options(
+            _key.as_str(),
+            Some(DocumentReadOptions::IfMatch(_rev.clone())),
+        )
+        .await;
+    assert_eq!(read.is_err(), false);
+    // Test if we get the 412 code response when there is no match
+    let read: Result<Document<Value>, ClientError> = coll
+        .read_document_with_options(
+            _key.as_str(),
+            Some(DocumentReadOptions::IfMatch("_dsdsds_d".to_string())),
+        )
+        .await;
+    // We should get a 412, for now for some reason the error is parsed as a document
+    // todo fix how the reponse/error is built
+    assert_eq!(read.is_err(), true);
+
+    // todo need to test with with IfNoneMatch
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);

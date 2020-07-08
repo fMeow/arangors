@@ -15,9 +15,10 @@ use crate::{response::serialize_response, ClientError};
 
 use super::{Database, Document};
 use crate::document::{
-    DocumentHeader, DocumentHeaderOptions, DocumentInsertOptions, DocumentOverwriteMode,
-    DocumentReadOptions, DocumentResponse, DocumentUpdateOptions,
+    DocumentHeader, DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions,
+    DocumentResponse, DocumentUpdateOptions,
 };
+use http::Method;
 use serde::de::DeserializeOwned;
 use std::borrow::Borrow;
 use std::fmt::Debug;
@@ -551,8 +552,30 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         T: Serialize + Debug + DeserializeOwned,
     {
         let url = self.document_base_url.join(_key).unwrap();
+        let mut header_key = "".to_string();
+        let mut header_value = "".to_string();
 
-        if let Some(options) = read_options {}
+        if let Some(options) = read_options {
+            let key_value = match options {
+                DocumentReadOptions::IfNoneMatch(value) => ("If-None-Match".to_string(), value),
+
+                DocumentReadOptions::IfMatch(value) => ("If-Match".to_string(), value),
+            };
+
+            header_key = key_value.0;
+            header_value = key_value.1;
+        }
+
+        let resp: Document<T> = serde_json::from_str(
+            self.session
+                .build_request(Method::GET, url, "")
+                .set_header(header_key.as_str(), header_value.as_str())
+                .send()
+                .await?
+                .text(),
+        )?;
+        Ok(resp)
+    }
 
         let resp: Document<T> = serde_json::from_str(self.session.get(url, "").await?.text())?;
         Ok(resp)
