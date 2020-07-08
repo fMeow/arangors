@@ -22,35 +22,35 @@ pub trait ClientExt: Sync + Debug + Clone {
     where
         Self: Sized,
     {
-        self.request(Method::GET, url, text).await
+        self.request(Method::GET, url, text, None).await
     }
     #[inline]
     async fn post(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::POST, url, text).await
+        self.request(Method::POST, url, text, None).await
     }
     #[inline]
     async fn put(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::PUT, url, text).await
+        self.request(Method::PUT, url, text, None).await
     }
     #[inline]
     async fn delete(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::DELETE, url, text).await
+        self.request(Method::DELETE, url, text, None).await
     }
     #[inline]
     async fn patch(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::PATCH, url, text).await
+        self.request(Method::PATCH, url, text, None).await
     }
 
     #[inline]
@@ -58,7 +58,7 @@ pub trait ClientExt: Sync + Debug + Clone {
     where
         Self: Sized,
     {
-        self.request(Method::CONNECT, url, text).await
+        self.request(Method::CONNECT, url, text, None).await
     }
 
     #[inline]
@@ -66,7 +66,7 @@ pub trait ClientExt: Sync + Debug + Clone {
     where
         Self: Sized,
     {
-        self.request(Method::HEAD, url, text).await
+        self.request(Method::HEAD, url, text, None).await
     }
 
     #[inline]
@@ -74,7 +74,7 @@ pub trait ClientExt: Sync + Debug + Clone {
     where
         Self: Sized,
     {
-        self.request(Method::OPTIONS, url, text).await
+        self.request(Method::OPTIONS, url, text, None).await
     }
 
     #[inline]
@@ -82,7 +82,20 @@ pub trait ClientExt: Sync + Debug + Clone {
     where
         Self: Sized,
     {
-        self.request(Method::TRACE, url, text).await
+        self.request(Method::TRACE, url, text, None).await
+    }
+
+    #[inline]
+    async fn build_request(
+        &self,
+        method: Method,
+        url: Url,
+        text: &str,
+    ) -> ClientRequestBuilder<Self>
+    where
+        Self: Sized,
+    {
+        ClientRequestBuilder::new(self, method, url, text)
     }
 
     async fn request(
@@ -90,6 +103,7 @@ pub trait ClientExt: Sync + Debug + Clone {
         method: Method,
         url: Url,
         text: &str,
+        header: Option<RequestHeader>,
     ) -> Result<ClientResponse, ClientError>
     where
         Self: Sized;
@@ -101,6 +115,53 @@ pub struct ClientResponse {
     headers: http::HeaderMap,
     content: String,
     version: Option<http::Version>,
+}
+
+#[derive(Debug)]
+pub struct RequestHeader {
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(Debug)]
+pub struct ClientRequestBuilder<T>
+where
+    T: ClientExt,
+{
+    header: Option<RequestHeader>,
+    method: Method,
+    url: Url,
+    text: String,
+    client: T,
+}
+
+impl<T> ClientRequestBuilder<T>
+where
+    T: ClientExt,
+{
+    pub fn new(client: T, method: Method, url: Url, text: &str) -> ClientRequestBuilder<T> {
+        ClientRequestBuilder {
+            client,
+            header: None,
+            method,
+            url,
+            text: text.to_string(),
+        }
+    }
+
+    fn set_headers(mut self, key: String, value: String) -> ClientRequestBuilder<T> {
+        self.header = Some(RequestHeader { key, value });
+        self
+    }
+
+    async fn send(self) -> Result<ClientResponse, ClientError>
+    where
+        Self: Sized,
+    {
+        self.client
+            .request(self.method, self.url, self.text.as_str(), self.header)
+            .await
+    }
 }
 
 impl ClientResponse {

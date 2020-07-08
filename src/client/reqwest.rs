@@ -19,11 +19,15 @@ impl ClientExt for ReqwestClient {
         method: Method,
         url: Url,
         text: &str,
+        header: Option<RequestHeader>,
     ) -> Result<ClientResponse, ClientError> {
-        let resp = self
-            .0
-            .request(method, url)
-            .body(text.to_owned())
+        let req = self.0.request(method, url).body(text.to_owned());
+
+        if let Some(request_header) = header {
+            req.header(request_header.key, request_header.value);
+        }
+
+        let resp = req
             .send()
             .await
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
