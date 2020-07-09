@@ -17,14 +17,12 @@ pub struct SurfClient {
 
 #[async_trait::async_trait]
 impl ClientExt for SurfClient {
-    async fn request(
-        &self,
-        method: Method,
-        url: Url,
-        text: &str,
-        header: Option<RequestHeader>,
-    ) -> Result<ClientResponse, ClientError> {
+    async fn request(&self, request: http::Request<String>) -> Result<ClientResponse, ClientError> {
         use ::surf::http_types::headers::HeaderName as SurfHeaderName;
+
+        let method = request.method().clone();
+        let url = request.uri().to_owned().to_string();
+        let text = request.body();
         log::trace!("{:?}({:?}): {} ", method, url, text);
 
         let req = match method {
@@ -46,10 +44,13 @@ impl ClientExt for SurfClient {
                 v.to_str().unwrap(),
             )
         });
-
-        if let Some(request_header) = header {
-            req = req.set_header(request_header.key.as_str(), request_header.value.as_str());
-        }
+        let copy_req = req;
+        let mut req = request.headers().iter().fold(copy_req, |req, (k, v)| {
+            req.set_header(
+                SurfHeaderName::from_str(k.as_str()).unwrap(),
+                v.to_str().unwrap(),
+            )
+        });
 
         let mut resp = req
             .body_string(text.to_owned())
