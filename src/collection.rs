@@ -552,8 +552,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         T: Serialize + Debug + DeserializeOwned,
     {
         let url = self.document_base_url.join(_key).unwrap();
-        let mut header_key = "".to_string();
-        let mut header_value = "".to_string();
+        let mut build = Request::get(url.to_string());
 
         if let Some(options) = read_options {
             let key_value = match options {
@@ -562,14 +561,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
                 DocumentReadOptions::IfMatch(value) => ("If-Match".to_string(), value),
             };
 
-            header_key = key_value.0;
-            header_value = key_value.1;
+            build = build.header(key_value.0.as_str(), key_value.1.as_str());
         }
 
-        let req = Request::get(url.to_string())
-            .header(header_key.as_str(), header_value.as_str())
-            .body("".to_string())
-            .unwrap();
+        let req = build.body("".to_string()).unwrap();
         let resp: Document<T> = serde_json::from_str(self.session.request(req).await?.text())?;
         Ok(resp)
     }
