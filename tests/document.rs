@@ -412,7 +412,7 @@ async fn test_get_read_document() {
             Some(DocumentReadOptions::IfMatch(_rev.clone())),
         )
         .await;
-    assert_eq!(read.is_err(), false);
+    assert_eq!(read.is_err(), false, "got the right document");
     // Test if we get the 412 code response when there is no match
     let read: Result<Document<Value>, ClientError> = coll
         .read_document_with_options(
@@ -422,9 +422,9 @@ async fn test_get_read_document() {
         .await;
     // We should get a 412, for now for some reason the error is parsed as a document
     // todo fix how the reponse/error is built
-    assert_eq!(read.is_err(), true);
+    assert_eq!(read.is_err(), true, " we should get 412");
 
-    // todo need to test with with IfNoneMatch
+    // todo need to test with with IfNoneMatch and 304
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
