@@ -50,7 +50,7 @@ serde_json = "1"
 thiserror = "1"
 url = "2"
 
-reqwest  = { version = "0.10", features = ["gzip", "json"], optional = true }
+reqwest  = { version = "0.10.4", features = ["gzip", "json"], optional = true }
 surf  = { version = "2.0.0-alpha.4", optional = true }
 http-types  = { version = "2.2", optional = true }
 
