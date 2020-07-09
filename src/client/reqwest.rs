@@ -9,7 +9,7 @@ use url::Url;
 use crate::client::ClientExt;
 
 use super::*;
-use std::convert::TryFrom;
+use std::convert::TryInto;
 
 #[derive(Debug, Clone)]
 pub struct ReqwestClient(pub Client);
@@ -28,7 +28,7 @@ impl ClientExt for ReqwestClient {
     }
 
     async fn request(&self, request: http::Request<String>) -> Result<ClientResponse, ClientError> {
-        let req: Request = request.into();
+        let req: Request = request.try_into().unwrap();
 
         let resp = self
             .0
