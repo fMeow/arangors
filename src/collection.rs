@@ -575,9 +575,31 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn read_document_header(&self, _key: &str) -> Result<DocumentHeader, ClientError> {
-        let url = self.document_base_url.join(_key).unwrap();
+        self.read_document_header_with_options(_key, None).await
+    }
 
-        let resp: DocumentHeader = serde_json::from_str(self.session.head(url, "").await?.text())?;
+    #[maybe_async]
+    pub async fn read_document_header_with_options(
+        &self,
+        _key: &str,
+        read_options: Option<DocumentReadOptions>,
+    ) -> Result<DocumentHeader, ClientError>
+where {
+        let url = self.document_base_url.join(_key).unwrap();
+        let mut build = Request::get(url.to_string());
+
+        if let Some(options) = read_options {
+            let key_value = match options {
+                DocumentReadOptions::IfNoneMatch(value) => ("If-None-Match".to_string(), value),
+
+                DocumentReadOptions::IfMatch(value) => ("If-Match".to_string(), value),
+            };
+
+            build = build.header(key_value.0.as_str(), key_value.1.as_str());
+        }
+
+        let req = build.body("".to_string()).unwrap();
+        let resp: DocumentHeader = serde_json::from_str(self.session.request(req).await?.text())?;
         Ok(resp)
     }
     /// Partially updates the document

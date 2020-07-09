@@ -431,51 +431,89 @@ async fn test_get_read_document() {
     assert_eq!(coll.is_err(), false);
 }
 
-// #[maybe_async::test(
-//     any(feature = "reqwest_blocking"),
-//     async(any(feature = "reqwest_async"), tokio::test),
-//     async(any(feature = "surf_async"), async_std::test)
-// )]
-// async fn test_get_read_document_header() {
-//     test_setup();
-//     let host = get_arangodb_host();
-//     let user = get_normal_user();
-//     let password = get_normal_password();
-//
-//     let collection_name = "test_collection_read_document_header";
-//
-//     let conn = Connection::establish_jwt(&host, &user, &password)
-//         .await
-//         .unwrap();
-//     let mut database = conn.db("test_db").await.unwrap();
-//
-//     let coll = database.drop_collection(collection_name).await;
-//     assert_eq!(coll.is_err(), true);
-//
-//     let coll = database.create_collection(collection_name).await;
-//     assert_eq!(coll.is_err(), false);
-//
-//     let coll = database.collection(collection_name).await.unwrap();
-//
-//     let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
-//     "testDescription":"read a document"
-//     }));
-//
-//     // First test is to read a simple document without options
-//     let create = coll.create_document(test_doc, None).await;
-//     assert_eq!(create.is_ok(), true, "succeed create a document");
-//
-//     let _key = create.unwrap().header.unwrap()._key;
-//     eprintln!("{:?}", _key);
-//
-//     let read = coll.read_document_header(_key.as_str()).await;
-//     eprintln!("{:?}", read);
-//     let result: DocumentHeaderOptions = read.unwrap();
-//     eprintln!("{:?}", result);
-//     assert_eq!(result._key, _key);
-//     let coll = database.drop_collection(collection_name).await;
-//     assert_eq!(coll.is_err(), false);
-// }
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_get_read_document_header() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_read_document_header";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await.unwrap();
+
+    let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
+    "testDescription":"read a document"
+    }));
+
+    // First test is to read a simple document without options
+    let create = coll.create_document(test_doc, None).await;
+    assert_eq!(create.is_ok(), true, "succeed create a document");
+
+    let resp = create.unwrap();
+    let header = resp.header.unwrap();
+    let _key = header._key;
+    let _rev = header._rev;
+
+    let read = coll.read_document_header(_key.as_str()).await;
+    let result = read.unwrap();
+    assert_eq!(result._key, _key);
+
+    let read = coll
+        .read_document_header_with_options(
+            _key.as_str(),
+            Some(DocumentReadOptions::IfMatch(_rev.clone())),
+        )
+        .await;
+
+    assert_eq!(read.is_ok(), true, "We should have the right header");
+
+    let result = read.unwrap();
+    assert_eq!(result._key, _key,);
+
+    let read = coll
+        .read_document_header_with_options(
+            _key.as_str(),
+            Some(DocumentReadOptions::IfMatch("_dsdsds".to_string())),
+        )
+        .await;
+
+    assert_eq!(
+        read.is_err(),
+        true,
+        "We should have an error and the right doc returned"
+    );
+    let read = coll
+        .read_document_header_with_options(
+            _key.as_str(),
+            Some(DocumentReadOptions::IfNoneMatch(_rev.clone())),
+        )
+        .await;
+
+    assert_eq!(
+        read.is_ok(),
+        true,
+        "the If-None-Match header is given and the document has the same version"
+    );
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+}
+
 #[maybe_async::test(
     any(feature = "reqwest_blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
