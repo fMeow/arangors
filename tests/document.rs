@@ -13,6 +13,7 @@ use arangors::{ClientError, Connection, Document};
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
 
 pub mod common;
+
 #[cfg(not(feature = "arango3_7"))]
 #[maybe_async::test(
     any(feature = "reqwest_blocking"),
