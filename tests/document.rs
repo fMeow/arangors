@@ -52,9 +52,21 @@ async fn test_post_create_document() {
     let result = create.unwrap();
 
     let header = result.header.unwrap();
-    assert_eq!(header._id.is_empty(), false);
-    assert_eq!(header._rev.is_empty(), false);
-    assert_eq!(header._key.is_empty(), false);
+    assert_eq!(
+        header._id.is_empty(),
+        false,
+        "We should get the id of the document"
+    );
+    assert_eq!(
+        header._rev.is_empty(),
+        false,
+        "We should get the revision of the document"
+    );
+    assert_eq!(
+        header._key.is_empty(),
+        false,
+        "We should get the key of the document"
+    );
     // Second test is to create a simple document with option to get the new document back
     let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
     "testDescription":"Test with new"
@@ -75,7 +87,11 @@ async fn test_post_create_document() {
     assert_eq!(create.is_ok(), true, "succeed create a document");
     let result = create.unwrap();
 
-    assert_eq!(result.new.is_some(), true);
+    assert_eq!(
+        result.new.is_some(),
+        true,
+        "We should get the new document under the 'new' property"
+    );
 
     let doc = result.new.unwrap();
 
@@ -112,12 +128,15 @@ async fn test_post_create_document() {
     assert_eq!(result.old.is_some(), true);
 
     let old_doc = result.old.unwrap();
-    assert_eq!(old_doc.document["testDescription"], "Test with new");
+    assert_eq!(
+        old_doc.document["testDescription"], "Test with new",
+        "We should get the old document under the 'old' property"
+    );
 
     let header = result.header.unwrap();
-    assert_eq!(header._id.is_empty(), false);
-    assert_eq!(header._rev.is_empty(), false);
-    assert_eq!(header._key.is_empty(), false);
+    assert_eq!(header._id.is_empty(), false,);
+    assert_eq!(header._rev.is_empty(), false,);
+    assert_eq!(header._key.is_empty(), false,);
 
     // Fourth testis about the silent option
     let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
@@ -187,9 +206,21 @@ async fn test_post_create_document_3_7() {
 
     let result = create.unwrap();
     let header = result.header.unwrap();
-    assert_eq!(header._id.is_empty(), false);
-    assert_eq!(header._rev.is_empty(), false);
-    assert_eq!(header._key.is_empty(), false);
+    assert_eq!(
+        header._id.is_empty(),
+        false,
+        "We should get the id of the document"
+    );
+    assert_eq!(
+        header._rev.is_empty(),
+        false,
+        "We should get the revision of the document"
+    );
+    assert_eq!(
+        header._key.is_empty(),
+        false,
+        "We should get the key of the document"
+    );
     // Second test is to create a simple document with option to get the new document back
     let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
     "testDescription":"Test with new"
@@ -211,7 +242,11 @@ async fn test_post_create_document_3_7() {
     assert_eq!(create.is_ok(), true, "succeed create a document");
     let result = create.unwrap();
 
-    assert_eq!(result.new.is_some(), true);
+    assert_eq!(
+        result.new.is_some(),
+        true,
+        "we should get the new document under 'new' property"
+    );
 
     let doc = result.new.unwrap();
 
@@ -248,7 +283,10 @@ async fn test_post_create_document_3_7() {
     assert_eq!(result.old.is_some(), true);
 
     let old_doc = result.old.unwrap();
-    assert_eq!(old_doc.document["testDescription"], "Test with new");
+    assert_eq!(
+        old_doc.document["testDescription"], "Test with new",
+        "We should get the old document under the 'old' property"
+    );
 
     let header = result.header.unwrap();
     assert_eq!(header._id.is_empty(), false);
@@ -276,9 +314,21 @@ async fn test_post_create_document_3_7() {
 
     let result = update.unwrap();
 
-    assert_eq!(result.old.is_none(), true);
-    assert_eq!(result.new.is_none(), true);
-    assert_eq!(result.header.is_none(), true);
+    assert_eq!(
+        result.old.is_none(),
+        true,
+        "silent mode should not return old document"
+    );
+    assert_eq!(
+        result.new.is_none(),
+        true,
+        "silent mode should not return new document"
+    );
+    assert_eq!(
+        result.header.is_none(),
+        true,
+        "silent mode should not return header"
+    );
 
     // Fifth test is about the overwrite _mode option ignore
     let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
@@ -326,7 +376,11 @@ async fn test_post_create_document_3_7() {
 
     let result = update.unwrap();
     assert_eq!(result.old.is_none(), true);
-    assert_eq!(result.new.is_none(), false);
+    assert_eq!(
+        result.new.is_none(),
+        false,
+        "we should get the new document when we use the overwriteMode = 'replace'"
+    );
 
     let doc = result.new.unwrap();
     assert_eq!(doc.document["no"], 3);
@@ -423,7 +477,7 @@ async fn test_get_read_document() {
         .await;
     // We should get a 412, for now for some reason the error is parsed as a document
     // todo fix how the reponse/error is built
-    assert_eq!(read.is_err(), true, " we should get 412");
+    assert_eq!(read.is_err(), true, "we should get 412, got: {:?}", read);
 
     // todo need to test with with IfNoneMatch and 304
 
@@ -471,8 +525,15 @@ async fn test_get_read_document_header() {
     let _rev = header._rev;
 
     let read = coll.read_document_header(_key.as_str()).await;
+
+    assert_eq!(read.is_ok(), true, "We should get 200, got {:?}", read);
+
     let result = read.unwrap();
-    assert_eq!(result._key, _key);
+    assert_eq!(
+        result._key, _key,
+        "We should got the key of the document  : {:?}",
+        result._key
+    );
 
     let read = coll
         .read_document_header_with_options(
