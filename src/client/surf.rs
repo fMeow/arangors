@@ -17,7 +17,19 @@ pub struct SurfClient {
 
 #[async_trait::async_trait]
 impl ClientExt for SurfClient {
-    async fn request(&self, request: http::Request<String>) -> Result<ClientResponse, ClientError> {
+    fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
+        let headers = match headers.into() {
+            Some(h) => h,
+            None => HeaderMap::new(),
+        };
+
+        Ok(SurfClient { headers })
+    }
+
+    async fn request(
+        &self,
+        request: http::Request<String>,
+    ) -> Result<http::Response<String>, ClientError> {
         use ::surf::http_types::headers::HeaderName as SurfHeaderName;
 
         let method = request.method().clone();
@@ -78,27 +90,25 @@ impl ClientExt for SurfClient {
             .await
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
-        Ok(ClientResponse {
-            status_code: StatusCode::from_u16(status_code.into()).unwrap(),
-            headers,
-            version: version.map(|v| match v {
-                http_types::Version::Http0_9 => Version::HTTP_09,
-                http_types::Version::Http1_0 => Version::HTTP_10,
-                http_types::Version::Http1_1 => Version::HTTP_11,
-                http_types::Version::Http2_0 => Version::HTTP_2,
-                http_types::Version::Http3_0 => Version::HTTP_3,
-                _ => unreachable!(),
-            }),
-            content,
-        })
-    }
+        let mut build = http::Response::builder();
 
-    fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
-        let headers = match headers.into() {
-            Some(h) => h,
-            None => HeaderMap::new(),
-        };
+        for header in headers.iter() {
+            build = build.header(header.0, header.1);
+        }
 
-        Ok(SurfClient { headers })
+        let http_version = version.map(|v| match v {
+            http_types::Version::Http0_9 => Version::HTTP_09,
+            http_types::Version::Http1_0 => Version::HTTP_10,
+            http_types::Version::Http1_1 => Version::HTTP_11,
+            http_types::Version::Http2_0 => Version::HTTP_2,
+            http_types::Version::Http3_0 => Version::HTTP_3,
+            _ => unreachable!(),
+        });
+
+        http::response::Builder::from(build)
+            .status(status_code)
+            .version(http_version.unwrap())
+            .body(content)
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 }
