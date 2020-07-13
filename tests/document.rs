@@ -796,7 +796,7 @@ async fn test_post_replace_document() {
     assert_eq!(
         result.old.is_none(),
         true,
-        "We should not get told old doc back"
+        "We should not get the old doc back"
     );
     // Second test to try out the silence mode
 
