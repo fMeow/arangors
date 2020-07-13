@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use http::{method::Method, HeaderMap, Request, Response};
+use http::{HeaderMap, Request, Response};
 use url::Url;
 
 use crate::ClientError;
