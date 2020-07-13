@@ -7,8 +7,8 @@ use serde_json::{json, Value};
 
 use arangors::{
     document::{
-        DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions, DocumentReplaceOptions,
-        DocumentResponse, DocumentUpdateOptions,
+        DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions, DocumentRemoveOptions,
+        DocumentReplaceOptions, DocumentResponse, DocumentUpdateOptions,
     },
     ClientError, Connection, Document,
 };
@@ -842,6 +842,173 @@ async fn test_post_replace_document() {
         true,
         "We should have precondition failed as we ask to replace the doc only if for the \
          specified _rev in body"
+    );
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    // todo do more test
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_delete_remove_document() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_remove_document";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await.unwrap();
+
+    let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
+    "testDescription":"update document"
+    }));
+
+    // First test is to remove a simple document with old options
+    let create = coll.create_document(test_doc, None).await;
+
+    assert_eq!(create.is_ok(), true, "succeed create a document");
+
+    let header = create.unwrap().header.unwrap();
+    let _key = header._key;
+    let _rev = header._rev;
+
+    let remove = coll
+        .remove_document(
+            _key.as_str(),
+            Some(DocumentRemoveOptions {
+                wait_for_sync: None,
+                return_old: Some(true),
+                silent: None,
+                if_match: None,
+            }),
+        )
+        .await;
+
+    let result = remove.unwrap();
+
+    assert_eq!(
+        result.new.is_none(),
+        true,
+        "we should never have new doc returned when using remove document"
+    );
+
+    let old_doc: Value = result.old.unwrap();
+
+    assert_eq!(
+        old_doc["no"], 1,
+        "We should get the old property no with its old value"
+    );
+    assert_eq!(
+        old_doc["testDescription"], "update document",
+        "We should get the old property testDescription with its old value"
+    );
+
+    // Second test to try out the silence mode
+    let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
+    "testDescription":"update document"
+    }));
+    let create = coll.create_document(test_doc, None).await;
+    let header = create.unwrap().header.unwrap();
+    let _key = header._key;
+    let _rev = header._rev;
+    let remove: Result<DocumentResponse<Value>, ClientError> = coll
+        .remove_document(
+            _key.as_str(),
+            Some(DocumentRemoveOptions {
+                wait_for_sync: None,
+                return_old: None,
+                silent: Some(true),
+                if_match: None,
+            }),
+        )
+        .await;
+
+    let result = remove.unwrap();
+
+    assert_eq!(
+        result.header.is_none(),
+        true,
+        "We should not get the header in silent mode"
+    );
+    assert_eq!(
+        result.old.is_none(),
+        true,
+        "We should not get the old doc back"
+    );
+    // third test to try out the If-Match header
+    let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
+    "testDescription":"update document"
+    }));
+    let create = coll.create_document(test_doc, None).await;
+    let header = create.unwrap().header.unwrap();
+    let _key = header._key;
+    let _rev = header._rev;
+    let remove: Result<DocumentResponse<Value>, ClientError> = coll
+        .remove_document(
+            _key.as_str(),
+            Some(DocumentRemoveOptions {
+                wait_for_sync: None,
+                return_old: None,
+                silent: None,
+                if_match: Some("_rere_dsds_DSds".to_string()),
+            }),
+        )
+        .await;
+
+    assert_eq!(
+        remove.is_err(),
+        true,
+        "We should have precondition failed as we ask to move the doc only if for the specified \
+         _rev in header"
+    );
+    /// Fourth test to check that we get error if we tried to remove a doc that has already been removed or that does not exist
+    let remove: Result<DocumentResponse<Value>, ClientError> = coll
+        .remove_document(
+            _key.as_str(),
+            Some(DocumentRemoveOptions {
+                wait_for_sync: None,
+                return_old: None,
+                silent: None,
+                if_match: None,
+            }),
+        )
+        .await;
+
+    assert_eq!(remove.is_err(), false, "We should remove the doc");
+
+    let remove: Result<DocumentResponse<Value>, ClientError> = coll
+        .remove_document(
+            _key.as_str(),
+            Some(DocumentRemoveOptions {
+                wait_for_sync: None,
+                return_old: None,
+                silent: None,
+                if_match: None,
+            }),
+        )
+        .await;
+
+    assert_eq!(
+        remove.is_err(),
+        true,
+        "We should get 404 because we just have removed the doc before"
     );
 
     let coll = database.drop_collection(collection_name).await;

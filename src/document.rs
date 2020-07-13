@@ -136,7 +136,23 @@ pub enum DocumentReadOptions {
     /// given Etag. Otherwise a HTTP 412 is returned.
     IfMatch(String),
 }
-
+/// Options for document removes,
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DocumentRemoveOptions {
+    /// Wait until document has been synced to disk.
+    pub wait_for_sync: Option<bool>,
+    /// Additionally return the complete old document under the attribute old in
+    /// the result.
+    pub return_old: Option<bool>,
+    /// If set to true, an empty object will be returned as response.
+    /// No meta-data will be returned for the created document.
+    /// This option can be used to save some network traffic.
+    pub silent: Option<bool>,
+    /// You can conditionally replace a document based on a target revision id
+    /// by using the if-match HTTP header.
+    pub if_match: Option<String>,
+}
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DocumentHeader {
     #[serde(skip_serializing_if = "String::is_empty")]
