@@ -5,6 +5,7 @@ use log::trace;
 use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
+use arangors::document::DocumentReplaceOptions;
 use arangors::{
     document::{
         DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions, DocumentResponse,
@@ -662,6 +663,179 @@ async fn test_patch_update_document() {
     let result: DocumentResponse<Value> = update.unwrap();
 
     assert_eq!(result.header.unwrap()._rev != _rev, true);
+
+    // Test when we do not ignore_revs. W
+    let replace = coll
+        .update_document(
+            _key.as_str(),
+            json!({ "no":2 , "_rev" :"_dsds_dsds_dsds_" }),
+            Some(DocumentUpdateOptions {
+                keep_null: None,
+                merge_objects: None,
+                wait_for_sync: None,
+                ignore_revs: Some(false),
+                return_new: None,
+                return_old: None,
+                silent: None,
+            }),
+        )
+        .await;
+
+    assert_eq!(
+        replace.is_err(),
+        true,
+        "We should have precondition failed as we ask to replace the doc only if for the specified _rev in body"
+    );
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+    // todo do more test for merge objects and stuff
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_post_replace_document() {
+    test_setup();
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    let collection_name = "test_collection_replace_document";
+
+    let conn = Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap();
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true);
+
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false);
+
+    let coll = database.collection(collection_name).await.unwrap();
+
+    let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
+    "testDescription":"update document"
+    }));
+
+    // First test is to replace  simple document with new & old options
+    let create = coll.create_document(test_doc, None).await;
+
+    assert_eq!(create.is_ok(), true, "succeed create a document");
+
+    let header = create.unwrap().header.unwrap();
+    let _key = header._key;
+    let _rev = header._rev;
+
+    let replace = coll
+        .replace_document(
+            _key.as_str(),
+            json!({ "no":2}),
+            Some(DocumentReplaceOptions {
+                wait_for_sync: None,
+                ignore_revs: None,
+                return_new: Some(true),
+                return_old: Some(true),
+                silent: None,
+                if_match: None,
+            }),
+        )
+        .await;
+
+    let result: DocumentResponse<Value> = replace.unwrap();
+
+    let new_doc: Value = result.new.unwrap();
+
+    assert_eq!(new_doc["no"], 2, "We should get the property updated");
+    assert_eq!(new_doc["testDescription"].as_str().is_some(), false, "We should get the property removed sience we did replace the original object with an object that do not have it");
+
+    let old_doc: Value = result.old.unwrap();
+
+    assert_eq!(
+        old_doc["no"], 1,
+        "We should get the old property no with its old value"
+    );
+    assert_eq!(
+        old_doc["testDescription"], "update document",
+        "We should get the old property testDescription with its old value"
+    );
+
+    // Second test to try out the silence mode
+
+    let replace = coll
+        .replace_document(
+            _key.as_str(),
+            json!({ "no":2}),
+            Some(DocumentReplaceOptions {
+                wait_for_sync: None,
+                ignore_revs: None,
+                return_new: None,
+                return_old: None,
+                silent: Some(true),
+                if_match: None,
+            }),
+        )
+        .await;
+
+    let result: DocumentResponse<Value> = replace.unwrap();
+
+    assert_eq!(
+        result.new.is_none(),
+        true,
+        "We should not get the new doc back"
+    );
+    assert_eq!(
+        result.old.is_none(),
+        true,
+        "We should not get told old doc back"
+    );
+    // Second test to try out the silence mode
+
+    let replace = coll
+        .replace_document(
+            _key.as_str(),
+            json!({ "no":2}),
+            Some(DocumentReplaceOptions {
+                wait_for_sync: None,
+                ignore_revs: None,
+                return_new: None,
+                return_old: None,
+                silent: None,
+                if_match: Some(_rev.clone()),
+            }),
+        )
+        .await;
+
+    assert_eq!(
+        replace.is_err(),
+        true,
+        "We should have precondition failed as we ask to replace the doc only if for the specified _rev in header"
+    );
+
+    let replace = coll
+        .replace_document(
+            _key.as_str(),
+            json!({ "no":2 , "_rev" :_rev.clone() }),
+            Some(DocumentReplaceOptions {
+                wait_for_sync: None,
+                ignore_revs: Some(false),
+                return_new: None,
+                return_old: None,
+                silent: None,
+                if_match: None,
+            }),
+        )
+        .await;
+
+    assert_eq!(
+        replace.is_err(),
+        true,
+        "We should have precondition failed as we ask to replace the doc only if for the specified _rev in body"
+    );
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);

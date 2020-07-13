@@ -89,7 +89,31 @@ pub enum DocumentOverwriteMode {
     /// TODO need to implement the two extra modes keepNull & mergeObjects
     Conflict,
 }
-
+/// Options for document update,
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DocumentReplaceOptions {
+    /// Wait until document has been synced to disk.
+    pub wait_for_sync: Option<bool>,
+    /// By default, or if this is set to true, the _rev attributes in the given
+    /// document is ignored. If this is set to false, then the _rev
+    /// attribute given in the body document is taken as a precondition. The
+    /// document is only replaced if the current revision is the one specified.
+    pub ignore_revs: Option<bool>,
+    /// Additionally return the complete new document under the attribute new in
+    /// the result.
+    pub return_new: Option<bool>,
+    /// Additionally return the complete old document under the attribute old in
+    /// the result. Only available if the overwrite option is used.
+    pub return_old: Option<bool>,
+    /// If set to true, an empty object will be returned as response.
+    /// No meta-data will be returned for the created document.
+    /// This option can be used to save some network traffic.
+    pub silent: Option<bool>,
+    /// You can conditionally replace a document based on a target revision id
+    /// by using the if-match HTTP header.
+    pub if_match: Option<String>,
+}
 /// Options for document reading.
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]

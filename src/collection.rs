@@ -18,7 +18,7 @@ use crate::{
 use super::{Database, Document};
 use crate::document::{
     DocumentHeader, DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions,
-    DocumentResponse, DocumentUpdateOptions,
+    DocumentReplaceOptions, DocumentResponse, DocumentUpdateOptions,
 };
 use http::Request;
 use serde::de::DeserializeOwned;
@@ -661,11 +661,93 @@ where {
     /// Replaces the specified document with the one in the body, provided there
     /// is such a document and no precondition is violated.
     ///
-    /// # Note
-    /// this function would make a request to arango server.
+    /// The value of the _key attribute as well as attributes used as sharding
+    /// keys may not be changed.
+    ///
+    /// If the If-Match header is specified and the revision of the document in
+    /// the database is unequal to the given revision, the precondition is
+    /// violated. If If-Match is not given and ignoreRevs is false and there
+    /// is a _rev attribute in the body and its value does not match the
+    /// revision of the document in the database, the precondition is violated.
+    /// If a precondition is violated, an HTTP 412 is returned.
+    /// If the document exists and can be updated, then an HTTP 201 or an HTTP
+    /// 202 is returned (depending on waitForSync, see below), the Etag header
+    /// field contains the new revision of the document and the Location header
+    /// contains a complete URL under which the document can be queried.
+    /// Cluster only: The replace documents may contain values for the
+    /// collection’s pre-defined shard keys. Values for the shard keys are
+    /// treated as hints to improve performance. Should the shard keys values be
+    /// incorrect ArangoDB may answer with a not found error. Optionally,
+    /// the query parameter waitForSync can be used to force synchronization of
+    /// the document replacement operation to disk even in case that the
+    /// waitForSync flag had been disabled for the entire collection. Thus, the
+    /// waitForSync query parameter can be used to force synchronization of just
+    /// specific operations. To use this, set the waitForSync parameter to
+    /// true. If the waitForSync parameter is not specified or set to false,
+    /// then the collection’s default waitForSync behavior is applied. The
+    /// waitForSync query parameter cannot be used to disable synchronization
+    /// for collections that have a default waitForSync value of true.
+    /// If silent is not set to true, the body of the response contains a JSON
+    /// object with the information about the identifier and the revision. The
+    /// attribute _id contains the known document-id of the updated document,
+    /// _key contains the key which uniquely identifies a document in a given
+    /// collection, and the attribute _rev contains the new document revision.
+    /// If the query parameter returnOld is true, then the complete previous
+    /// revision of the document is returned under the old attribute in the
+    /// result. If the query parameter returnNew is true, then the complete
+    /// new document is returned under the new attribute in the result.
+    /// If the document does not exist, then a HTTP 404 is returned and the body
+    /// of the response contains an error document.
     #[maybe_async]
-    pub async fn replace_document<T>(&self, doc: Document<T>) {
-        unimplemented!()
+    pub async fn replace_document<T>(
+        &self,
+        _key: &str,
+        doc: T,
+        update_options: Option<DocumentReplaceOptions>,
+    ) -> Result<DocumentResponse<T>, ClientError>
+    where
+        T: Serialize + DeserializeOwned,
+    {
+        let mut url = self.document_base_url.join(_key).unwrap();
+        let body = serde_json::to_string(&doc)?;
+        let mut header = ("".to_string(), "".to_string());
+
+        if let Some(options) = update_options {
+            if let Some(return_new) = options.return_new {
+                url.query_pairs_mut()
+                    .append_pair("returnNew", return_new.to_string().as_str());
+            }
+            if let Some(wait_for_sync) = options.wait_for_sync {
+                url.query_pairs_mut()
+                    .append_pair("waitForSync", wait_for_sync.to_string().as_str());
+            }
+            if let Some(ignore_revs) = options.ignore_revs {
+                url.query_pairs_mut()
+                    .append_pair("ignoreRevs", ignore_revs.to_string().as_str());
+            }
+            if let Some(return_old) = options.return_old {
+                url.query_pairs_mut()
+                    .append_pair("returnOld", return_old.to_string().as_str());
+            }
+            if let Some(silent) = options.silent {
+                url.query_pairs_mut()
+                    .append_pair("silent", silent.to_string().as_str());
+            }
+            if let Some(if_match) = options.if_match {
+                header = ("If-Match".to_string(), if_match);
+            }
+        }
+        let mut build = Request::put(url.to_string());
+
+        if (header.0 != "") & (header.1 != "") {
+            build = build.header(header.0.as_str(), header.1.as_str());
+        }
+
+        let req = build.body(body).unwrap();
+
+        let resp: DocumentResponse<T> =
+            deserialize_response(self.session.request(req).await?.body())?;
+        Ok(resp)
     }
 
     /// Removes a document
