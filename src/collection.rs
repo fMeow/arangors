@@ -526,7 +526,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         }
 
         let resp: DocumentResponse<T> =
-            serde_json::from_str(self.session.post(url, body.as_str()).await?.body())?;
+            serialize_response(self.session.post(url, body.as_str()).await?.body())?;
         Ok(resp)
     }
 
@@ -565,7 +565,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         }
 
         let req = build.body("".to_string()).unwrap();
-        let resp: Document<T> = serde_json::from_str(self.session.request(req).await?.body())?;
+        let resp: Document<T> = serialize_response(self.session.request(req).await?.body())?;
         Ok(resp)
     }
 
@@ -599,7 +599,7 @@ where {
         }
 
         let req = build.body("".to_string()).unwrap();
-        let resp: DocumentHeader = serde_json::from_str(self.session.request(req).await?.body())?;
+        let resp: DocumentHeader = serialize_response(self.session.request(req).await?.body())?;
         Ok(resp)
     }
     /// Partially updates the document
@@ -646,7 +646,7 @@ where {
         }
 
         let resp: DocumentResponse<T> =
-            serde_json::from_str(self.session.patch(url, body.as_str()).await?.body())?;
+            serialize_response(self.session.patch(url, body.as_str()).await?.body())?;
         Ok(resp)
     }
 
