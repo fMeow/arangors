@@ -5,11 +5,10 @@ use log::trace;
 use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
-use arangors::document::DocumentReplaceOptions;
 use arangors::{
     document::{
-        DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions, DocumentResponse,
-        DocumentUpdateOptions,
+        DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions, DocumentReplaceOptions,
+        DocumentResponse, DocumentUpdateOptions,
     },
     ClientError, Connection, Document,
 };
@@ -684,7 +683,8 @@ async fn test_patch_update_document() {
     assert_eq!(
         replace.is_err(),
         true,
-        "We should have precondition failed as we ask to replace the doc only if for the specified _rev in body"
+        "We should have precondition failed as we ask to replace the doc only if for the \
+         specified _rev in body"
     );
 
     let coll = database.drop_collection(collection_name).await;
@@ -751,7 +751,12 @@ async fn test_post_replace_document() {
     let new_doc: Value = result.new.unwrap();
 
     assert_eq!(new_doc["no"], 2, "We should get the property updated");
-    assert_eq!(new_doc["testDescription"].as_str().is_some(), false, "We should get the property removed sience we did replace the original object with an object that do not have it");
+    assert_eq!(
+        new_doc["testDescription"].as_str().is_some(),
+        false,
+        "We should get the property removed sience we did replace the original object with an \
+         object that do not have it"
+    );
 
     let old_doc: Value = result.old.unwrap();
 
@@ -813,7 +818,8 @@ async fn test_post_replace_document() {
     assert_eq!(
         replace.is_err(),
         true,
-        "We should have precondition failed as we ask to replace the doc only if for the specified _rev in header"
+        "We should have precondition failed as we ask to replace the doc only if for the \
+         specified _rev in header"
     );
 
     let replace = coll
@@ -834,7 +840,8 @@ async fn test_post_replace_document() {
     assert_eq!(
         replace.is_err(),
         true,
-        "We should have precondition failed as we ask to replace the doc only if for the specified _rev in body"
+        "We should have precondition failed as we ask to replace the doc only if for the \
+         specified _rev in body"
     );
 
     let coll = database.drop_collection(collection_name).await;
