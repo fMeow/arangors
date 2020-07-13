@@ -137,9 +137,36 @@ pub struct CollectionInfo {
     pub r#type: CollectionType,
 }
 
+/// A collection consists of documents. It is uniquely identified by its
+/// collection identifier. It also has a unique name that clients should use to
+/// identify and access it. Collections can be renamed. This will change the
+/// collection name, but not the collection identifier. Collections have a type
+/// that is specified by the user when the collection is created. There are
+/// currently two types: document and edge. The default type is document.
 #[derive(Debug, Clone)]
 pub struct Collection<'a, C: ClientExt> {
+    /// The collection identifier
+    /// A collection identifier lets you refer to a collection in a database. It
+    /// is a string value and is unique within the database. Up to including
+    /// ArangoDB 1.1, the collection identifier has been a client’s primary
+    /// means to access collections. Starting with ArangoDB 1.2, clients should
+    /// instead use a collection’s unique name to access a collection instead of
+    /// its identifier. ArangoDB currently uses 64bit unsigned integer values to
+    /// maintain collection ids internally. When returning collection ids to
+    /// clients, ArangoDB will put them into a string to ensure the collection
+    /// id is not clipped by clients that do not support big integers. Clients
+    /// should treat the collection ids returned by ArangoDB as opaque strings
+    /// when they store or use them locally.
+    //
+    // Note: collection ids have been returned as integers up to including ArangoDB 1.1
     id: String,
+    /// The collection name
+    /// A collection name identifies a collection in a database. It is a string
+    /// and is unique within the database. Unlike the collection identifier it
+    /// is supplied by the creator of the collection. The collection name must
+    /// consist of letters, digits, and the _ (underscore) and - (dash)
+    /// characters only. Please refer to Naming Conventions in ArangoDB for more
+    /// information on valid collection names.
     name: String,
     collection_type: CollectionType,
     /// Collection url: http://server:port/_db/mydb/_api/collection/{collection-name}
@@ -148,6 +175,7 @@ pub struct Collection<'a, C: ClientExt> {
     /// Document base url: http://server:port/_db/mydb/_api/document/{collection-name}
     /// This url is used to work with documents
     document_base_url: Url,
+    /// Client used to query the server
     session: Arc<C>,
     phantom: &'a (),
 }
@@ -211,7 +239,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Truncate current collection.
-    ///
     pub fn truncate(&self) {
         unimplemented!()
     }
@@ -546,7 +573,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Reads a single document
-    ///
+    /// Returns the document identified by document-id. The returned document
+    /// contains three special attributes: _id containing the document
+    /// identifier, _key containing key which uniquely identifies a document in
+    /// a given collection and _rev containing the revision.
     #[maybe_async]
     pub async fn read_document<T>(&self, _key: &str) -> Result<Document<T>, ClientError>
     where
@@ -604,7 +634,6 @@ where {
         Ok(resp)
     }
     /// Partially updates the document
-    ///
     #[maybe_async]
     pub async fn update_document<T>(
         &self,
@@ -743,7 +772,18 @@ where {
     }
 
     /// Removes a document
-    ///
+    /// If silent is not set to true, the body of the response contains a JSON
+    /// object with the information about the identifier and the revision. The
+    /// attribute _id contains the known document-id of the removed document,
+    /// _key contains the key which uniquely identifies a document in a given
+    /// collection, and the attribute _rev contains the document revision.
+    //
+    // If the waitForSync parameter is not specified or set to false, then the collection’s default
+    // waitForSync behavior is applied. The waitForSync query parameter cannot be used to disable
+    // synchronization for collections that have a default waitForSync value of true.
+    //
+    // If the query parameter returnOld is true, then the complete previous revision of the document
+    // is returned under the old attribute in the result.
     #[maybe_async]
     pub async fn remove_document<T>(
         &self,
