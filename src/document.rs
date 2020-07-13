@@ -34,6 +34,10 @@ pub struct DocumentUpdateOptions {
     pub merge_objects: Option<bool>,
     /// Wait until document has been synced to disk.
     pub wait_for_sync: Option<bool>,
+    /// By default, or if this is set to true, the _rev attributes in the given
+    /// document is ignored. If this is set to false, then the _rev
+    /// attribute given in the body document is taken as a precondition. The
+    /// document is only update if the current revision is the one specified.
     pub ignore_revs: Option<bool>,
     /// Additionally return the complete new document under the attribute new in
     /// the result.

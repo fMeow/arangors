@@ -13,6 +13,7 @@ use arangors::{
     ClientError, Connection, Document,
 };
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
+use std::ptr::null;
 
 pub mod common;
 
@@ -607,7 +608,7 @@ async fn test_patch_update_document() {
     "testDescription":"update document"
     }));
 
-    // First test is to read a simple document without options
+    // First test is to update a simple document without options
     let create = coll.create_document(test_doc, None).await;
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
@@ -624,14 +625,22 @@ async fn test_patch_update_document() {
                 wait_for_sync: None,
                 ignore_revs: None,
                 return_new: Some(true),
-                return_old: None,
+                return_old: Some(true),
                 silent: None,
             }),
         )
         .await;
 
     let result: DocumentResponse<Value> = update.unwrap();
-    assert_eq!(result.new.unwrap()["no"], 2);
+
+    let new_doc = result.new.unwrap();
+    let old_doc = result.old.unwrap();
+
+    assert_eq!(new_doc["no"], 2);
+    assert_eq!(new_doc["testDescription"], "update document");
+
+    assert_eq!(old_doc["no"], 1);
+    assert_eq!(old_doc["testDescription"], "update document");
 
     let _rev = result.header.unwrap()._rev;
     let update = coll
@@ -656,4 +665,6 @@ async fn test_patch_update_document() {
 
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
+
+    // todo do more test
 }

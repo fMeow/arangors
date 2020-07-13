@@ -640,7 +640,7 @@ where {
             }
             if let Some(ignore_revs) = options.borrow().ignore_revs {
                 url.query_pairs_mut()
-                    .append_pair("ignore_revs", ignore_revs.to_string().as_str());
+                    .append_pair("ignoreRevs", ignore_revs.to_string().as_str());
             }
             if let Some(return_old) = options.borrow().return_old {
                 url.query_pairs_mut()
