@@ -45,7 +45,7 @@ use maybe_async::maybe_async;
 
 use crate::{client::ClientExt, response::ArangoResult, ClientError};
 
-use super::{database::Database, response::serialize_response};
+use super::{database::Database, response::deserialize_response};
 
 use self::{
     auth::Auth,
@@ -173,7 +173,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
             .join(&format!("/_api/user/{}/database", &self.username))
             .unwrap();
         let resp = self.session.get(url, "").await?;
-        let result: ArangoResult<HashMap<String, Permission>> = serialize_response(resp.body())?;
+        let result: ArangoResult<HashMap<String, Permission>> = deserialize_response(resp.body())?;
         Ok(result.unwrap())
     }
 }
@@ -377,7 +377,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
             .post(url, &serde_json::to_string(&map)?)
             .await?;
 
-        serialize_response::<ArangoResult<bool>>(resp.body())?;
+        deserialize_response::<ArangoResult<bool>>(resp.body())?;
         self.db(name).await
     }
 
@@ -391,7 +391,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         let url = self.arango_url.join(&url_path).unwrap();
 
         let resp = self.session.delete(url, "").await?;
-        serialize_response::<ArangoResult<bool>>(resp.body())?;
+        deserialize_response::<ArangoResult<bool>>(resp.body())?;
         Ok(())
     }
 

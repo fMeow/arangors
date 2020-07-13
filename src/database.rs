@@ -16,7 +16,7 @@ use crate::{
     client::ClientExt,
     collection::{Collection, CollectionResponse},
     connection::{DatabaseDetails, GenericConnection, Version},
-    response::{serialize_response, ArangoResult, Cursor},
+    response::{deserialize_response, ArangoResult, Cursor},
     ClientError,
 };
 
@@ -66,7 +66,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
             url.as_str()
         );
         let resp = self.session.get(url, "").await?;
-        let result: ArangoResult<Vec<CollectionResponse>> = serialize_response(resp.body())?;
+        let result: ArangoResult<Vec<CollectionResponse>> = deserialize_response(resp.body())?;
         trace!("Collections retrieved");
         Ok(result.unwrap())
     }
@@ -89,7 +89,8 @@ impl<'a, C: ClientExt> Database<'a, C> {
             .base_url
             .join(&format!("_api/collection/{}", name))
             .unwrap();
-        let resp: CollectionResponse = serialize_response(self.session.get(url, "").await?.body())?;
+        let resp: CollectionResponse =
+            deserialize_response(self.session.get(url, "").await?.body())?;
         Ok(Collection::from_response(self, &resp))
     }
 
@@ -116,7 +117,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
             .session
             .post(url, &serde_json::to_string(&map)?)
             .await?;
-        let _result: CollectionProperties = serialize_response(resp.body())?;
+        let _result: CollectionProperties = deserialize_response(resp.body())?;
         self.collection(name).await
     }
 
@@ -135,7 +136,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
         }
 
         let resp: DropCollectionResponse =
-            serialize_response(self.session.delete(url, "").await?.body())?;
+            deserialize_response(self.session.delete(url, "").await?.body())?;
         Ok(resp.id)
     }
 
@@ -159,7 +160,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     pub async fn info(&self) -> Result<DatabaseDetails, ClientError> {
         let url = self.base_url.join("_api/database/current").unwrap();
         let resp = self.session.get(url, "").await?;
-        let res: ArangoResult<DatabaseDetails> = serialize_response(resp.body())?;
+        let res: ArangoResult<DatabaseDetails> = deserialize_response(resp.body())?;
         Ok(res.unwrap())
     }
 
@@ -181,7 +182,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
             .post(url, &serde_json::to_string(&aql)?)
             .await?;
         trace!("{:?}", serde_json::to_string(&aql));
-        serialize_response(resp.body())
+        deserialize_response(resp.body())
     }
 
     /// Get next batch given the cursor id.
@@ -199,7 +200,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
             .unwrap();
         let resp = self.session.put(url, "").await?;
 
-        serialize_response(resp.body())
+        deserialize_response(resp.body())
     }
 
     #[maybe_async]

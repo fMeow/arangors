@@ -26,7 +26,7 @@ use super::aql::QueryStats;
 /// response of success and failure.
 ///
 /// When ArangoDB server response error code, then an error would be cast.
-pub(crate) fn serialize_response<T>(text: &str) -> Result<T, ClientError>
+pub(crate) fn deserialize_response<T>(text: &str) -> Result<T, ClientError>
 where
     T: DeserializeOwned,
 {
