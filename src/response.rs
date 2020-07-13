@@ -8,8 +8,7 @@
 ///
 /// For response storing all information in `result` filed, use
 /// `ArangoResult`.
-use std::fmt;
-use std::{fmt::Debug, ops::Deref};
+use std::ops::Deref;
 
 use log::trace;
 use serde::{
@@ -29,7 +28,7 @@ use super::aql::QueryStats;
 /// When ArangoDB server response error code, then an error would be cast.
 pub(crate) fn serialize_response<T>(text: &str) -> Result<T, ClientError>
 where
-    T: DeserializeOwned + Debug,
+    T: DeserializeOwned,
 {
     let response: Response<T> = serde_json::from_str(text)?;
     Ok(Into::<Result<T, ArangoError>>::into(response)?)
@@ -46,14 +45,14 @@ where
 /// server response.
 #[derive(Debug)]
 pub(crate) enum Response<T> {
-    Ok(Success<T>),
+    Ok(T),
     Err(ArangoError),
 }
 
 impl<T> Into<Result<T, ArangoError>> for Response<T> {
     fn into(self) -> Result<T, ArangoError> {
         match self {
-            Response::Ok(success) => Ok(success.result),
+            Response::Ok(success) => Ok(success),
             Response::Err(err) => Err(err),
         }
     }
@@ -71,8 +70,7 @@ where
         trace!("Deserialize normal Response: {:?}", map);
         let error = map
             .get("error")
-            .ok_or_else(|| de::Error::missing_field("error"))
-            .map(Deserialize::deserialize)?
+            .map_or_else(|| Ok(false), Deserialize::deserialize)
             .map_err(de::Error::custom)?;
         let rest = Value::Object(map);
 
@@ -81,7 +79,7 @@ where
                 .map(Response::Err)
                 .map_err(de::Error::custom)
         } else {
-            Success::<T>::deserialize(rest)
+            T::deserialize(rest)
                 .map(Response::Ok)
                 .map_err(de::Error::custom)
         }
@@ -106,25 +104,6 @@ impl<T> Deref for ArangoResult<T> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         &self.result
-    }
-}
-
-/// Helper struct to separate error code and fields
-/// of concerns.
-///
-/// With this struct, we no longer need to contains
-/// `error` and `code` field in every result struct.
-#[derive(Deserialize, Debug)]
-pub(crate) struct Success<T> {
-    pub error: bool,
-    pub code: u16,
-    #[serde(flatten)]
-    pub result: T,
-}
-
-impl<T: fmt::Display> fmt::Display for Success<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(format!("Response {} (Status: {})", &self.result, &self.code).as_str())
     }
 }
 
@@ -169,4 +148,44 @@ pub struct Extra {
     stats: Option<QueryStats>,
     // TODO
     warnings: Option<Vec<Value>>,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[derive(Debug, Deserialize)]
+    pub struct CollectionResponse {
+        pub id: String,
+        pub name: String,
+        pub status: u8,
+        pub r#type: u8,
+        #[serde(rename = "isSystem")]
+        pub is_system: bool,
+    }
+
+    #[test]
+    fn response() {
+        let text = "{\"id\":\"9947\",\"name\":\"relation\",\"status\":2,\"type\":3,\"isSystem\": \
+                false,\"globallyUniqueId\":\"hD260BE2A30F9/9947\"}";
+        let result = serde_json::from_str::<Response<CollectionResponse>>(text);
+        assert_eq!(result.is_ok(), true, "failed: {:?}", result);
+
+        let text = "{\"error\":false,\"code\":412,\"id\":\"9947\",\"name\":\"relation\",\"status\":2,\"type\":3,\"isSystem\": \
+        false,\"globallyUniqueId\":\"hD260BE2A30F9/9947\"}";
+        let result = serde_json::from_str::<Response<CollectionResponse>>(text);
+        assert_eq!(result.is_ok(), true, "failed: {:?}", result);
+
+        let text = "{\"error\":true,\"code\":412,\"errorMessage\":\"error\",\"errorNum\":1200}";
+        let result = serde_json::from_str::<Response<CollectionResponse>>(text);
+        assert_eq!(result.is_ok(), true, "failed: {:?}", result);
+        let response = Into::<Result<_, _>>::into(result.unwrap());
+
+        assert_eq!(
+            response.is_err(),
+            true,
+            "response should be error: {:?}",
+            response
+        );
+    }
 }
