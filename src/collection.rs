@@ -9,9 +9,11 @@ use url::Url;
 
 use maybe_async::maybe_async;
 
-use crate::client::ClientExt;
-use crate::response::ArangoResult;
-use crate::{response::deserialize_response, ClientError};
+use crate::{
+    client::ClientExt,
+    response::{deserialize_response, ArangoResult},
+    ClientError,
+};
 
 use super::{Database, Document};
 use crate::document::{
@@ -20,8 +22,7 @@ use crate::document::{
 };
 use http::Request;
 use serde::de::DeserializeOwned;
-use std::borrow::Borrow;
-use std::fmt::Debug;
+use std::{borrow::Borrow, fmt::Debug};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -116,11 +117,12 @@ pub struct CollectionChecksum {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionPropertiesOptions {
-    /// If true then creating or changing a document will wait until the data has been synchronized to disk.
+    /// If true then creating or changing a document will wait until the data
+    /// has been synchronized to disk.
     pub wait_for_sync: Option<bool>,
-    // for ArangoDb 3.7
-    // TODO need to implement this with feature gate between versions maybe
-    // pub schema: Option<SchemaRules>,
+    /* for ArangoDb 3.7
+     * TODO need to implement this with feature gate between versions maybe
+     * pub schema: Option<SchemaRules>, */
 }
 
 #[derive(Debug, Deserialize)]
@@ -217,7 +219,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Fetch the properties of collection
-    ///
     #[maybe_async]
     pub async fn properties(&self) -> Result<CollectionProperties, ClientError> {
         let url = self.base_url.join("properties").unwrap();
@@ -227,7 +228,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Counts the documents in this collection
-    ///
     #[maybe_async]
     pub async fn document_count(&self) -> Result<CollectionProperties, ClientError> {
         let url = self.base_url.join("count").unwrap();
@@ -260,7 +260,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// collection is normally slightly higher than the sum of the reported
     /// fileSize values. Still the sum of the fileSize values can still be used
     /// as a lower bound approximation of the disk usage.
-    ///
     #[maybe_async]
     pub async fn statistics(&self) -> Result<CollectionStatistics, ClientError> {
         let url = self.base_url.join("figures").unwrap();
@@ -274,7 +273,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// The revision id is a server-generated string that clients can use to
     /// check whether data in a collection has changed since the last revision
     /// check.
-    ///
     #[maybe_async]
     pub async fn revision_id(&self) -> Result<CollectionRevision, ClientError> {
         let url = self.base_url.join("revision").unwrap();
@@ -286,34 +284,38 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     /// Will calculate a checksum of the meta-data (keys and optionally
     /// revision ids) and optionally the document data in the collection.
-    /// The checksum can be used to compare if two collections on different ArangoDB
-    /// instances contain the same contents. The current revision of the collection
-    /// is returned too so one can make sure the checksums are calculated for the
-    /// same state of data.
+    /// The checksum can be used to compare if two collections on different
+    /// ArangoDB instances contain the same contents. The current revision
+    /// of the collection is returned too so one can make sure the checksums
+    /// are calculated for the same state of data.
     ///
     /// By default, the checksum will only be calculated on the _key system
     /// attribute of the documents contained in the collection. For edge
-    /// collections, the system attributes _from and _to will also be included in
-    /// the calculation.
+    /// collections, the system attributes _from and _to will also be included
+    /// in the calculation.
     ///
-    /// By setting the optional query parameter withRevisions to true, then revision
-    /// ids (_rev system attributes) are included in the checksumming.
+    /// By setting the optional query parameter withRevisions to true, then
+    /// revision ids (_rev system attributes) are included in the
+    /// checksumming.
     ///
-    /// By providing the optional query parameter withData with a value of true, the
-    /// user-defined document attributes will be included in the calculation too.
-    /// Note: Including user-defined attributes will make the checksumming slower.
-    /// this function would make a request to arango server.
+    /// By providing the optional query parameter withData with a value of true,
+    /// the user-defined document attributes will be included in the
+    /// calculation too. Note: Including user-defined attributes will make
+    /// the checksumming slower. this function would make a request to
+    /// arango server.
     #[maybe_async]
     pub async fn checksum(&self) -> Result<CollectionChecksum, ClientError> {
         self.checksum_with_options(false, false).await
     }
 
-    /// By setting the optional query parameter withRevisions to true, then revision
-    /// ids (_rev system attributes) are included in the checksumming.
+    /// By setting the optional query parameter withRevisions to true, then
+    /// revision ids (_rev system attributes) are included in the
+    /// checksumming.
     ///
-    /// By providing the optional query parameter withData with a value of true, the
-    /// user-defined document attributes will be included in the calculation too.
-    /// Note: Including user-defined attributes will make the checksumming slower.
+    /// By providing the optional query parameter withData with a value of true,
+    /// the user-defined document attributes will be included in the
+    /// calculation too. Note: Including user-defined attributes will make
+    /// the checksumming slower.
     #[maybe_async]
     pub async fn checksum_with_options(
         &self,
@@ -336,9 +338,12 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     /// Loads a collection into memory. Returns the collection on success.
     ///
-    /// The request body object might optionally contain the following attribute:
-    /// - count: If set, this controls whether the return value should include the number of documents in the collection.
-    /// Setting count to false may speed up loading a collection. The default value for count is true.
+    /// The request body object might optionally contain the following
+    /// attribute:
+    /// - count: If set, this controls whether the return value should include
+    ///   the number of documents in the collection.
+    /// Setting count to false may speed up loading a collection. The default
+    /// value for count is true.
     #[maybe_async]
     pub async fn load(&self, count: bool) -> Result<CollectionInfo, ClientError> {
         let url = self.base_url.join("load").unwrap();
@@ -446,7 +451,8 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// journal file automatically if there is no current journal.
     ///
     /// This methods is not documented on 3.7
-    /// Note: this method is specific for the MMFiles storage engine, and there it is not available in a cluster.
+    /// Note: this method is specific for the MMFiles storage engine, and there
+    /// it is not available in a cluster.
     #[cfg(feature = "mmfiles")]
     #[maybe_async]
     pub async fn rotate_journal(&self) -> Result<bool, ClientError> {
@@ -462,28 +468,35 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// Possibly given _id and _rev attributes in the body are always ignored,
     /// the URL part or the query parameter collection respectively counts.
     ///
-    /// If the document was created successfully, then the Location header contains
-    /// the path to the newly created document.
+    /// If the document was created successfully, then the Location header
+    /// contains the path to the newly created document.
     /// The Etag header field contains the revision of the document.
     /// Both are only set in the single document case.
     ///
-    /// If silent is not set to true, the body of the response contains a JSON object with the following attributes:
+    /// If silent is not set to true, the body of the response contains a JSON
+    /// object with the following attributes:
     ///
     /// _id contains the document identifier of the newly created document
     /// _key contains the document key
     /// _rev contains the document revision
-    /// If the collection parameter waitForSync is false, then the call returns as soon as the document has been accepted.
-    /// It will not wait until the documents have been synced to disk.
+    /// If the collection parameter waitForSync is false, then the call returns
+    /// as soon as the document has been accepted. It will not wait until
+    /// the documents have been synced to disk.
     ///
-    /// Optionally, the query parameter waitForSync can be used to force synchronization of the document creation
-    /// operation to disk even in case that the waitForSync flag had been disabled for the entire collection.
-    /// Thus, the waitForSync query parameter can be used to force synchronization of just this specific operations.
-    /// To use this, set the waitForSync parameter to true. If the waitForSync parameter is not specified or set to false,
-    /// then the collection’s default waitForSync behavior is applied.
-    /// The waitForSync query parameter cannot be used to disable synchronization for collections that have a default waitForSync value of true.
+    /// Optionally, the query parameter waitForSync can be used to force
+    /// synchronization of the document creation operation to disk even in
+    /// case that the waitForSync flag had been disabled for the entire
+    /// collection. Thus, the waitForSync query parameter can be used to
+    /// force synchronization of just this specific operations. To use this,
+    /// set the waitForSync parameter to true. If the waitForSync parameter is
+    /// not specified or set to false, then the collection’s default
+    /// waitForSync behavior is applied. The waitForSync query parameter
+    /// cannot be used to disable synchronization for collections that have a
+    /// default waitForSync value of true.
     ///
-    /// If the query parameter returnNew is true, then, for each generated document, the complete new document is returned under the new attribute in the result.
-    /// # Note
+    /// If the query parameter returnNew is true, then, for each generated
+    /// document, the complete new document is returned under the new attribute
+    /// in the result. # Note
     /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn create_document<T>(
@@ -569,8 +582,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Reads a single document header
-    /// Like GET, but only returns the header fields and not the body. You can use this call to get the current revision of a document or check if the document was deleted.
-    /// # Note
+    /// Like GET, but only returns the header fields and not the body. You can
+    /// use this call to get the current revision of a document or check if the
+    /// document was deleted. # Note
     /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn read_document_header(&self, _key: &str) -> Result<DocumentHeader, ClientError> {
@@ -644,6 +658,8 @@ where {
     }
 
     /// Replaces the document
+    /// Replaces the specified document with the one in the body, provided there
+    /// is such a document and no precondition is violated.
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -727,6 +743,7 @@ impl<'de> Deserialize<'de> for CollectionType {
         }
     }
 }
+
 /// Create header name and header value from read_options
 fn make_header_from_options(
     document_read_options: Option<DocumentReadOptions>,

@@ -167,12 +167,12 @@ mod test {
     #[test]
     fn response() {
         let text = "{\"id\":\"9947\",\"name\":\"relation\",\"status\":2,\"type\":3,\"isSystem\": \
-                false,\"globallyUniqueId\":\"hD260BE2A30F9/9947\"}";
+                    false,\"globallyUniqueId\":\"hD260BE2A30F9/9947\"}";
         let result = serde_json::from_str::<Response<CollectionResponse>>(text);
         assert_eq!(result.is_ok(), true, "failed: {:?}", result);
 
-        let text = "{\"error\":false,\"code\":412,\"id\":\"9947\",\"name\":\"relation\",\"status\":2,\"type\":3,\"isSystem\": \
-        false,\"globallyUniqueId\":\"hD260BE2A30F9/9947\"}";
+        let text = "{\"error\":false,\"code\":412,\"id\":\"9947\",\"name\":\"relation\",\"status\"\
+                    :2,\"type\":3,\"isSystem\": false,\"globallyUniqueId\":\"hD260BE2A30F9/9947\"}";
         let result = serde_json::from_str::<Response<CollectionResponse>>(text);
         assert_eq!(result.is_ok(), true, "failed: {:?}", result);
 

@@ -5,11 +5,13 @@ use log::trace;
 use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
-use arangors::document::{
-    DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions, DocumentResponse,
-    DocumentUpdateOptions,
+use arangors::{
+    document::{
+        DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions, DocumentResponse,
+        DocumentUpdateOptions,
+    },
+    ClientError, Connection, Document,
 };
-use arangors::{ClientError, Connection, Document};
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
 
 pub mod common;
@@ -67,7 +69,8 @@ async fn test_post_create_document() {
         false,
         "We should get the key of the document"
     );
-    // Second test is to create a simple document with option to get the new document back
+    // Second test is to create a simple document with option to get the new
+    // document back
     let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
     "testDescription":"Test with new"
     }));
@@ -104,8 +107,8 @@ async fn test_post_create_document() {
 
     let key = header._key;
     // Third test is to update a simple document with option return old
-    // Should not return  anything according to doc if overWriteMode is not used for now
-    // TODO update this test with overwriteMode later
+    // Should not return  anything according to doc if overWriteMode is not used for
+    // now TODO update this test with overwriteMode later
     let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
     "_key" : key,
     "testDescription":"Test with old"
@@ -220,7 +223,8 @@ async fn test_post_create_document_3_7() {
         false,
         "We should get the key of the document"
     );
-    // Second test is to create a simple document with option to get the new document back
+    // Second test is to create a simple document with option to get the new
+    // document back
     let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
     "testDescription":"Test with new"
     }));
@@ -258,8 +262,8 @@ async fn test_post_create_document_3_7() {
 
     let key = header._key;
     // Third test is to update a simple document with option return old
-    // Should not return  anything according to doc if overWriteMode is not used for now
-    // TODO update this test with overwriteMode later
+    // Should not return  anything according to doc if overWriteMode is not used for
+    // now TODO update this test with overwriteMode later
     let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
     "_key" : key,
     "testDescription":"Test with old"
@@ -473,8 +477,8 @@ async fn test_get_read_document() {
             Some(DocumentReadOptions::IfMatch("_dsdsds_d".to_string())),
         )
         .await;
-    // We should get a 412, for now for some reason the error is parsed as a document
-    // todo fix how the reponse/error is built
+    // We should get a 412, for now for some reason the error is parsed as a
+    // document todo fix how the reponse/error is built
     assert_eq!(read.is_err(), true, "we should get 412, got: {:?}", read);
 
     // todo need to test with with IfNoneMatch and 304

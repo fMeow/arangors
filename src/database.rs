@@ -10,11 +10,10 @@ use url::Url;
 
 use maybe_async::maybe_async;
 
-use crate::collection::CollectionProperties;
 use crate::{
     aql::AqlQuery,
     client::ClientExt,
-    collection::{Collection, CollectionResponse},
+    collection::{Collection, CollectionProperties, CollectionResponse},
     connection::{DatabaseDetails, GenericConnection, Version},
     response::{deserialize_response, ArangoResult, Cursor},
     ClientError,
