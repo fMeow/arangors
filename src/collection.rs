@@ -455,7 +455,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
-    /// recalculates the document count of a collection
+    /// Recalculates the document count of a collection
     /// Note: this method is specific for the RocksDB storage engine
     #[cfg(feature = "rocksdb")]
     #[maybe_async]
