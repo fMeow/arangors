@@ -18,7 +18,7 @@ use crate::document::{
     DocumentHeader, DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions,
     DocumentResponse, DocumentUpdateOptions,
 };
-use http::{Method, Request};
+use http::Request;
 use serde::de::DeserializeOwned;
 use std::borrow::Borrow;
 use std::fmt::Debug;
