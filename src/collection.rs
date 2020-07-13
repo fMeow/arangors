@@ -212,8 +212,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     /// Truncate current collection.
     ///
-    /// # Note
-    /// this function would make a request to arango server.
     pub fn truncate(&self) {
         unimplemented!()
     }
@@ -496,8 +494,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     /// If the query parameter returnNew is true, then, for each generated
     /// document, the complete new document is returned under the new attribute
-    /// in the result. # Note
-    /// this function would make a request to arango server.
+    /// in the result.
     #[maybe_async]
     pub async fn create_document<T>(
         &self,
@@ -550,8 +547,6 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     /// Reads a single document
     ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn read_document<T>(&self, _key: &str) -> Result<Document<T>, ClientError>
     where
@@ -584,8 +579,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// Reads a single document header
     /// Like GET, but only returns the header fields and not the body. You can
     /// use this call to get the current revision of a document or check if the
-    /// document was deleted. # Note
-    /// this function would make a request to arango server.
+    /// document was deleted.
     #[maybe_async]
     pub async fn read_document_header(&self, _key: &str) -> Result<DocumentHeader, ClientError> {
         self.read_document_header_with_options(_key, None).await
@@ -611,8 +605,6 @@ where {
     }
     /// Partially updates the document
     ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn update_document<T>(
         &self,
@@ -752,8 +744,6 @@ where {
 
     /// Removes a document
     ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn remove_document<T>(
         &self,
