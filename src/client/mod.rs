@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 
-use http::{method::Method, HeaderMap, Request};
-use serde::de::DeserializeOwned;
+use http::{method::Method, HeaderMap, Request, Response};
 use url::Url;
 
 use crate::ClientError;
@@ -39,7 +38,7 @@ pub trait ClientExt: Sync + Debug + Clone {
         Self: Sized;
 
     #[inline]
-    async fn get(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn get(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
@@ -51,7 +50,7 @@ pub trait ClientExt: Sync + Debug + Clone {
         .await
     }
     #[inline]
-    async fn post(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn post(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
@@ -63,7 +62,7 @@ pub trait ClientExt: Sync + Debug + Clone {
         .await
     }
     #[inline]
-    async fn put(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn put(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
@@ -75,7 +74,7 @@ pub trait ClientExt: Sync + Debug + Clone {
         .await
     }
     #[inline]
-    async fn delete(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn delete(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
@@ -87,7 +86,7 @@ pub trait ClientExt: Sync + Debug + Clone {
         .await
     }
     #[inline]
-    async fn patch(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn patch(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
@@ -100,7 +99,7 @@ pub trait ClientExt: Sync + Debug + Clone {
     }
 
     #[inline]
-    async fn connect(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn connect(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
@@ -113,7 +112,7 @@ pub trait ClientExt: Sync + Debug + Clone {
     }
 
     #[inline]
-    async fn head(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn head(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
@@ -126,7 +125,7 @@ pub trait ClientExt: Sync + Debug + Clone {
     }
 
     #[inline]
-    async fn options(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn options(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
@@ -139,7 +138,7 @@ pub trait ClientExt: Sync + Debug + Clone {
     }
 
     #[inline]
-    async fn trace(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn trace(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
@@ -151,68 +150,7 @@ pub trait ClientExt: Sync + Debug + Clone {
         .await
     }
 
-    // #[inline]
-    // fn build_request(&self, method: Method, url: Url, text: &str) -> ClientRequestBuilder<Self>
-    // where
-    //     Self: Sized,
-    // {
-    //     ClientRequestBuilder::new(self.clone(), method, url, text)
-    // }
-    async fn request(&self, request: Request<String>) -> Result<ClientResponse, ClientError>
+    async fn request(&self, request: Request<String>) -> Result<Response<String>, ClientError>
     where
         Self: Sized;
-}
-
-#[derive(Debug)]
-pub struct ClientResponse {
-    status_code: http::StatusCode,
-    headers: http::HeaderMap,
-    content: String,
-    version: Option<http::Version>,
-}
-
-impl ClientResponse {
-    pub fn new(
-        status_code: http::StatusCode,
-        headers: http::HeaderMap,
-        content: String,
-        version: Option<http::Version>,
-    ) -> Self {
-        Self {
-            status_code,
-            headers,
-            content,
-            version,
-        }
-    }
-
-    /// Get the `StatusCode` of this `Response`.
-    #[inline]
-    pub fn status(&self) -> http::StatusCode {
-        self.status_code
-    }
-
-    /// Get the HTTP `Version` of this `Response`.
-    #[inline]
-    pub fn version(&self) -> Option<http::Version> {
-        self.version
-    }
-
-    /// Get the `Headers` of this `Response`.
-    #[inline]
-    pub fn headers(&self) -> &HeaderMap {
-        &self.headers
-    }
-
-    /// Get response content in `String`
-    #[inline]
-    pub fn text(&self) -> &str {
-        &self.content
-    }
-
-    /// Get response content in `Json`
-    #[inline]
-    pub fn json<T: DeserializeOwned>(&self) -> Result<T, ClientError> {
-        Ok(serde_json::from_str(self.text())?)
-    }
 }

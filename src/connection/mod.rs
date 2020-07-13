@@ -173,7 +173,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
             .join(&format!("/_api/user/{}/database", &self.username))
             .unwrap();
         let resp = self.session.get(url, "").await?;
-        let result: ArangoResult<HashMap<String, Permission>> = serialize_response(resp.text())?;
+        let result: ArangoResult<HashMap<String, Permission>> = serialize_response(resp.body())?;
         Ok(result.unwrap())
     }
 }
@@ -330,11 +330,13 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         map.insert("username", username.into());
         map.insert("password", password.into());
 
-        let jwt: JWT = self
-            .session
-            .post(url, &serde_json::to_string(&map)?)
-            .await?
-            .json()?;
+        let jwt: JWT = serde_json::from_str(
+            self.session
+                .post(url, &serde_json::to_string(&map)?)
+                .await?
+                .body(),
+        )
+        .unwrap();
         Ok(jwt.jwt)
     }
 
@@ -375,7 +377,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
             .post(url, &serde_json::to_string(&map)?)
             .await?;
 
-        serialize_response::<ArangoResult<bool>>(resp.text())?;
+        serialize_response::<ArangoResult<bool>>(resp.body())?;
         self.db(name).await
     }
 
@@ -389,7 +391,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         let url = self.arango_url.join(&url_path).unwrap();
 
         let resp = self.session.delete(url, "").await?;
-        serialize_response::<ArangoResult<bool>>(resp.text())?;
+        serialize_response::<ArangoResult<bool>>(resp.body())?;
         Ok(())
     }
 

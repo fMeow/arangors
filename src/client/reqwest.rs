@@ -1,14 +1,14 @@
 #[cfg(feature = "reqwest_blocking")]
-use ::reqwest::blocking::{Client, Request};
+use ::reqwest::blocking::{Client, Request, Response};
 #[cfg(feature = "reqwest_async")]
-use ::reqwest::{Client, Request};
+use ::reqwest::{Client, Request, Response};
 
 use http::header::HeaderMap;
-use url::Url;
 
 use crate::client::ClientExt;
 
 use super::*;
+
 use std::convert::TryInto;
 
 #[derive(Debug, Clone)]
@@ -27,8 +27,11 @@ impl ClientExt for ReqwestClient {
         .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 
-    async fn request(&self, request: http::Request<String>) -> Result<ClientResponse, ClientError> {
-        let req: Request = request.try_into().unwrap();
+    async fn request(
+        &self,
+        request: http::Request<String>,
+    ) -> Result<http::Response<String>, ClientError> {
+        let req = request.try_into().unwrap();
 
         let resp = self
             .0
@@ -38,17 +41,21 @@ impl ClientExt for ReqwestClient {
 
         let status_code = resp.status();
         let headers = resp.headers().clone();
-        let version = Some(resp.version());
+        let version = resp.version();
         let content = resp
             .text()
             .await
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
+        let mut build = http::Response::builder();
 
-        Ok(ClientResponse {
-            status_code,
-            headers,
-            version,
-            content,
-        })
+        for header in headers.iter() {
+            build = build.header(header.0, header.1);
+        }
+
+        http::response::Builder::from(build)
+            .status(status_code)
+            .version(version)
+            .body(content)
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 }

@@ -222,7 +222,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn properties(&self) -> Result<CollectionProperties, ClientError> {
         let url = self.base_url.join("properties").unwrap();
         let resp: CollectionProperties =
-            serialize_response(self.session.get(url, "").await?.text())?;
+            serialize_response(self.session.get(url, "").await?.body())?;
         Ok(resp)
     }
 
@@ -232,7 +232,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn document_count(&self) -> Result<CollectionProperties, ClientError> {
         let url = self.base_url.join("count").unwrap();
         let resp: CollectionProperties =
-            serialize_response(self.session.get(url, "").await?.text())?;
+            serialize_response(self.session.get(url, "").await?.body())?;
         Ok(resp)
     }
     /// Fetch the statistics of a collection
@@ -265,7 +265,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn statistics(&self) -> Result<CollectionStatistics, ClientError> {
         let url = self.base_url.join("figures").unwrap();
         let resp: CollectionStatistics =
-            serialize_response(self.session.get(url, "").await?.text())?;
+            serialize_response(self.session.get(url, "").await?.body())?;
         Ok(resp)
     }
 
@@ -278,7 +278,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     #[maybe_async]
     pub async fn revision_id(&self) -> Result<CollectionRevision, ClientError> {
         let url = self.base_url.join("revision").unwrap();
-        let resp: CollectionRevision = serialize_response(self.session.get(url, "").await?.text())?;
+        let resp: CollectionRevision = serialize_response(self.session.get(url, "").await?.body())?;
         Ok(resp)
     }
     /// Fetch a checksum for the specified collection
@@ -328,7 +328,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             url.query_pairs_mut().append_pair("withData", "true");
         }
 
-        let resp: CollectionChecksum = serialize_response(self.session.get(url, "").await?.text())?;
+        let resp: CollectionChecksum = serialize_response(self.session.get(url, "").await?.body())?;
         Ok(resp)
     }
 
@@ -345,7 +345,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             self.session
                 .put(url, body.to_string().as_str())
                 .await?
-                .text(),
+                .body(),
         )?;
         Ok(resp)
     }
@@ -356,7 +356,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     #[maybe_async]
     pub async fn unload(&self) -> Result<CollectionInfo, ClientError> {
         let url = self.base_url.join("unload").unwrap();
-        let resp: CollectionInfo = serialize_response(self.session.put(url, "").await?.text())?;
+        let resp: CollectionInfo = serialize_response(self.session.put(url, "").await?.body())?;
         Ok(resp)
     }
 
@@ -384,7 +384,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     #[maybe_async]
     pub async fn load_indexes(&self) -> Result<bool, ClientError> {
         let url = self.base_url.join("loadIndexesIntoMemory").unwrap();
-        let resp: ArangoResult<bool> = serialize_response(self.session.put(url, "").await?.text())?;
+        let resp: ArangoResult<bool> = serialize_response(self.session.put(url, "").await?.body())?;
         Ok(resp.unwrap())
     }
 
@@ -403,7 +403,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             self.session
                 .put(url, body.to_string().as_str())
                 .await?
-                .text(),
+                .body(),
         )?;
         Ok(resp)
     }
@@ -417,7 +417,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             self.session
                 .put(url, body.to_string().as_str())
                 .await?
-                .text(),
+                .body(),
         )?;
         Ok(resp)
     }
@@ -428,7 +428,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     #[maybe_async]
     pub async fn recalculate_count(&self) -> Result<bool, ClientError> {
         let url = self.base_url.join("recalculateCount").unwrap();
-        let resp: ArangoResult<bool> = serialize_response(self.session.put(url, "").await?.text())?;
+        let resp: ArangoResult<bool> = serialize_response(self.session.put(url, "").await?.body())?;
         Ok(resp.unwrap())
     }
     /// Rotates the journal of a collection.
@@ -447,7 +447,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     #[maybe_async]
     pub async fn rotate_journal(&self) -> Result<bool, ClientError> {
         let url = self.base_url.join("rotate").unwrap();
-        let resp: ArangoResult<bool> = serialize_response(self.session.put(url, "").await?.text())?;
+        let resp: ArangoResult<bool> = serialize_response(self.session.put(url, "").await?.body())?;
         Ok(resp.unwrap())
     }
 
@@ -526,7 +526,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         }
 
         let resp: DocumentResponse<T> =
-            serde_json::from_str(self.session.post(url, body.as_str()).await?.text())?;
+            serde_json::from_str(self.session.post(url, body.as_str()).await?.body())?;
         Ok(resp)
     }
 
@@ -565,7 +565,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         }
 
         let req = build.body("".to_string()).unwrap();
-        let resp: Document<T> = serde_json::from_str(self.session.request(req).await?.text())?;
+        let resp: Document<T> = serde_json::from_str(self.session.request(req).await?.body())?;
         Ok(resp)
     }
 
@@ -599,7 +599,7 @@ where {
         }
 
         let req = build.body("".to_string()).unwrap();
-        let resp: DocumentHeader = serde_json::from_str(self.session.request(req).await?.text())?;
+        let resp: DocumentHeader = serde_json::from_str(self.session.request(req).await?.body())?;
         Ok(resp)
     }
     /// Partially updates the document
@@ -646,7 +646,7 @@ where {
         }
 
         let resp: DocumentResponse<T> =
-            serde_json::from_str(self.session.patch(url, body.as_str()).await?.text())?;
+            serde_json::from_str(self.session.patch(url, body.as_str()).await?.body())?;
         Ok(resp)
     }
 
