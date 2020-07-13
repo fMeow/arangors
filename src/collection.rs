@@ -22,9 +22,9 @@ use crate::document::{
 };
 use http::Request;
 use serde::de::DeserializeOwned;
-use std::{borrow::Borrow, fmt::Debug};
+use std::borrow::Borrow;
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionKeyOptions {
     pub allow_user_keys: bool,
@@ -34,7 +34,7 @@ pub struct CollectionKeyOptions {
     pub r#type: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionProperties {
     #[serde(flatten)]
@@ -43,7 +43,7 @@ pub struct CollectionProperties {
     pub detail: CollectionDetails,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionDetails {
     pub status_string: String,
@@ -64,20 +64,20 @@ pub struct CollectionDetails {
     pub index_buckets: usize,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ArangoIndex {
     pub count: Option<u32>,
     pub size: Option<u32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Figures {
     pub indexes: ArangoIndex,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionStatistics {
     /// The number of documents currently present in the collection.
@@ -91,7 +91,7 @@ pub struct CollectionStatistics {
     pub detail: CollectionDetails,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionRevision {
     // pub uses_revisions_as_document_ids: Option<bool>,
@@ -105,7 +105,7 @@ pub struct CollectionRevision {
     pub detail: CollectionDetails,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionChecksum {
     pub revision: String,
@@ -114,7 +114,7 @@ pub struct CollectionChecksum {
     pub info: CollectionInfo,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionPropertiesOptions {
     /// If true then creating or changing a document will wait until the data
@@ -125,7 +125,7 @@ pub struct CollectionPropertiesOptions {
      * pub schema: Option<SchemaRules>, */
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionInfo {
     pub count: Option<u32>,
@@ -143,7 +143,7 @@ pub struct CollectionInfo {
 /// collection name, but not the collection identifier. Collections have a type
 /// that is specified by the user when the collection is created. There are
 /// currently two types: document and edge. The default type is document.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Collection<'a, C: ClientExt> {
     /// The collection identifier
     /// A collection identifier lets you refer to a collection in a database. It
@@ -580,7 +580,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     #[maybe_async]
     pub async fn read_document<T>(&self, _key: &str) -> Result<Document<T>, ClientError>
     where
-        T: Serialize + Debug + DeserializeOwned,
+        T: Serialize + DeserializeOwned,
     {
         self.read_document_with_options(_key, None).await
     }
@@ -592,7 +592,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         read_options: Option<DocumentReadOptions>,
     ) -> Result<Document<T>, ClientError>
     where
-        T: Serialize + Debug + DeserializeOwned,
+        T: Serialize + DeserializeOwned,
     {
         let url = self.document_base_url.join(_key).unwrap();
         let mut build = Request::get(url.to_string());
@@ -827,7 +827,7 @@ where {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct CollectionResponse {
     pub id: String,
     pub name: String,
@@ -839,7 +839,7 @@ pub struct CollectionResponse {
     pub global_unique_id: String,
 }
 
-#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+#[derive(PartialEq, Eq, Copy, Clone)]
 pub enum CollectionStatus {
     NewBorn = 1,
     Unloaded = 2,
@@ -870,7 +870,7 @@ impl<'de> Deserialize<'de> for CollectionStatus {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+#[derive(Clone, PartialEq, Eq, Copy)]
 pub enum CollectionType {
     Document = 2,
     Edge = 3,

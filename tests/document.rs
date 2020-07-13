@@ -480,7 +480,12 @@ async fn test_get_read_document() {
         .await;
     // We should get a 412, for now for some reason the error is parsed as a
     // document todo fix how the reponse/error is built
-    assert_eq!(read.is_err(), true, "we should get 412, got: {:?}", read);
+    assert_eq!(
+        read.is_err(),
+        true,
+        "we should get 412, got: {:?}",
+        read.unwrap().document
+    );
 
     // todo need to test with with IfNoneMatch and 304
 
@@ -529,7 +534,12 @@ async fn test_get_read_document_header() {
 
     let read = coll.read_document_header(_key.as_str()).await;
 
-    assert_eq!(read.is_ok(), true, "We should get 200, got {:?}", read);
+    assert_eq!(
+        read.is_ok(),
+        true,
+        "We should get 200, got {:?}",
+        read.err().unwrap()
+    );
 
     let result = read.unwrap();
     assert_eq!(

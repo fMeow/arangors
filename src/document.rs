@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
 
 /// Options for document insertion.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentInsertOptions {
     /// Wait until document has been synced to disk.
@@ -27,7 +26,7 @@ pub struct DocumentInsertOptions {
     pub overwrite_mode: Option<DocumentOverwriteMode>,
 }
 /// Options for document update,
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentUpdateOptions {
     /// If the intention is to delete existing attributes with the patch
@@ -59,7 +58,7 @@ pub struct DocumentUpdateOptions {
     /// This option can be used to save some network traffic.
     pub silent: Option<bool>,
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub enum DocumentOverwriteMode {
     /// If a document with the specified _key value exists already,
     /// nothing will be done and no write operation will be carried out.
@@ -99,7 +98,7 @@ pub enum DocumentOverwriteMode {
     Conflict,
 }
 /// Options for document replace,
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentReplaceOptions {
     /// Wait until document has been synced to disk.
@@ -124,7 +123,7 @@ pub struct DocumentReplaceOptions {
     pub if_match: Option<String>,
 }
 /// Options for document reading.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum DocumentReadOptions {
     /// If the “If-None-Match” header is given, then it must contain exactly one
@@ -137,7 +136,7 @@ pub enum DocumentReadOptions {
     IfMatch(String),
 }
 /// Options for document removes,
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentRemoveOptions {
     /// Wait until document has been synced to disk.
@@ -153,7 +152,7 @@ pub struct DocumentRemoveOptions {
     /// by using the if-match HTTP header.
     pub if_match: Option<String>,
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct DocumentHeader {
     #[serde(skip_serializing_if = "String::is_empty")]
     pub _id: String,
@@ -164,7 +163,7 @@ pub struct DocumentHeader {
 }
 
 /// Standard Response when having CRUD operation on document
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct DocumentResponse<T> {
     #[serde(flatten)]
     /// May contain the { _key : String, _id : String, _rev:String } of the
@@ -179,7 +178,7 @@ pub struct DocumentResponse<T> {
     pub old: Option<T>,
 }
 /// Structure that represents a document within its content and header
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct Document<T> {
     #[serde(flatten)]
     pub header: DocumentHeader,
