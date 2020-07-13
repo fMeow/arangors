@@ -559,16 +559,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         let url = self.document_base_url.join(_key).unwrap();
         let mut build = Request::get(url.to_string());
 
-        if let Some(options) = read_options {
-            let key_value = match options {
-                DocumentReadOptions::IfNoneMatch(value) => ("If-None-Match".to_string(), value),
-
-                DocumentReadOptions::IfMatch(value) => ("If-Match".to_string(), value),
-            };
-
-            build = build.header(key_value.0.as_str(), key_value.1.as_str());
+        let header = make_header_from_options(read_options);
+        if let Some(h) = header {
+            build = build.header(h.0.as_str(), h.1.as_str())
         }
-
         let req = build.body("".to_string()).unwrap();
         let resp: Document<T> = deserialize_response(self.session.request(req).await?.body())?;
         Ok(resp)
@@ -593,16 +587,10 @@ where {
         let url = self.document_base_url.join(_key).unwrap();
         let mut build = Request::get(url.to_string());
 
-        if let Some(options) = read_options {
-            let key_value = match options {
-                DocumentReadOptions::IfNoneMatch(value) => ("If-None-Match".to_string(), value),
-
-                DocumentReadOptions::IfMatch(value) => ("If-Match".to_string(), value),
-            };
-
-            build = build.header(key_value.0.as_str(), key_value.1.as_str());
+        let header = make_header_from_options(read_options);
+        if let Some(h) = header {
+            build = build.header(h.0.as_str(), h.1.as_str())
         }
-
         let req = build.body("".to_string()).unwrap();
         let resp: DocumentHeader = deserialize_response(self.session.request(req).await?.body())?;
         Ok(resp)
@@ -737,5 +725,19 @@ impl<'de> Deserialize<'de> for CollectionType {
                  contact the author.",
             )),
         }
+    }
+}
+/// Create header name and header value from read_options
+fn make_header_from_options(
+    document_read_options: Option<DocumentReadOptions>,
+) -> Option<(String, String)> {
+    if let Some(options) = document_read_options {
+        match options {
+            DocumentReadOptions::IfNoneMatch(value) => Some(("If-None-Match".to_string(), value)),
+
+            DocumentReadOptions::IfMatch(value) => Some(("If-Match".to_string(), value)),
+        }
+    } else {
+        None
     }
 }
