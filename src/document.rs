@@ -30,7 +30,16 @@ pub struct DocumentInsertOptions {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentUpdateOptions {
+    /// If the intention is to delete existing attributes with the patch
+    /// command, the URL query parameter keepNull can be used with a value of
+    /// false. This will modify the behavior of the patch command to remove any
+    /// attributes from the existing document that are contained in the patch
+    /// document with an attribute value of null.
     pub keep_null: Option<bool>,
+    /// Controls whether objects (not arrays) will be merged if present in both
+    /// the existing and the patch document. If set to false, the value in the
+    /// patch document will overwrite the existing document’s value. If set to
+    /// true, objects will be merged. The default is true.
     pub merge_objects: Option<bool>,
     /// Wait until document has been synced to disk.
     pub wait_for_sync: Option<bool>,
@@ -42,11 +51,11 @@ pub struct DocumentUpdateOptions {
     /// Additionally return the complete new document under the attribute new in
     /// the result.
     pub return_new: Option<bool>,
-    /// Additionally return the complete old document under the attribute old in
-    /// the result. Only available if the overwrite option is used.
+    /// Return additionally the complete previous revision of the changed
+    /// document under the attribute old in the result.
     pub return_old: Option<bool>,
     /// If set to true, an empty object will be returned as response.
-    /// No meta-data will be returned for the created document.
+    /// No meta-data will be returned for the updated document.
     /// This option can be used to save some network traffic.
     pub silent: Option<bool>,
 }
@@ -89,7 +98,7 @@ pub enum DocumentOverwriteMode {
     /// TODO need to implement the two extra modes keepNull & mergeObjects
     Conflict,
 }
-/// Options for document update,
+/// Options for document replace,
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentReplaceOptions {
@@ -104,10 +113,10 @@ pub struct DocumentReplaceOptions {
     /// the result.
     pub return_new: Option<bool>,
     /// Additionally return the complete old document under the attribute old in
-    /// the result. Only available if the overwrite option is used.
+    /// the result.
     pub return_old: Option<bool>,
     /// If set to true, an empty object will be returned as response.
-    /// No meta-data will be returned for the created document.
+    /// No meta-data will be returned for the replaced document.
     /// This option can be used to save some network traffic.
     pub silent: Option<bool>,
     /// You can conditionally replace a document based on a target revision id
