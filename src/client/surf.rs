@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use http::{
     header::{HeaderMap, HeaderName, HeaderValue, CONTENT_LENGTH, SERVER},
-    StatusCode, Version,
+    Method, StatusCode, Version,
 };
 use url::Url;
 
