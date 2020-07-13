@@ -140,10 +140,9 @@ async fn test_post_create_document() {
 
     // Fourth testis about the silent option
     let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
-    "_key" : key,
     "testDescription":"Test with silent"
     }));
-    let update = coll
+    let create = coll
         .create_document(
             test_doc,
             Some(DocumentInsertOptions {
@@ -156,9 +155,9 @@ async fn test_post_create_document() {
         )
         .await;
 
-    assert_eq!(update.is_ok(), true, "succeed create a document silently");
+    assert_eq!(create.is_ok(), true, "succeed create a document silently");
 
-    let result = update.unwrap();
+    let result = create.unwrap();
 
     assert_eq!(result.old.is_none(), true);
     assert_eq!(result.new.is_none(), true);
@@ -295,10 +294,9 @@ async fn test_post_create_document_3_7() {
 
     // Fourth testis about the silent option
     let test_doc: Document<Value> = Document::new(json!({ "no":2 ,
-    "_key" : key,
     "testDescription":"Test with silent"
     }));
-    let update = coll
+    let create = coll
         .create_document(
             test_doc,
             Some(DocumentInsertOptions {
@@ -312,7 +310,7 @@ async fn test_post_create_document_3_7() {
         )
         .await;
 
-    let result = update.unwrap();
+    let result = create.unwrap();
 
     assert_eq!(
         result.old.is_none(),
@@ -567,7 +565,7 @@ async fn test_get_read_document_header() {
         .await;
 
     assert_eq!(
-        read.is_ok(),
+        read.is_err(),
         true,
         "the If-None-Match header is given and the document has the same version"
     );
