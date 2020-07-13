@@ -978,7 +978,7 @@ async fn test_delete_remove_document() {
         "We should have precondition failed as we ask to move the doc only if for the specified \
          _rev in header"
     );
-    /// Fourth test to check that we get error if we tried to remove a doc that has already been removed or that does not exist
+    // Fourth test to check that we get error if we tried to remove a doc that has already been removed or that does not exist
     let remove: Result<DocumentResponse<Value>, ClientError> = coll
         .remove_document(
             _key.as_str(),
