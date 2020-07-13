@@ -163,16 +163,22 @@ pub struct DocumentHeader {
     pub _rev: String,
 }
 
+/// Standard Response when having CRUD operation on document
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DocumentResponse<T> {
     #[serde(flatten)]
+    /// May contain the { _key : String, _id : String, _rev:String } of the
+    /// document
     pub header: Option<DocumentHeader>,
+    /// May contain the document after being created/replace/updated
     pub new: Option<T>,
     #[serde(rename = "_oldRev")]
+    /// May contain the old revision of the document after update/replace
     pub _old_rev: Option<String>,
+    /// May contain the old the document after update/replace/remove
     pub old: Option<T>,
 }
-
+/// Structure that represents a document within its content and header
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Document<T> {
     #[serde(flatten)]
