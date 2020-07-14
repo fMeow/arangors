@@ -578,23 +578,23 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// identifier, _key containing key which uniquely identifies a document in
     /// a given collection and _rev containing the revision.
     #[maybe_async]
-    pub async fn read_document<T>(&self, key: &str) -> Result<Document<T>, ClientError>
+    pub async fn read_document<T>(&self, _key: &str) -> Result<Document<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
     {
-        self.read_document_with_options(key, None).await
+        self.read_document_with_options(_key, None).await
     }
 
     #[maybe_async]
     pub async fn read_document_with_options<T>(
         &self,
-        key: &str,
+        _key: &str,
         read_options: Option<DocumentReadOptions>,
     ) -> Result<Document<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
     {
-        let url = self.document_base_url.join(key).unwrap();
+        let url = self.document_base_url.join(_key).unwrap();
         let mut build = Request::get(url.to_string());
 
         let header = make_header_from_options(read_options);
@@ -611,18 +611,18 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// use this call to get the current revision of a document or check if the
     /// document was deleted.
     #[maybe_async]
-    pub async fn read_document_header(&self, key: &str) -> Result<DocumentHeader, ClientError> {
-        self.read_document_header_with_options(key, None).await
+    pub async fn read_document_header(&self, _key: &str) -> Result<DocumentHeader, ClientError> {
+        self.read_document_header_with_options(_key, None).await
     }
 
     #[maybe_async]
     pub async fn read_document_header_with_options(
         &self,
-        key: &str,
+        _key: &str,
         read_options: Option<DocumentReadOptions>,
     ) -> Result<DocumentHeader, ClientError>
 where {
-        let url = self.document_base_url.join(key).unwrap();
+        let url = self.document_base_url.join(_key).unwrap();
         let mut build = Request::get(url.to_string());
 
         let header = make_header_from_options(read_options);
@@ -637,14 +637,14 @@ where {
     #[maybe_async]
     pub async fn update_document<T>(
         &self,
-        key: &str,
+        _key: &str,
         doc: T,
         update_options: Option<DocumentUpdateOptions>,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
     {
-        let mut url = self.document_base_url.join(key).unwrap();
+        let mut url = self.document_base_url.join(_key).unwrap();
         let body = serde_json::to_string(&doc)?;
         if let Some(options) = update_options {
             if let Some(keep_null) = options.borrow().keep_null {
@@ -722,14 +722,14 @@ where {
     #[maybe_async]
     pub async fn replace_document<T>(
         &self,
-        key: &str,
+        _key: &str,
         doc: T,
         update_options: Option<DocumentReplaceOptions>,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
     {
-        let mut url = self.document_base_url.join(key).unwrap();
+        let mut url = self.document_base_url.join(_key).unwrap();
         let body = serde_json::to_string(&doc)?;
         let mut header = ("".to_string(), "".to_string());
 
@@ -787,13 +787,13 @@ where {
     #[maybe_async]
     pub async fn remove_document<T>(
         &self,
-        key: &str,
+        _key: &str,
         remove_options: Option<DocumentRemoveOptions>,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
     {
-        let mut url = self.document_base_url.join(key).unwrap();
+        let mut url = self.document_base_url.join(_key).unwrap();
         let mut header = ("".to_string(), "".to_string());
 
         if let Some(options) = remove_options {
