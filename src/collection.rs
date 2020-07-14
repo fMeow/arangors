@@ -662,6 +662,8 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// new document is returned under the new attribute in the result.
     /// If the document does not exist, then a HTTP 404 is returned and the body
     /// of the response contains an error document.
+    /// You can conditionally replace a document based on a target revision id
+    /// by using the if-match HTTP header.
     #[maybe_async]
     pub async fn replace_document<T>(
         &self,
