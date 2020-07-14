@@ -826,7 +826,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct CollectionResponse {
     pub id: String,
     pub name: String,
@@ -838,7 +838,7 @@ pub struct CollectionResponse {
     pub global_unique_id: String,
 }
 
-#[derive(PartialEq, Eq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum CollectionStatus {
     NewBorn = 1,
     Unloaded = 2,
@@ -869,7 +869,7 @@ impl<'de> Deserialize<'de> for CollectionStatus {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub enum CollectionType {
     Document = 2,
     Edge = 3,
