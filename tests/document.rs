@@ -809,12 +809,8 @@ async fn test_delete_remove_document() {
     let remove = coll
         .remove_document(
             _key.as_str(),
-            Some(DocumentRemoveOptions {
-                wait_for_sync: None,
-                return_old: Some(true),
-                silent: None,
-                if_match: None,
-            }),
+            Some(DocumentRemoveOptions::builder().return_old(true).build()),
+            None,
         )
         .await;
 
@@ -848,12 +844,8 @@ async fn test_delete_remove_document() {
     let remove: Result<DocumentResponse<Value>, ClientError> = coll
         .remove_document(
             _key.as_str(),
-            Some(DocumentRemoveOptions {
-                wait_for_sync: None,
-                return_old: None,
-                silent: Some(true),
-                if_match: None,
-            }),
+            Some(DocumentRemoveOptions::builder().silent(true).build()),
+            None,
         )
         .await;
 
@@ -878,15 +870,7 @@ async fn test_delete_remove_document() {
     let _key = header._key;
     let _rev = header._rev;
     let remove: Result<DocumentResponse<Value>, ClientError> = coll
-        .remove_document(
-            _key.as_str(),
-            Some(DocumentRemoveOptions {
-                wait_for_sync: None,
-                return_old: None,
-                silent: None,
-                if_match: Some("_rere_dsds_DSds".to_string()),
-            }),
-        )
+        .remove_document(_key.as_str(), None, Some("_rere_dsds_DSds".to_string()))
         .await;
 
     assert_eq!(
@@ -897,31 +881,13 @@ async fn test_delete_remove_document() {
     );
     // Fourth test to check that we get error if we tried to remove a doc that has
     // already been removed or that does not exist
-    let remove: Result<DocumentResponse<Value>, ClientError> = coll
-        .remove_document(
-            _key.as_str(),
-            Some(DocumentRemoveOptions {
-                wait_for_sync: None,
-                return_old: None,
-                silent: None,
-                if_match: None,
-            }),
-        )
-        .await;
+    let remove: Result<DocumentResponse<Value>, ClientError> =
+        coll.remove_document(_key.as_str(), None, None).await;
 
     assert_eq!(remove.is_err(), false, "We should remove the doc");
 
-    let remove: Result<DocumentResponse<Value>, ClientError> = coll
-        .remove_document(
-            _key.as_str(),
-            Some(DocumentRemoveOptions {
-                wait_for_sync: None,
-                return_old: None,
-                silent: None,
-                if_match: None,
-            }),
-        )
-        .await;
+    let remove: Result<DocumentResponse<Value>, ClientError> =
+        coll.remove_document(_key.as_str(), None, None).await;
 
     assert_eq!(
         remove.is_err(),

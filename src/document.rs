@@ -150,21 +150,21 @@ pub enum DocumentReadOptions {
     IfMatch(String),
 }
 /// Options for document removes,
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentRemoveOptions {
     /// Wait until document has been synced to disk.
-    pub wait_for_sync: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    wait_for_sync: Option<bool>,
     /// Additionally return the complete old document under the attribute old in
     /// the result.
-    pub return_old: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    return_old: Option<bool>,
     /// If set to true, an empty object will be returned as response.
     /// No meta-data will be returned for the created document.
     /// This option can be used to save some network traffic.
-    pub silent: Option<bool>,
-    /// You can conditionally replace a document based on a target revision id
-    /// by using the if-match HTTP header.
-    pub if_match: Option<String>,
+    #[builder(default, setter(strip_option))]
+    silent: Option<bool>,
 }
 #[derive(Serialize, Deserialize)]
 pub struct DocumentHeader {
