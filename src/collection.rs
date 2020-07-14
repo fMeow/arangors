@@ -682,8 +682,8 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
         let mut build = Request::put(url.to_string());
 
-        if let Some(if_match) = if_match_header {
-            build = build.header("If-Match", if_match);
+        if let Some(if_match_value) = if_match_header {
+            build = build.header("If-Match", if_match_value);
         }
 
         let req = build.body(body).unwrap();
