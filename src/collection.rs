@@ -620,8 +620,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         &self,
         _key: &str,
         read_options: Option<DocumentReadOptions>,
-    ) -> Result<DocumentHeader, ClientError>
-where {
+    ) -> Result<DocumentHeader, ClientError> {
         let url = self.document_base_url.join(_key).unwrap();
         let mut build = Request::get(url.to_string());
 
