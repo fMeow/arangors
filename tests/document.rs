@@ -583,15 +583,12 @@ async fn test_patch_update_document() {
         .update_document(
             _key.as_str(),
             json!({ "no":2}),
-            Some(DocumentUpdateOptions {
-                keep_null: None,
-                merge_objects: None,
-                wait_for_sync: None,
-                ignore_revs: None,
-                return_new: Some(true),
-                return_old: Some(true),
-                silent: None,
-            }),
+            Some(
+                DocumentUpdateOptions::builder()
+                    .return_new(true)
+                    .return_old(true)
+                    .build(),
+            ),
         )
         .await;
 
@@ -608,19 +605,7 @@ async fn test_patch_update_document() {
 
     let _rev = result.header.unwrap()._rev;
     let update = coll
-        .update_document(
-            _key.as_str(),
-            json!({ "no":3}),
-            Some(DocumentUpdateOptions {
-                keep_null: None,
-                merge_objects: None,
-                wait_for_sync: None,
-                ignore_revs: None,
-                return_new: None,
-                return_old: None,
-                silent: None,
-            }),
-        )
+        .update_document(_key.as_str(), json!({ "no":3}), None)
         .await;
 
     let result: DocumentResponse<Value> = update.unwrap();
@@ -632,15 +617,7 @@ async fn test_patch_update_document() {
         .update_document(
             _key.as_str(),
             json!({ "no":2 , "_rev" :"_dsds_dsds_dsds_" }),
-            Some(DocumentUpdateOptions {
-                keep_null: None,
-                merge_objects: None,
-                wait_for_sync: None,
-                ignore_revs: Some(false),
-                return_new: None,
-                return_old: None,
-                silent: None,
-            }),
+            Some(DocumentUpdateOptions::builder().ignore_revs(false).build()),
         )
         .await;
 

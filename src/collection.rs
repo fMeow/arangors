@@ -613,32 +613,8 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     {
         let mut url = self.document_base_url.join(_key).unwrap();
         let body = serde_json::to_string(&doc)?;
-        if let Some(options) = update_options {
-            if let Some(keep_null) = options.borrow().keep_null {
-                url.query_pairs_mut()
-                    .append_pair("keep_null", keep_null.to_string().as_str());
-            }
-            if let Some(return_new) = options.borrow().return_new {
-                url.query_pairs_mut()
-                    .append_pair("returnNew", return_new.to_string().as_str());
-            }
-            if let Some(wait_for_sync) = options.borrow().wait_for_sync {
-                url.query_pairs_mut()
-                    .append_pair("waitForSync", wait_for_sync.to_string().as_str());
-            }
-            if let Some(ignore_revs) = options.borrow().ignore_revs {
-                url.query_pairs_mut()
-                    .append_pair("ignoreRevs", ignore_revs.to_string().as_str());
-            }
-            if let Some(return_old) = options.borrow().return_old {
-                url.query_pairs_mut()
-                    .append_pair("returnOld", return_old.to_string().as_str());
-            }
-            if let Some(silent) = options.borrow().silent {
-                url.query_pairs_mut()
-                    .append_pair("silent", silent.to_string().as_str());
-            }
-        }
+        let query = qs::to_string(&update_options).unwrap();
+        url.set_query(Some(query.as_str()));
 
         let resp: DocumentResponse<T> =
             deserialize_response(self.session.patch(url, body.as_str()).await?.body())?;

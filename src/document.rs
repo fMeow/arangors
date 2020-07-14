@@ -31,7 +31,7 @@ pub struct DocumentInsertOptions {
     overwrite_mode: Option<DocumentOverwriteMode>,
 }
 /// Options for document update,
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentUpdateOptions {
     /// If the intention is to delete existing attributes with the patch
@@ -39,29 +39,36 @@ pub struct DocumentUpdateOptions {
     /// false. This will modify the behavior of the patch command to remove any
     /// attributes from the existing document that are contained in the patch
     /// document with an attribute value of null.
-    pub keep_null: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    keep_null: Option<bool>,
     /// Controls whether objects (not arrays) will be merged if present in both
     /// the existing and the patch document. If set to false, the value in the
     /// patch document will overwrite the existing document’s value. If set to
     /// true, objects will be merged. The default is true.
-    pub merge_objects: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    merge_objects: Option<bool>,
     /// Wait until document has been synced to disk.
-    pub wait_for_sync: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    wait_for_sync: Option<bool>,
     /// By default, or if this is set to true, the _rev attributes in the given
     /// document is ignored. If this is set to false, then the _rev
     /// attribute given in the body document is taken as a precondition. The
     /// document is only update if the current revision is the one specified.
-    pub ignore_revs: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    ignore_revs: Option<bool>,
     /// Additionally return the complete new document under the attribute new in
     /// the result.
-    pub return_new: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    return_new: Option<bool>,
     /// Return additionally the complete previous revision of the changed
     /// document under the attribute old in the result.
-    pub return_old: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    return_old: Option<bool>,
     /// If set to true, an empty object will be returned as response.
     /// No meta-data will be returned for the updated document.
     /// This option can be used to save some network traffic.
-    pub silent: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    silent: Option<bool>,
 }
 #[derive(Serialize, Deserialize)]
 pub enum DocumentOverwriteMode {
