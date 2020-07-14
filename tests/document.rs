@@ -676,14 +676,13 @@ async fn test_post_replace_document() {
         .replace_document(
             _key.as_str(),
             json!({ "no":2}),
-            Some(DocumentReplaceOptions {
-                wait_for_sync: None,
-                ignore_revs: None,
-                return_new: Some(true),
-                return_old: Some(true),
-                silent: None,
-                if_match: None,
-            }),
+            Some(
+                DocumentReplaceOptions::builder()
+                    .return_new(true)
+                    .return_old(true)
+                    .build(),
+            ),
+            None,
         )
         .await;
 
@@ -716,14 +715,8 @@ async fn test_post_replace_document() {
         .replace_document(
             _key.as_str(),
             json!({ "no":2}),
-            Some(DocumentReplaceOptions {
-                wait_for_sync: None,
-                ignore_revs: None,
-                return_new: None,
-                return_old: None,
-                silent: Some(true),
-                if_match: None,
-            }),
+            Some(DocumentReplaceOptions::builder().silent(true).build()),
+            None,
         )
         .await;
 
@@ -739,27 +732,16 @@ async fn test_post_replace_document() {
         true,
         "We should not get the old doc back"
     );
-    // Second test to try out the silence mode
+    // third test tro try out the if-match header
 
     let replace = coll
-        .replace_document(
-            _key.as_str(),
-            json!({ "no":2}),
-            Some(DocumentReplaceOptions {
-                wait_for_sync: None,
-                ignore_revs: None,
-                return_new: None,
-                return_old: None,
-                silent: None,
-                if_match: Some(_rev.clone()),
-            }),
-        )
+        .replace_document(_key.as_str(), json!({ "no":2}), None, Some(_rev.clone()))
         .await;
 
     assert_eq!(
         replace.is_err(),
         true,
-        "We should have precondition failed as we ask to replace the doc only if for the \
+        "We should have precondition failed as we ask to replace the doc only if match the \
          specified _rev in header"
     );
 
@@ -767,21 +749,15 @@ async fn test_post_replace_document() {
         .replace_document(
             _key.as_str(),
             json!({ "no":2 , "_rev" :_rev.clone() }),
-            Some(DocumentReplaceOptions {
-                wait_for_sync: None,
-                ignore_revs: Some(false),
-                return_new: None,
-                return_old: None,
-                silent: None,
-                if_match: None,
-            }),
+            Some(DocumentReplaceOptions::builder().ignore_revs(false).build()),
+            None,
         )
         .await;
 
     assert_eq!(
         replace.is_err(),
         true,
-        "We should have precondition failed as we ask to replace the doc only if for the \
+        "We should have precondition failed as we ask to replace the doc only if match the \
          specified _rev in body"
     );
 

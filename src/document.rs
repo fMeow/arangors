@@ -110,29 +110,31 @@ pub enum DocumentOverwriteMode {
     Conflict,
 }
 /// Options for document replace,
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentReplaceOptions {
     /// Wait until document has been synced to disk.
-    pub wait_for_sync: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    wait_for_sync: Option<bool>,
     /// By default, or if this is set to true, the _rev attributes in the given
     /// document is ignored. If this is set to false, then the _rev
     /// attribute given in the body document is taken as a precondition. The
     /// document is only replaced if the current revision is the one specified.
-    pub ignore_revs: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    ignore_revs: Option<bool>,
     /// Additionally return the complete new document under the attribute new in
     /// the result.
-    pub return_new: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    return_new: Option<bool>,
     /// Additionally return the complete old document under the attribute old in
     /// the result.
-    pub return_old: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    return_old: Option<bool>,
     /// If set to true, an empty object will be returned as response.
     /// No meta-data will be returned for the replaced document.
     /// This option can be used to save some network traffic.
-    pub silent: Option<bool>,
-    /// You can conditionally replace a document based on a target revision id
-    /// by using the if-match HTTP header.
-    pub if_match: Option<String>,
+    #[builder(default, setter(strip_option))]
+    silent: Option<bool>,
 }
 /// Options for document reading.
 #[derive(Serialize, Deserialize)]

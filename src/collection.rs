@@ -667,44 +667,21 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         &self,
         _key: &str,
         doc: T,
-        update_options: Option<DocumentReplaceOptions>,
+        replace_options: Option<DocumentReplaceOptions>,
+        if_match_header: Option<String>,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
     {
         let mut url = self.document_base_url.join(_key).unwrap();
         let body = serde_json::to_string(&doc)?;
-        let mut header = ("".to_string(), "".to_string());
+        let query = qs::to_string(&replace_options).unwrap();
+        url.set_query(Some(query.as_str()));
 
-        if let Some(options) = update_options {
-            if let Some(return_new) = options.return_new {
-                url.query_pairs_mut()
-                    .append_pair("returnNew", return_new.to_string().as_str());
-            }
-            if let Some(wait_for_sync) = options.wait_for_sync {
-                url.query_pairs_mut()
-                    .append_pair("waitForSync", wait_for_sync.to_string().as_str());
-            }
-            if let Some(ignore_revs) = options.ignore_revs {
-                url.query_pairs_mut()
-                    .append_pair("ignoreRevs", ignore_revs.to_string().as_str());
-            }
-            if let Some(return_old) = options.return_old {
-                url.query_pairs_mut()
-                    .append_pair("returnOld", return_old.to_string().as_str());
-            }
-            if let Some(silent) = options.silent {
-                url.query_pairs_mut()
-                    .append_pair("silent", silent.to_string().as_str());
-            }
-            if let Some(if_match) = options.if_match {
-                header = ("If-Match".to_string(), if_match);
-            }
-        }
         let mut build = Request::put(url.to_string());
 
-        if (header.0 != "") & (header.1 != "") {
-            build = build.header(header.0.as_str(), header.1.as_str());
+        if let Some(if_match) = if_match_header {
+            build = build.header("If-Match", if_match);
         }
 
         let req = build.body(body).unwrap();
