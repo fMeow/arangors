@@ -402,3 +402,6 @@ pub mod document;
 pub mod error;
 mod query;
 pub mod response;
+#[macro_use]
+extern crate typed_builder;
+extern crate serde_qs as qs;
