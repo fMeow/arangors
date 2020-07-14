@@ -143,7 +143,7 @@ pub struct CollectionInfo {
 /// collection name, but not the collection identifier. Collections have a type
 /// that is specified by the user when the collection is created. There are
 /// currently two types: document and edge. The default type is document.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Collection<'a, C: ClientExt> {
     /// The collection identifier
     /// A collection identifier lets you refer to a collection in a database. It
