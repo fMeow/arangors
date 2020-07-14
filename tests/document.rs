@@ -79,13 +79,7 @@ async fn test_post_create_document() {
     let create = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions {
-                wait_for_sync: None,
-                return_new: Some(true),
-                return_old: None,
-                silent: None,
-                overwrite: None,
-            }),
+            Some(DocumentInsertOptions::builder().return_new(true).build()),
         )
         .await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
@@ -117,13 +111,12 @@ async fn test_post_create_document() {
     let update = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions {
-                wait_for_sync: None,
-                return_new: None,
-                return_old: Some(true),
-                silent: None,
-                overwrite: Some(true),
-            }),
+            Some(
+                DocumentInsertOptions::builder()
+                    .return_old(true)
+                    .overwrite(true)
+                    .build(),
+            ),
         )
         .await;
     assert_eq!(update.is_ok(), true, "succeed update a document");
@@ -149,13 +142,7 @@ async fn test_post_create_document() {
     let create = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions {
-                wait_for_sync: None,
-                return_new: None,
-                return_old: None,
-                silent: Some(true),
-                overwrite: None,
-            }),
+            Some(DocumentInsertOptions::builder().silent(true).build()),
         )
         .await;
 
@@ -233,14 +220,7 @@ async fn test_post_create_document_3_7() {
     let create = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions {
-                wait_for_sync: None,
-                return_new: Some(true),
-                return_old: None,
-                silent: None,
-                overwrite_mode: None,
-                overwrite: None,
-            }),
+            Some(DocumentInsertOptions::builder().return_new(true).build()),
         )
         .await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
@@ -272,14 +252,12 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions {
-                wait_for_sync: None,
-                return_new: None,
-                return_old: Some(true),
-                silent: None,
-                overwrite_mode: None,
-                overwrite: Some(true),
-            }),
+            Some(
+                DocumentInsertOptions::builder()
+                    .return_old(true)
+                    .overwrite(true)
+                    .build(),
+            ),
         )
         .await;
 
@@ -304,14 +282,7 @@ async fn test_post_create_document_3_7() {
     let create = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions {
-                wait_for_sync: None,
-                return_new: None,
-                return_old: None,
-                silent: Some(true),
-                overwrite_mode: None,
-                overwrite: None,
-            }),
+            Some(DocumentInsertOptions::builder().silent(true).build()),
         )
         .await;
 
@@ -341,14 +312,11 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions {
-                wait_for_sync: None,
-                return_new: Some(true),
-                return_old: None,
-                silent: None,
-                overwrite_mode: Some(DocumentOverwriteMode::Ignore),
-                overwrite: None,
-            }),
+            Some(
+                DocumentInsertOptions::builder()
+                    .return_new(true)
+                    .overwrite_mode(DocumentOverwriteMode::Ignore),
+            ),
         )
         .await;
 
@@ -366,14 +334,7 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions {
-                wait_for_sync: None,
-                return_new: None,
-                return_old: None,
-                silent: None,
-                overwrite_mode: Some(DocumentOverwriteMode::Replace),
-                overwrite: None,
-            }),
+            Some(DocumentInsertOptions::builder().overwrite_mode(DocumentOverwriteMode::Replace)),
         )
         .await;
 
@@ -396,14 +357,7 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions {
-                wait_for_sync: None,
-                return_new: None,
-                return_old: None,
-                silent: None,
-                overwrite_mode: Some(DocumentOverwriteMode::Update),
-                overwrite: None,
-            }),
+            Some(DocumentInsertOptions::builder().overwrite_mode(DocumentOverwriteMode::Update)),
         )
         .await;
 

@@ -533,40 +533,8 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     {
         let mut url = self.document_base_url.join("").unwrap();
         let body = serde_json::to_string(&doc)?;
-
-        if let Some(options) = insert_options {
-            if let Some(return_new) = options.borrow().return_new {
-                url.query_pairs_mut()
-                    .append_pair("returnNew", return_new.to_string().as_str());
-            }
-            if let Some(wait_for_sync) = options.borrow().wait_for_sync {
-                url.query_pairs_mut()
-                    .append_pair("waitForSync", wait_for_sync.to_string().as_str());
-            }
-            if let Some(return_old) = options.borrow().return_old {
-                url.query_pairs_mut()
-                    .append_pair("returnOld", return_old.to_string().as_str());
-            }
-            if let Some(silent) = options.borrow().silent {
-                url.query_pairs_mut()
-                    .append_pair("silent", silent.to_string().as_str());
-            }
-            if let Some(overwrite) = options.borrow().overwrite {
-                url.query_pairs_mut()
-                    .append_pair("overwrite", overwrite.to_string().as_str());
-            }
-            #[cfg(feature = "arango3_7")]
-            if let Some(overwrite_mode) = options.overwrite_mode {
-                let mode = match overwrite_mode {
-                    DocumentOverwriteMode::Ignore => "ignore",
-                    DocumentOverwriteMode::Replace => "replace",
-                    DocumentOverwriteMode::Update => "update",
-                    DocumentOverwriteMode::Conflict => "conflict",
-                };
-                url.query_pairs_mut().append_pair("overwriteMode", mode);
-            }
-        }
-
+        let query = qs::to_string(&insert_options).unwrap();
+        url.set_query(Some(query.as_str()));
         let resp: DocumentResponse<T> =
             deserialize_response(self.session.post(url, body.as_str()).await?.body())?;
         Ok(resp)

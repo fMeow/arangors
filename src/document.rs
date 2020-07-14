@@ -1,29 +1,34 @@
 use serde::{Deserialize, Serialize};
-
 /// Options for document insertion.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct DocumentInsertOptions {
     /// Wait until document has been synced to disk.
-    pub wait_for_sync: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    wait_for_sync: Option<bool>,
     /// Additionally return the complete new document under the attribute new in
     /// the result.
-    pub return_new: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    return_new: Option<bool>,
     /// Additionally return the complete old document under the attribute old in
     /// the result. Only available if the overwrite option is used.
-    pub return_old: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    return_old: Option<bool>,
     /// If set to true, an empty object will be returned as response.
     /// No meta-data will be returned for the created document.
     /// This option can be used to save some network traffic.
-    pub silent: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    silent: Option<bool>,
     /// If set to true, the insert becomes a replace-insert.
     /// If a document with the same _key already exists the new document is not
     /// rejected with unique constraint violated but will replace the old
     /// document.
-    pub overwrite: Option<bool>,
+    #[builder(default, setter(strip_option))]
+    overwrite: Option<bool>,
     /// TODO add nice formatted documentation from official doc
     #[cfg(arango3_7)]
-    pub overwrite_mode: Option<DocumentOverwriteMode>,
+    #[builder(default, setter(strip_option))]
+    overwrite_mode: Option<DocumentOverwriteMode>,
 }
 /// Options for document update,
 #[derive(Serialize, Deserialize)]
