@@ -1,4 +1,7 @@
-use serde::{Deserialize, Serialize};
+use crate::ArangoError;
+use serde::{de, Deserialize, Deserializer, Serialize};
+use serde_json::Value;
+
 /// Options for document insertion.
 #[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
@@ -166,7 +169,8 @@ pub struct DocumentRemoveOptions {
     #[builder(default, setter(strip_option))]
     silent: Option<bool>,
 }
-#[derive(Serialize, Deserialize)]
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DocumentHeader {
     #[serde(skip_serializing_if = "String::is_empty")]
     pub _id: String,
@@ -176,9 +180,9 @@ pub struct DocumentHeader {
     pub _rev: String,
 }
 
-/// Standard Response when having CRUD operation on document
-#[derive(Serialize, Deserialize)]
-pub struct DocumentResponse<T> {
+/// Content Response when having CRUD operation on document
+#[derive(Serialize, Deserialize, Debug)]
+pub struct OperationResponse<T> {
     #[serde(flatten)]
     /// May contain the { _key : String, _id : String, _rev:String } of the
     /// document
@@ -191,6 +195,90 @@ pub struct DocumentResponse<T> {
     /// May contain the old the document after update/replace/remove
     pub old: Option<T>,
 }
+
+/// Standard Response when having CRUD operation on document
+/// Todo could add more response variant like shown on official doc
+/// 200: is returned if the document was found
+/// 304: is returned if the “If-None-Match” header is given and the document has
+/// the same version 404: is returned if the document or collection was not
+/// found 412: is returned if an “If-Match” header is given and the found
+/// document has a different version. The response will also contain the found
+/// document’s current revision in the Etag header.
+#[derive(Debug)]
+pub enum DocumentResponse<T> {
+    /// Silent is when there is empty object returned by the server
+    Silent,
+    /// Contain data after CRUD
+    Response(OperationResponse<T>),
+    /// Error if something wrong happens
+    Err(ArangoError),
+}
+
+/// Gives extra method on the DocumentResponse to quickly check what the server
+/// returns
+impl<T> DocumentResponse<T> {
+    /// Should be true when the server send back an empty object {}
+    pub fn is_silent(&self) -> bool {
+        match self {
+            DocumentResponse::Silent => true,
+            DocumentResponse::Response(_) => false,
+            DocumentResponse::Err(_) => false,
+        }
+    }
+    /// Should be true of there is an error
+    pub fn has_error(&self) -> bool {
+        match self {
+            DocumentResponse::Silent => false,
+            DocumentResponse::Response(_) => false,
+            DocumentResponse::Err(_) => true,
+        }
+    }
+    /// Should be true if there is a response from the server
+    pub fn has_response(&self) -> bool {
+        match self {
+            DocumentResponse::Silent => false,
+            DocumentResponse::Response(_) => true,
+            DocumentResponse::Err(_) => false,
+        }
+    }
+    /// Should give None or Some(Response)
+    pub fn get_response(self) -> Option<OperationResponse<T>> {
+        match self {
+            DocumentResponse::Silent => None,
+            DocumentResponse::Response(res) => Some(res),
+            DocumentResponse::Err(_) => None,
+        }
+    }
+}
+
+impl<'de, T> Deserialize<'de> for DocumentResponse<T>
+where
+    T: Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let map = serde_json::Map::deserialize(deserializer)?;
+        let error = map
+            .get("error")
+            .map_or_else(|| Ok(false), Deserialize::deserialize)
+            .map_err(de::Error::custom)?;
+        let rest = Value::Object(map);
+        if error {
+            ArangoError::deserialize(rest)
+                .map(|error| DocumentResponse::Err(error))
+                .map_err(de::Error::custom)
+        } else if rest.to_string() == "{}" {
+            Ok(DocumentResponse::Silent)
+        } else {
+            OperationResponse::deserialize(rest)
+                .map(|doc| DocumentResponse::Response(doc))
+                .map_err(de::Error::custom)
+        }
+    }
+}
+
 /// Structure that represents a document within its content and header
 #[derive(Serialize, Deserialize)]
 pub struct Document<T> {
