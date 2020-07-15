@@ -22,7 +22,6 @@ use crate::document::{
 };
 use http::Request;
 use serde::de::DeserializeOwned;
-use std::borrow::Borrow;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
