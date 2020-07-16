@@ -50,9 +50,10 @@ async fn test_post_create_document() {
 
     // First test is to create a simple document without options
     let create = coll.create_document(test_doc, None).await;
-    assert_eq!(create.is_ok(), true, "succeed create a document");
 
+    assert_eq!(create.is_ok(), true, "succeed create a document");
     let result = create.unwrap();
+
     assert_eq!(result.is_silent(), false);
     assert_eq!(result.has_response(), true);
 
@@ -611,7 +612,11 @@ async fn test_patch_update_document() {
     let result = update.unwrap();
     let response = result.get_response().unwrap();
 
-    assert_eq!(response.header.unwrap()._rev != _rev, true);
+    assert_eq!(
+        response.header.unwrap()._rev != _rev,
+        true,
+        "We should get a different revision after update"
+    );
 
     // Test when we do not ignore_revs. W
     let replace = coll
@@ -809,6 +814,7 @@ async fn test_delete_remove_document() {
 
     let result = remove.unwrap();
     let response = result.get_response().unwrap();
+
     assert_eq!(
         response.new.is_none(),
         true,

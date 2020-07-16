@@ -1,5 +1,4 @@
-use crate::ArangoError;
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 /// Options for document insertion.
@@ -170,7 +169,7 @@ pub struct DocumentRemoveOptions {
     silent: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct DocumentHeader {
     #[serde(skip_serializing_if = "String::is_empty")]
     pub _id: String,
@@ -181,7 +180,7 @@ pub struct DocumentHeader {
 }
 
 /// Content Response when having CRUD operation on document
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct OperationResponse<T> {
     #[serde(flatten)]
     /// May contain the { _key : String, _id : String, _rev:String } of the
@@ -204,49 +203,61 @@ pub struct OperationResponse<T> {
 /// found 412: is returned if an “If-Match” header is given and the found
 /// document has a different version. The response will also contain the found
 /// document’s current revision in the Etag header.
-#[derive(Debug)]
 pub enum DocumentResponse<T> {
     /// Silent is when there is empty object returned by the server
     Silent,
     /// Contain data after CRUD
-    Response(OperationResponse<T>),
-    /// Error if something wrong happens
-    Err(ArangoError),
+    Response {
+        header: DocumentHeader,
+        old: Option<T>,
+        new: Option<T>,
+        _old_rev: Option<String>,
+    },
 }
 
-/// Gives extra method on the DocumentResponse to quickly check what the server
+// Gives extra method on the DocumentResponse to quickly check what the server
 /// returns
 impl<T> DocumentResponse<T> {
     /// Should be true when the server send back an empty object {}
     pub fn is_silent(&self) -> bool {
-        match self {
-            DocumentResponse::Silent => true,
-            DocumentResponse::Response(_) => false,
-            DocumentResponse::Err(_) => false,
-        }
-    }
-    /// Should be true of there is an error
-    pub fn has_error(&self) -> bool {
-        match self {
-            DocumentResponse::Silent => false,
-            DocumentResponse::Response(_) => false,
-            DocumentResponse::Err(_) => true,
+        if let DocumentResponse::Silent = self {
+            true
+        } else {
+            false
         }
     }
     /// Should be true if there is a response from the server
     pub fn has_response(&self) -> bool {
-        match self {
-            DocumentResponse::Silent => false,
-            DocumentResponse::Response(_) => true,
-            DocumentResponse::Err(_) => false,
+        if let DocumentResponse::Response {
+            header,
+            old,
+            new,
+            _old_rev,
+        } = self
+        {
+            true
+        } else {
+            false
         }
     }
+
     /// Should give None or Some(Response)
     pub fn get_response(self) -> Option<OperationResponse<T>> {
-        match self {
-            DocumentResponse::Silent => None,
-            DocumentResponse::Response(res) => Some(res),
-            DocumentResponse::Err(_) => None,
+        if let DocumentResponse::Response {
+            header,
+            old,
+            new,
+            _old_rev,
+        } = self
+        {
+            Some(OperationResponse {
+                header: Some(header),
+                old,
+                new,
+                _old_rev,
+            })
+        } else {
+            None
         }
     }
 }
@@ -260,21 +271,33 @@ where
         D: Deserializer<'de>,
     {
         let map = serde_json::Map::deserialize(deserializer)?;
-        let error = map
-            .get("error")
-            .map_or_else(|| Ok(false), Deserialize::deserialize)
-            .map_err(de::Error::custom)?;
-        let rest = Value::Object(map);
-        if error {
-            ArangoError::deserialize(rest)
-                .map(|error| DocumentResponse::Err(error))
-                .map_err(de::Error::custom)
-        } else if rest.to_string() == "{}" {
+
+        if map.clone().get("_key").is_none() {
             Ok(DocumentResponse::Silent)
         } else {
-            OperationResponse::deserialize(rest)
-                .map(|doc| DocumentResponse::Response(doc))
-                .map_err(de::Error::custom)
+            let rest = Value::Object(map.clone());
+            let header: DocumentHeader = DocumentHeader::deserialize(rest.clone()).unwrap();
+
+            let old = if map.clone().get("old").is_some() {
+                T::deserialize(rest["old"].clone()).ok()
+            } else {
+                None
+            };
+
+            let new = if map.clone().get("new").is_some() {
+                T::deserialize(rest["new"].clone()).ok()
+            } else {
+                None
+            };
+
+            let _old_rev = serde_json::from_value(rest["_old_rev"].clone()).ok();
+
+            Ok(DocumentResponse::Response {
+                header,
+                old,
+                new,
+                _old_rev,
+            })
         }
     }
 }
