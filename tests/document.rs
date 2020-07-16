@@ -37,10 +37,9 @@ async fn test_post_create_document() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
-
+    assert_eq!(coll.is_err(), true, "drop collection");
     let coll = database.create_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should create the collection");
 
     let coll = database.collection(collection_name).await.unwrap();
 
@@ -186,7 +185,7 @@ async fn test_post_create_document_3_7() {
     assert_eq!(coll.is_err(), true);
 
     let coll = database.create_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should create the collection");
 
     let coll = database.collection(collection_name).await.unwrap();
 
@@ -372,7 +371,7 @@ async fn test_post_create_document_3_7() {
     assert_eq!(response.header.is_none(), false);
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -397,7 +396,7 @@ async fn test_get_read_document() {
     assert_eq!(coll.is_err(), true);
 
     let coll = database.create_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should create the collection");
 
     let coll = database.collection(collection_name).await.unwrap();
 
@@ -445,7 +444,7 @@ async fn test_get_read_document() {
     // todo need to test with with IfNoneMatch and 304
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -469,9 +468,10 @@ async fn test_get_read_document_header() {
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), true);
 
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true, "drop collection");
     let coll = database.create_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
-
+    coll.expect("Should create the collection");
     let coll = database.collection(collection_name).await.unwrap();
 
     let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
@@ -540,7 +540,7 @@ async fn test_get_read_document_header() {
         "the If-None-Match header is given and the document has the same version"
     );
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -564,8 +564,10 @@ async fn test_patch_update_document() {
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), true);
 
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true, "drop collection");
     let coll = database.create_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should create the collection");
 
     let coll = database.collection(collection_name).await.unwrap();
 
@@ -635,7 +637,7 @@ async fn test_patch_update_document() {
     );
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
     // todo do more test for merge objects and stuff
 }
 
@@ -660,8 +662,10 @@ async fn test_post_replace_document() {
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(coll.is_err(), true);
 
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(coll.is_err(), true, "drop collection");
     let coll = database.create_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should create the collection");
 
     let coll = database.collection(collection_name).await.unwrap();
 
@@ -759,7 +763,7 @@ async fn test_post_replace_document() {
     );
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 
     // todo do more test
 }
@@ -783,10 +787,9 @@ async fn test_delete_remove_document() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
-
+    assert_eq!(coll.is_err(), true, "drop collection");
     let coll = database.create_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should create the collection");
 
     let coll = database.collection(collection_name).await.unwrap();
 
@@ -889,7 +892,6 @@ async fn test_delete_remove_document() {
     );
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
-
+    coll.expect("Should drop the collection");
     // todo do more test
 }
