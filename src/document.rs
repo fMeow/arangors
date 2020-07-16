@@ -32,6 +32,7 @@ pub struct DocumentInsertOptions {
     #[builder(default, setter(strip_option))]
     overwrite_mode: Option<DocumentOverwriteMode>,
 }
+
 /// Options for document update,
 #[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
@@ -72,6 +73,7 @@ pub struct DocumentUpdateOptions {
     #[builder(default, setter(strip_option))]
     silent: Option<bool>,
 }
+
 #[derive(Serialize, Deserialize)]
 pub enum DocumentOverwriteMode {
     /// If a document with the specified _key value exists already,
@@ -111,6 +113,7 @@ pub enum DocumentOverwriteMode {
     /// TODO need to implement the two extra modes keepNull & mergeObjects
     Conflict,
 }
+
 /// Options for document replace,
 #[derive(Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
@@ -138,6 +141,7 @@ pub struct DocumentReplaceOptions {
     #[builder(default, setter(strip_option))]
     silent: Option<bool>,
 }
+
 /// Options for document reading.
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -151,6 +155,7 @@ pub enum DocumentReadOptions {
     /// given Etag. Otherwise a HTTP 412 is returned.
     IfMatch(String),
 }
+
 /// Options for document removes,
 #[derive(Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
