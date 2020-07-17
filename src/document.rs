@@ -174,7 +174,7 @@ pub struct DocumentRemoveOptions {
     silent: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DocumentHeader {
     #[serde(skip_serializing_if = "String::is_empty")]
     pub _id: String,
