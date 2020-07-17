@@ -70,7 +70,7 @@ impl ClientExt for SurfClient {
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
         let status_code = resp.status();
-
+        let status = u16::from(status_code);
         let mut headers = HeaderMap::new();
         let conv_header = |hn: HeaderName| -> HeaderValue {
             let v = resp
@@ -105,10 +105,12 @@ impl ClientExt for SurfClient {
             _ => unreachable!(),
         });
 
-        http::response::Builder::from(build)
-            .status(StatusCode::from_u16(u16::from(status_code)).unwrap())
-            .version(http_version.unwrap())
-            .body(content)
+        let mut resp =
+            http::response::Builder::from(build).status(StatusCode::from_u16(status).unwrap());
+        if version.is_some() {
+            resp = resp.version(http_version.unwrap());
+        }
+        resp.body(content)
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 }
