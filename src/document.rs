@@ -308,7 +308,7 @@ where
 }
 
 /// Structure that represents a document within its content and header
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Document<T> {
     #[serde(flatten)]
     pub header: DocumentHeader,
