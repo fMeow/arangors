@@ -106,7 +106,7 @@ impl ClientExt for SurfClient {
         });
 
         http::response::Builder::from(build)
-            .status(status_code)
+            .status(StatusCode::from_u16(u16::from(status_code)).unwrap())
             .version(http_version.unwrap())
             .body(content)
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
