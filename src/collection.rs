@@ -605,7 +605,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         &self,
         _key: &str,
         doc: T,
-        update_options: Option<DocumentUpdateOptions>,
+        update_options: DocumentUpdateOptions,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,

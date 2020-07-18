@@ -580,12 +580,10 @@ async fn test_patch_update_document() {
         .update_document(
             _key.as_str(),
             json!({ "no":2}),
-            Some(
-                DocumentUpdateOptions::builder()
-                    .return_new(true)
-                    .return_old(true)
-                    .build(),
-            ),
+            DocumentUpdateOptions::builder()
+                .return_new(true)
+                .return_old(true)
+                .build(),
         )
         .await;
 
@@ -602,7 +600,7 @@ async fn test_patch_update_document() {
 
     let _rev = response.header._rev;
     let update = coll
-        .update_document(_key.as_str(), json!({ "no":3}), None)
+        .update_document(_key.as_str(), json!({ "no":3}), Default::default())
         .await;
 
     let result = update.unwrap();
@@ -619,7 +617,7 @@ async fn test_patch_update_document() {
         .update_document(
             _key.as_str(),
             json!({ "no":2 , "_rev" :"_dsds_dsds_dsds_" }),
-            Some(DocumentUpdateOptions::builder().ignore_revs(false).build()),
+            DocumentUpdateOptions::builder().ignore_revs(false).build(),
         )
         .await;
 

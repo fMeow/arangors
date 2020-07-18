@@ -77,7 +77,11 @@ pub struct DocumentUpdateOptions {
     #[builder(default, setter(strip_option))]
     silent: Option<bool>,
 }
-
+impl Default for DocumentUpdateOptions {
+    fn default() -> Self {
+        Self::builder().build()
+    }
+}
 #[derive(Serialize, Deserialize)]
 pub enum DocumentOverwriteMode {
     /// If a document with the specified _key value exists already,
