@@ -185,7 +185,7 @@ pub struct DocumentHeader {
 }
 
 /// Content Response when having CRUD operation on document
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct OperationResponse<T> {
     #[serde(flatten)]
     /// May contain the { _key : String, _id : String, _rev:String } of the
