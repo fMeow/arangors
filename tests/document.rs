@@ -413,17 +413,14 @@ async fn test_get_read_document() {
     assert_eq!(result.document["testDescription"], "read a document");
     // Test if we get the right doc when it does match
     let read: Result<Document<Value>, ClientError> = coll
-        .read_document_with_options(
-            _key.as_str(),
-            Some(DocumentReadOptions::IfMatch(_rev.clone())),
-        )
+        .read_document_with_options(_key.as_str(), DocumentReadOptions::IfMatch(_rev.clone()))
         .await;
     assert_eq!(read.is_err(), false, "got the right document");
     // Test if we get the 412 code response when there is no match
     let read: Result<Document<Value>, ClientError> = coll
         .read_document_with_options(
             _key.as_str(),
-            Some(DocumentReadOptions::IfMatch("_dsdsds_d".to_string())),
+            DocumentReadOptions::IfMatch("_dsdsds_d".to_string()),
         )
         .await;
     // We should get a 412, for now for some reason the error is parsed as a
@@ -500,7 +497,7 @@ async fn test_get_read_document_header() {
     let read = coll
         .read_document_header_with_options(
             _key.as_str(),
-            Some(DocumentReadOptions::IfMatch(_rev.clone())),
+            DocumentReadOptions::IfMatch(_rev.clone()),
         )
         .await;
 
@@ -512,7 +509,7 @@ async fn test_get_read_document_header() {
     let read = coll
         .read_document_header_with_options(
             _key.as_str(),
-            Some(DocumentReadOptions::IfMatch("_dsdsds".to_string())),
+            DocumentReadOptions::IfMatch("_dsdsds".to_string()),
         )
         .await;
 
@@ -524,7 +521,7 @@ async fn test_get_read_document_header() {
     let read = coll
         .read_document_header_with_options(
             _key.as_str(),
-            Some(DocumentReadOptions::IfNoneMatch(_rev.clone())),
+            DocumentReadOptions::IfNoneMatch(_rev.clone()),
         )
         .await;
 

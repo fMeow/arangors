@@ -167,8 +167,14 @@ pub enum DocumentReadOptions {
     /// Etag. The document is returned, if it has the same revision as the
     /// given Etag. Otherwise a HTTP 412 is returned.
     IfMatch(String),
+    NoHeader,
 }
 
+impl Default for DocumentReadOptions {
+    fn default() -> Self {
+        Self::NoHeader
+    }
+}
 /// Options for document removes,
 #[derive(Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]

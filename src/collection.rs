@@ -22,6 +22,7 @@ use crate::document::{
 };
 use http::Request;
 use serde::de::DeserializeOwned;
+use std::convert::TryFrom;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -549,14 +550,15 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     where
         T: Serialize + DeserializeOwned,
     {
-        self.read_document_with_options(_key, None).await
+        self.read_document_with_options(_key, Default::default())
+            .await
     }
 
     #[maybe_async]
     pub async fn read_document_with_options<T>(
         &self,
         _key: &str,
-        read_options: Option<DocumentReadOptions>,
+        read_options: DocumentReadOptions,
     ) -> Result<Document<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
@@ -566,7 +568,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
         let header = make_header_from_options(read_options);
         if let Some(h) = header {
-            build = build.header(h.0.as_str(), h.1.as_str())
+            build = build.header(h.0, h.1)
         }
         let req = build.body("".to_string()).unwrap();
         let resp: Document<T> = deserialize_response(self.session.request(req).await?.body())?;
@@ -579,21 +581,22 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// document was deleted.
     #[maybe_async]
     pub async fn read_document_header(&self, _key: &str) -> Result<DocumentHeader, ClientError> {
-        self.read_document_header_with_options(_key, None).await
+        self.read_document_header_with_options(_key, Default::default())
+            .await
     }
 
     #[maybe_async]
     pub async fn read_document_header_with_options(
         &self,
         _key: &str,
-        read_options: Option<DocumentReadOptions>,
+        read_options: DocumentReadOptions,
     ) -> Result<DocumentHeader, ClientError> {
         let url = self.document_base_url.join(_key).unwrap();
         let mut build = Request::get(url.to_string());
 
         let header = make_header_from_options(read_options);
         if let Some(h) = header {
-            build = build.header(h.0.as_str(), h.1.as_str())
+            build = build.header(h.0, h.1)
         }
         let req = build.body("".to_string()).unwrap();
         let resp: DocumentHeader = deserialize_response(self.session.request(req).await?.body())?;
@@ -803,15 +806,19 @@ impl<'de> Deserialize<'de> for CollectionType {
 
 /// Create header name and header value from read_options
 fn make_header_from_options(
-    document_read_options: Option<DocumentReadOptions>,
-) -> Option<(String, String)> {
-    if let Some(options) = document_read_options {
-        match options {
-            DocumentReadOptions::IfNoneMatch(value) => Some(("If-None-Match".to_string(), value)),
+    document_read_options: DocumentReadOptions,
+) -> Option<(http::header::HeaderName, http::header::HeaderValue)> {
+    match document_read_options {
+        DocumentReadOptions::IfNoneMatch(value) => Some((
+            "If-None-Match".to_string().parse().unwrap(),
+            http::HeaderValue::try_from(value).unwrap(),
+        )),
 
-            DocumentReadOptions::IfMatch(value) => Some(("If-Match".to_string(), value)),
-        }
-    } else {
-        None
+        DocumentReadOptions::IfMatch(value) => Some((
+            "If-Match".to_string().parse().unwrap(),
+            http::HeaderValue::try_from(value).unwrap(),
+        )),
+
+        DocumentReadOptions::NoHeader => None,
     }
 }
