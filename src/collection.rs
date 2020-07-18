@@ -668,7 +668,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         &self,
         _key: &str,
         doc: T,
-        replace_options: Option<DocumentReplaceOptions>,
+        replace_options: DocumentReplaceOptions,
         if_match_header: Option<String>,
     ) -> Result<DocumentResponse<T>, ClientError>
     where

@@ -150,6 +150,11 @@ pub struct DocumentReplaceOptions {
     silent: Option<bool>,
 }
 
+impl Default for DocumentReplaceOptions {
+    fn default() -> Self {
+        Self::builder().build()
+    }
+}
 /// Options for document reading.
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
