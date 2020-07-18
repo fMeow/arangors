@@ -187,6 +187,12 @@ pub struct DocumentRemoveOptions {
     silent: Option<bool>,
 }
 
+impl Default for DocumentRemoveOptions {
+    fn default() -> Self {
+        Self::builder().build()
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DocumentHeader {
     #[serde(skip_serializing_if = "String::is_empty")]

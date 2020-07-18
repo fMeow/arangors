@@ -711,7 +711,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn remove_document<T>(
         &self,
         _key: &str,
-        remove_options: Option<DocumentRemoveOptions>,
+        remove_options: DocumentRemoveOptions,
         if_match_header: Option<String>,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
