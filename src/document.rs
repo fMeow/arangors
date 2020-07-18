@@ -225,24 +225,16 @@ pub enum DocumentResponse<T> {
 impl<T> DocumentResponse<T> {
     /// Should be true when the server send back an empty object {}
     pub fn is_silent(&self) -> bool {
-        if let DocumentResponse::Silent = self {
-            true
-        } else {
-            false
+        match self {
+            DocumentResponse::Silent => true,
+            _ => false,
         }
     }
     /// Should be true if there is a response from the server
     pub fn has_response(&self) -> bool {
-        if let DocumentResponse::Response {
-            header,
-            old,
-            new,
-            _old_rev,
-        } = self
-        {
-            true
-        } else {
-            false
+        match self {
+            DocumentResponse::Response { .. } => true,
+            _ => false,
         }
     }
 
