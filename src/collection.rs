@@ -525,7 +525,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn create_document<T>(
         &self,
         doc: T,
-        insert_options: Option<DocumentInsertOptions>,
+        insert_options: DocumentInsertOptions,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,

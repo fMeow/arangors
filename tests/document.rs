@@ -48,7 +48,7 @@ async fn test_post_create_document() {
     }));
 
     // First test is to create a simple document without options
-    let create = coll.create_document(test_doc, None).await;
+    let create = coll.create_document(test_doc, Default::default()).await;
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
     let result = create.unwrap();
@@ -81,7 +81,7 @@ async fn test_post_create_document() {
     let create = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions::builder().return_new(true).build()),
+            DocumentInsertOptions::builder().return_new(true).build(),
         )
         .await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
@@ -114,12 +114,10 @@ async fn test_post_create_document() {
     let update = coll
         .create_document(
             test_doc,
-            Some(
-                DocumentInsertOptions::builder()
-                    .return_old(true)
-                    .overwrite(true)
-                    .build(),
-            ),
+            DocumentInsertOptions::builder()
+                .return_old(true)
+                .overwrite(true)
+                .build(),
         )
         .await;
     assert_eq!(update.is_ok(), true, "succeed update a document");
@@ -147,7 +145,7 @@ async fn test_post_create_document() {
     let create = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions::builder().silent(true).build()),
+            DocumentInsertOptions::builder().silent(true).build(),
         )
         .await;
 
@@ -194,7 +192,7 @@ async fn test_post_create_document_3_7() {
     }));
 
     // First test is to create a simple document without options
-    let create = coll.create_document(test_doc, None).await;
+    let create = coll.create_document(test_doc, Default::default()).await;
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
@@ -225,7 +223,7 @@ async fn test_post_create_document_3_7() {
     let create = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions::builder().return_new(true).build()),
+            DocumentInsertOptions::builder().return_new(true).build(),
         )
         .await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
@@ -258,12 +256,10 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            Some(
-                DocumentInsertOptions::builder()
-                    .return_old(true)
-                    .overwrite(true)
-                    .build(),
-            ),
+            DocumentInsertOptions::builder()
+                .return_old(true)
+                .overwrite(true)
+                .build(),
         )
         .await;
 
@@ -290,7 +286,7 @@ async fn test_post_create_document_3_7() {
     let create = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions::builder().silent(true).build()),
+            DocumentInsertOptions::builder().silent(true).build(),
         )
         .await;
 
@@ -309,11 +305,9 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            Some(
-                DocumentInsertOptions::builder()
-                    .return_new(true)
-                    .overwrite_mode(DocumentOverwriteMode::Ignore),
-            ),
+            DocumentInsertOptions::builder()
+                .return_new(true)
+                .overwrite_mode(DocumentOverwriteMode::Ignore),
         )
         .await;
 
@@ -331,7 +325,7 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions::builder().overwrite_mode(DocumentOverwriteMode::Replace)),
+            DocumentInsertOptions::builder().overwrite_mode(DocumentOverwriteMode::Replace),
         )
         .await;
 
@@ -355,7 +349,7 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            Some(DocumentInsertOptions::builder().overwrite_mode(DocumentOverwriteMode::Update)),
+            DocumentInsertOptions::builder().overwrite_mode(DocumentOverwriteMode::Update),
         )
         .await;
 
@@ -405,7 +399,7 @@ async fn test_get_read_document() {
     }));
 
     // First test is to read a simple document without options
-    let create = coll.create_document(test_doc, None).await;
+    let create = coll.create_document(test_doc, Default::default()).await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
     let header = create.unwrap().get_response().unwrap().header;
@@ -479,7 +473,7 @@ async fn test_get_read_document_header() {
     }));
 
     // First test is to read a simple document without options
-    let create = coll.create_document(test_doc, None).await;
+    let create = coll.create_document(test_doc, Default::default()).await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
     let resp = create.unwrap().get_response().unwrap();
@@ -576,7 +570,7 @@ async fn test_patch_update_document() {
     }));
 
     // First test is to update a simple document without options
-    let create = coll.create_document(test_doc, None).await;
+    let create = coll.create_document(test_doc, Default::default()).await;
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
@@ -674,7 +668,7 @@ async fn test_post_replace_document() {
     }));
 
     // First test is to replace  simple document with new & old options
-    let create = coll.create_document(test_doc, None).await;
+    let create = coll.create_document(test_doc, Default::default()).await;
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
     let response = create.unwrap().get_response().unwrap();
@@ -799,7 +793,7 @@ async fn test_delete_remove_document() {
 
     // First test is to remove a simple document with old options
     let create: Result<DocumentResponse<Document<Value>>, ClientError> =
-        coll.create_document(test_doc, None).await;
+        coll.create_document(test_doc, Default::default()).await;
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
     let response = create.unwrap().get_response().unwrap();
@@ -839,7 +833,7 @@ async fn test_delete_remove_document() {
     let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
     "testDescription":"update document"
     }));
-    let create = coll.create_document(test_doc, None).await;
+    let create = coll.create_document(test_doc, Default::default()).await;
     let response = create.unwrap().get_response().unwrap();
     let header = response.header;
     let _key = header._key;
@@ -860,7 +854,7 @@ async fn test_delete_remove_document() {
     let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
     "testDescription":"update document"
     }));
-    let create = coll.create_document(test_doc, None).await;
+    let create = coll.create_document(test_doc, Default::default()).await;
     let response = create.unwrap().get_response().unwrap();
     let header = response.header;
     let _key = header._key;

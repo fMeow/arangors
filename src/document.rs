@@ -32,7 +32,11 @@ pub struct DocumentInsertOptions {
     #[builder(default, setter(strip_option))]
     overwrite_mode: Option<DocumentOverwriteMode>,
 }
-
+impl Default for DocumentInsertOptions {
+    fn default() -> Self {
+        Self::builder().build()
+    }
+}
 /// Options for document update,
 #[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
