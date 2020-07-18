@@ -56,7 +56,7 @@ async fn test_post_create_document() {
     assert_eq!(result.is_silent(), false);
     assert_eq!(result.has_response(), true);
 
-    let header = result.get_response().unwrap().header.unwrap();
+    let header = result.get_response().unwrap().header;
     assert_eq!(
         header._id.is_empty(),
         false,
@@ -98,7 +98,7 @@ async fn test_post_create_document() {
 
     assert_eq!(doc.document["testDescription"], "Test with new");
 
-    let header = response.header.unwrap();
+    let header = response.header;
     assert_eq!(header._id.is_empty(), false);
     assert_eq!(header._rev.is_empty(), false);
     assert_eq!(header._key.is_empty(), false);
@@ -134,7 +134,7 @@ async fn test_post_create_document() {
         "We should get the old document under the 'old' property"
     );
 
-    let header = response.header.unwrap();
+    let header = response.header;
 
     assert_eq!(header._id.is_empty(), false,);
     assert_eq!(header._rev.is_empty(), false,);
@@ -200,7 +200,7 @@ async fn test_post_create_document_3_7() {
 
     let result = create.unwrap();
     let response = result.get_response().unwrap();
-    let header = response.header.unwrap();
+    let header = response.header;
     assert_eq!(
         header._id.is_empty(),
         false,
@@ -242,7 +242,7 @@ async fn test_post_create_document_3_7() {
 
     assert_eq!(doc.document["testDescription"], "Test with new");
 
-    let header = response.header.unwrap();
+    let header = response.header;
     assert_eq!(header._id.is_empty(), false);
     assert_eq!(header._rev.is_empty(), false);
     assert_eq!(header._key.is_empty(), false);
@@ -278,7 +278,7 @@ async fn test_post_create_document_3_7() {
         "We should get the old document under the 'old' property"
     );
 
-    let header = response.header.unwrap();
+    let header = response.header;
     assert_eq!(header._id.is_empty(), false);
     assert_eq!(header._rev.is_empty(), false);
     assert_eq!(header._key.is_empty(), false);
@@ -408,7 +408,7 @@ async fn test_get_read_document() {
     let create = coll.create_document(test_doc, None).await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
-    let header = create.unwrap().get_response().unwrap().header.unwrap();
+    let header = create.unwrap().get_response().unwrap().header;
     let _key = header._key;
     let _rev = header._rev;
     let read = coll.read_document(_key.as_str()).await;
@@ -483,7 +483,7 @@ async fn test_get_read_document_header() {
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
     let resp = create.unwrap().get_response().unwrap();
-    let header = resp.header.unwrap();
+    let header = resp.header;
     let _key = header._key;
     let _rev = header._rev;
 
@@ -580,7 +580,7 @@ async fn test_patch_update_document() {
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
-    let _key = create.unwrap().get_response().unwrap().header.unwrap()._key;
+    let _key = create.unwrap().get_response().unwrap().header._key;
 
     let update = coll
         .update_document(
@@ -606,7 +606,7 @@ async fn test_patch_update_document() {
     assert_eq!(old_doc["no"], 1);
     assert_eq!(old_doc["testDescription"], "update document");
 
-    let _rev = response.header.unwrap()._rev;
+    let _rev = response.header._rev;
     let update = coll
         .update_document(_key.as_str(), json!({ "no":3}), None)
         .await;
@@ -615,7 +615,7 @@ async fn test_patch_update_document() {
     let response = result.get_response().unwrap();
 
     assert_eq!(
-        response.header.unwrap()._rev != _rev,
+        response.header._rev != _rev,
         true,
         "We should get a different revision after update"
     );
@@ -678,7 +678,7 @@ async fn test_post_replace_document() {
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
     let response = create.unwrap().get_response().unwrap();
-    let header = response.header.unwrap();
+    let header = response.header;
     let _key = header._key;
     let _rev = header._rev;
 
@@ -803,7 +803,7 @@ async fn test_delete_remove_document() {
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
     let response = create.unwrap().get_response().unwrap();
-    let header = response.header.unwrap();
+    let header = response.header;
     let _key = header._key;
     let _rev = header._rev;
 
@@ -841,7 +841,7 @@ async fn test_delete_remove_document() {
     }));
     let create = coll.create_document(test_doc, None).await;
     let response = create.unwrap().get_response().unwrap();
-    let header = response.header.unwrap();
+    let header = response.header;
     let _key = header._key;
     let _rev = header._rev;
     let remove: Result<DocumentResponse<Value>, ClientError> = coll
@@ -862,7 +862,7 @@ async fn test_delete_remove_document() {
     }));
     let create = coll.create_document(test_doc, None).await;
     let response = create.unwrap().get_response().unwrap();
-    let header = response.header.unwrap();
+    let header = response.header;
     let _key = header._key;
     let _rev = header._rev;
     let remove: Result<DocumentResponse<Value>, ClientError> = coll

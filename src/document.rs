@@ -190,7 +190,7 @@ pub struct OperationResponse<T> {
     #[serde(flatten)]
     /// May contain the { _key : String, _id : String, _rev:String } of the
     /// document
-    pub header: Option<DocumentHeader>,
+    pub header: DocumentHeader,
     /// May contain the document after being created/replace/updated
     pub new: Option<T>,
     #[serde(rename = "_oldRev")]
@@ -248,7 +248,7 @@ impl<T> DocumentResponse<T> {
         } = self
         {
             Some(OperationResponse {
-                header: Some(header),
+                header,
                 old,
                 new,
                 _old_rev,
