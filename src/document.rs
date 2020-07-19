@@ -1,5 +1,5 @@
-use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::Value;
+use crate::ArangoError;
+use serde::{de, Deserialize, Deserializer, Serialize};
 
 /// Options for document insertion.
 #[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
@@ -32,11 +32,13 @@ pub struct DocumentInsertOptions {
     #[builder(default, setter(strip_option))]
     overwrite_mode: Option<DocumentOverwriteMode>,
 }
+
 impl Default for DocumentInsertOptions {
     fn default() -> Self {
         Self::builder().build()
     }
 }
+
 /// Options for document update,
 #[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
@@ -77,11 +79,13 @@ pub struct DocumentUpdateOptions {
     #[builder(default, setter(strip_option))]
     silent: Option<bool>,
 }
+
 impl Default for DocumentUpdateOptions {
     fn default() -> Self {
         Self::builder().build()
     }
 }
+
 #[derive(Serialize, Deserialize)]
 pub enum DocumentOverwriteMode {
     /// If a document with the specified _key value exists already,
@@ -155,6 +159,7 @@ impl Default for DocumentReplaceOptions {
         Self::builder().build()
     }
 }
+
 /// Options for document reading.
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -175,6 +180,7 @@ impl Default for DocumentReadOptions {
         Self::NoHeader
     }
 }
+
 /// Options for document removes,
 #[derive(Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
@@ -243,9 +249,10 @@ pub enum DocumentResponse<T> {
         new: Option<T>,
         _old_rev: Option<String>,
     },
+    Err(ArangoError),
 }
 
-// Gives extra method on the DocumentResponse to quickly check what the server
+/// Gives extra method on the DocumentResponse to quickly check what the server
 /// returns
 impl<T> DocumentResponse<T> {
     /// Should be true when the server send back an empty object {}
@@ -292,27 +299,41 @@ where
     where
         D: Deserializer<'de>,
     {
-        let map = serde_json::Map::deserialize(deserializer)?;
+        let mut obj = serde_json::Value::deserialize(deserializer)?;
 
-        if map.clone().get("_key").is_none() {
+        if obj.get_mut("error").is_some() {
+            return ArangoError::deserialize(obj)
+                .map(DocumentResponse::Err)
+                .map_err(de::Error::custom);
+        }
+
+        let json = obj.as_object_mut().unwrap();
+
+        if json.contains_key("_key") != true {
             Ok(DocumentResponse::Silent)
         } else {
-            let rest = Value::Object(map.clone());
-            let header: DocumentHeader = DocumentHeader::deserialize(rest.clone()).unwrap();
+            let header: DocumentHeader = DocumentHeader {
+                _id: serde_json::from_value(json.remove("_id").unwrap()).unwrap(),
+                _key: serde_json::from_value(json.remove("_key").unwrap()).unwrap(),
+                _rev: serde_json::from_value(json.remove("_rev").unwrap()).unwrap(),
+            };
 
-            let old = if map.clone().get("old").is_some() {
-                T::deserialize(rest["old"].clone()).ok()
+            let old = if json.contains_key("old") {
+                T::deserialize(json.remove("old").unwrap()).ok()
             } else {
                 None
             };
 
-            let new = if map.clone().get("new").is_some() {
-                T::deserialize(rest["new"].clone()).ok()
+            let new = if json.contains_key("new") {
+                T::deserialize(json.remove("new").unwrap()).ok()
             } else {
                 None
             };
-
-            let _old_rev = serde_json::from_value(rest["_old_rev"].clone()).ok();
+            let _old_rev = if json.contains_key("_old_rev") {
+                Some(json.remove("_old_rev").unwrap().to_string())
+            } else {
+                None
+            };
 
             Ok(DocumentResponse::Response {
                 header,
