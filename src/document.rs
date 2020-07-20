@@ -215,22 +215,6 @@ pub struct DocumentHeader {
     pub _rev: String,
 }
 
-/// Content Response when having CRUD operation on document
-#[derive(Serialize, Deserialize, Debug)]
-pub struct OperationResponse<T> {
-    #[serde(flatten)]
-    /// May contain the { _key : String, _id : String, _rev:String } of the
-    /// document
-    pub header: DocumentHeader,
-    /// May contain the document after being created/replace/updated
-    pub new: Option<T>,
-    #[serde(rename = "_oldRev")]
-    /// May contain the old revision of the document after update/replace
-    pub _old_rev: Option<String>,
-    /// May contain the old the document after update/replace/remove
-    pub old: Option<T>,
-}
-
 /// Standard Response when having CRUD operation on document
 /// Todo could add more response variant like shown on official doc
 /// 200: is returned if the document was found
@@ -270,24 +254,37 @@ impl<T> DocumentResponse<T> {
         }
     }
 
-    /// Should give None or Some(Response)
-    pub fn get_response(self) -> Option<OperationResponse<T>> {
-        if let DocumentResponse::Response {
-            header,
-            old,
-            new,
-            _old_rev,
-        } = self
-        {
-            Some(OperationResponse {
-                header,
-                old,
-                new,
-                _old_rev,
-            })
+    /// Return the document header contained inside the response
+    pub fn header(&self) -> Option<&DocumentHeader> {
+        if let DocumentResponse::Response { header, .. } = self {
+            Some(header)
         } else {
             None
         }
+    }
+    /// Return the old document before changes
+    pub fn old_doc(&self) -> Option<&T> {
+        Option::from(if let DocumentResponse::Response { old, .. } = self {
+            old
+        } else {
+            &None
+        })
+    }
+    /// Return the new document
+    pub fn new_doc(&self) -> Option<&T> {
+        Option::from(if let DocumentResponse::Response { new, .. } = self {
+            new
+        } else {
+            &None
+        })
+    }
+    /// return the old revision of the document
+    pub fn old_rev(&self) -> Option<&String> {
+        Option::from(if let DocumentResponse::Response { _old_rev, .. } = self {
+            _old_rev
+        } else {
+            &None
+        })
     }
 }
 

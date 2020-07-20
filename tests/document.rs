@@ -56,7 +56,7 @@ async fn test_post_create_document() {
     assert_eq!(result.is_silent(), false);
     assert_eq!(result.has_response(), true);
 
-    let header = result.get_response().unwrap().header;
+    let header = result.header().unwrap();
     assert_eq!(
         header._id.is_empty(),
         false,
@@ -86,24 +86,23 @@ async fn test_post_create_document() {
         .await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
     let result = create.unwrap();
-    let response = result.get_response().unwrap();
 
     assert_eq!(
-        response.new.is_some(),
+        result.new_doc().is_some(),
         true,
         "We should get the new document under the 'new' property"
     );
 
-    let doc = response.new.unwrap();
+    let doc = result.new_doc().unwrap();
 
     assert_eq!(doc.document["testDescription"], "Test with new");
 
-    let header = response.header;
+    let header = result.header().unwrap();
     assert_eq!(header._id.is_empty(), false);
     assert_eq!(header._rev.is_empty(), false);
     assert_eq!(header._key.is_empty(), false);
 
-    let key = header._key;
+    let key = &header._key;
     // Third test is to update a simple document with option return old
     // Should not return  anything according to doc if overWriteMode is not used for
     // now TODO update this test with overwriteMode later
@@ -122,17 +121,16 @@ async fn test_post_create_document() {
         .await;
     assert_eq!(update.is_ok(), true, "succeed update a document");
     let result = update.unwrap();
-    let response = result.get_response().unwrap();
 
-    assert_eq!(response.old.is_some(), true);
+    assert_eq!(result.old_doc().is_some(), true);
 
-    let old_doc = response.old.unwrap();
+    let old_doc = result.old_doc().unwrap();
     assert_eq!(
         old_doc.document["testDescription"], "Test with new",
         "We should get the old document under the 'old' property"
     );
 
-    let header = response.header;
+    let header = result.header().unwrap();
 
     assert_eq!(header._id.is_empty(), false,);
     assert_eq!(header._rev.is_empty(), false,);
@@ -197,8 +195,8 @@ async fn test_post_create_document_3_7() {
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
     let result = create.unwrap();
-    let response = result.get_response().unwrap();
-    let header = response.header;
+
+    let header = result.header().unwrap();
     assert_eq!(
         header._id.is_empty(),
         false,
@@ -228,19 +226,18 @@ async fn test_post_create_document_3_7() {
         .await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
     let result = create.unwrap();
-    let response = result.get_response().unwrap();
 
     assert_eq!(
-        response.new.is_some(),
+        result.return_new().is_some(),
         true,
         "we should get the new document under 'new' property"
     );
 
-    let doc = response.new.unwrap();
+    let doc = result.new_doc().unwrap();
 
     assert_eq!(doc.document["testDescription"], "Test with new");
 
-    let header = response.header;
+    let header = result.header().unwrap();
     assert_eq!(header._id.is_empty(), false);
     assert_eq!(header._rev.is_empty(), false);
     assert_eq!(header._key.is_empty(), false);
@@ -264,17 +261,16 @@ async fn test_post_create_document_3_7() {
         .await;
 
     let result = update.unwrap();
-    let response = result.get_response().unwrap();
 
-    assert_eq!(response.old.is_some(), true);
+    assert_eq!(result.old_doc().is_some(), true);
 
-    let old_doc = response.old.unwrap();
+    let old_doc = result.old_doc().unwrap();
     assert_eq!(
         old_doc.document["testDescription"], "Test with new",
         "We should get the old document under the 'old' property"
     );
 
-    let header = response.header;
+    let header = result.header().unwrap();
     assert_eq!(header._id.is_empty(), false);
     assert_eq!(header._rev.is_empty(), false);
     assert_eq!(header._key.is_empty(), false);
@@ -312,10 +308,10 @@ async fn test_post_create_document_3_7() {
         .await;
 
     let result = update.unwrap();
-    let response = result.get_response().unwrap();
-    assert_eq!(response.old.is_none(), true);
-    assert_eq!(response.new.is_none(), true);
-    assert_eq!(response.header.is_none(), true);
+
+    assert_eq!(result.new_doc().is_none(), true);
+    assert_eq!(result.old_doc().is_none(), true);
+    assert_eq!(result.header().is_none(), true);
 
     // Sixth test is about the overwrite _mode option replace
     let test_doc: Document<Value> = Document::new(json!({ "no":3 ,
@@ -330,18 +326,18 @@ async fn test_post_create_document_3_7() {
         .await;
 
     let result = update.unwrap();
-    let response = result.get_response().unwrap();
-    assert_eq!(response.old.is_none(), true);
+
+    assert_eq!(result.old_doc().is_none(), true);
     assert_eq!(
-        response.new.is_none(),
+        result.new_doc().is_none(),
         false,
         "we should get the new document when we use the overwriteMode = 'replace'"
     );
 
-    let doc = response.new.unwrap();
+    let doc = result.new_doc().unwrap();
     assert_eq!(doc.document["no"], 3);
 
-    assert_eq!(response.header.is_none(), false);
+    assert_eq!(result.header().is_none(), false);
     // Seventh test is about the overwrite _mode option update
     let test_doc: Document<Value> = Document::new(json!({ "no":4 ,
     "_key" : key,
@@ -354,15 +350,14 @@ async fn test_post_create_document_3_7() {
         .await;
 
     let result = update.unwrap();
-    let response = result.get_response().unwrap();
 
-    assert_eq!(response.old.is_none(), true);
-    assert_eq!(response.new.is_none(), false);
+    assert_eq!(result.old_doc().is_none(), true);
+    assert_eq!(result.new_doc().is_none(), false);
 
-    let doc = response.new.unwrap();
+    let doc = result.new_doc().unwrap();
     assert_eq!(doc.document["no"], 4);
 
-    assert_eq!(response.header.is_none(), false);
+    assert_eq!(result.header().is_none(), false);
 
     let coll = database.drop_collection(collection_name).await;
     coll.expect("Should drop the collection");
@@ -401,10 +396,10 @@ async fn test_get_read_document() {
     // First test is to read a simple document without options
     let create = coll.create_document(test_doc, Default::default()).await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
-
-    let header = create.unwrap().get_response().unwrap().header;
-    let _key = header._key;
-    let _rev = header._rev;
+    let result = create.unwrap();
+    let header = result.header().unwrap();
+    let _key = &header._key;
+    let _rev = &header._rev;
     let read = coll.read_document(_key.as_str()).await;
 
     let result: Document<Value> = read.unwrap();
@@ -473,10 +468,10 @@ async fn test_get_read_document_header() {
     let create = coll.create_document(test_doc, Default::default()).await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
 
-    let resp = create.unwrap().get_response().unwrap();
-    let header = resp.header;
-    let _key = header._key;
-    let _rev = header._rev;
+    let result = create.unwrap();
+    let header = result.header().unwrap();
+    let _key = &header._key;
+    let _rev = &header._rev;
 
     let read = coll.read_document_header(_key.as_str()).await;
 
@@ -489,7 +484,8 @@ async fn test_get_read_document_header() {
 
     let result = read.unwrap();
     assert_eq!(
-        result._key, _key,
+        result._key,
+        _key.to_string(),
         "We should got the key of the document  : {:?}",
         result._key
     );
@@ -504,7 +500,12 @@ async fn test_get_read_document_header() {
     assert_eq!(read.is_ok(), true, "We should have the right header");
 
     let result = read.unwrap();
-    assert_eq!(result._key, _key,);
+    assert_eq!(
+        result._key,
+        _key.to_string(),
+        "We should have the right key, instead got {:?}",
+        result._key
+    );
 
     let read = coll
         .read_document_header_with_options(
@@ -570,8 +571,9 @@ async fn test_patch_update_document() {
     let create = coll.create_document(test_doc, Default::default()).await;
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
-
-    let _key = create.unwrap().get_response().unwrap().header._key;
+    let result = create.unwrap();
+    let header = result.header().unwrap();
+    let _key = &header._key;
 
     let update = coll
         .update_document(
@@ -585,26 +587,24 @@ async fn test_patch_update_document() {
         .await;
 
     let result = update.unwrap();
-    let response = result.get_response().unwrap();
-    let new_doc = response.new.unwrap();
-    let old_doc = response.old.unwrap();
+
+    let new_doc = result.new_doc().unwrap();
+    let old_doc = result.old_doc().unwrap();
 
     assert_eq!(new_doc["no"], 2);
     assert_eq!(new_doc["testDescription"], "update document");
 
     assert_eq!(old_doc["no"], 1);
     assert_eq!(old_doc["testDescription"], "update document");
-
-    let _rev = response.header._rev;
+    let header = result.header().unwrap();
+    let _rev = &header._rev;
     let update = coll
         .update_document(_key.as_str(), json!({ "no":3}), Default::default())
         .await;
 
     let result = update.unwrap();
-    let response = result.get_response().unwrap();
-
     assert_eq!(
-        response.header._rev != _rev,
+        result.header().unwrap()._rev != _rev.to_string(),
         true,
         "We should get a different revision after update"
     );
@@ -666,10 +666,10 @@ async fn test_post_replace_document() {
     let create = coll.create_document(test_doc, Default::default()).await;
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
-    let response = create.unwrap().get_response().unwrap();
-    let header = response.header;
-    let _key = header._key;
-    let _rev = header._rev;
+    let result = create.unwrap();
+    let header = result.header().unwrap();
+    let _key = &header._key;
+    let _rev = &header._rev;
 
     let replace = coll
         .replace_document(
@@ -684,18 +684,18 @@ async fn test_post_replace_document() {
         .await;
 
     let result = replace.unwrap();
-    let response = result.get_response().unwrap();
-    let new_doc: Value = response.new.unwrap();
+
+    let new_doc = result.new_doc().unwrap();
 
     assert_eq!(new_doc["no"], 2, "We should get the property updated");
     assert_eq!(
         new_doc["testDescription"].as_str().is_some(),
         false,
-        "We should get the property removed sience we did replace the original object with an \
+        "We should get the property removed since we did replace the original object with an \
          object that do not have it"
     );
 
-    let old_doc: Value = response.old.unwrap();
+    let old_doc = result.old_doc().unwrap();
 
     assert_eq!(
         old_doc["no"], 1,
@@ -794,10 +794,10 @@ async fn test_delete_remove_document() {
         coll.create_document(test_doc, Default::default()).await;
 
     assert_eq!(create.is_ok(), true, "succeed create a document");
-    let response = create.unwrap().get_response().unwrap();
-    let header = response.header;
-    let _key = header._key;
-    let _rev = header._rev;
+    let result = create.unwrap();
+    let header = result.header().unwrap();
+    let _key = &header._key;
+    let _rev = &header._rev;
 
     let remove: Result<DocumentResponse<Value>, ClientError> = coll
         .remove_document(
@@ -808,15 +808,14 @@ async fn test_delete_remove_document() {
         .await;
 
     let result = remove.unwrap();
-    let response = result.get_response().unwrap();
 
     assert_eq!(
-        response.new.is_none(),
+        result.new_doc().is_none(),
         true,
         "we should never have new doc returned when using remove document"
     );
 
-    let old_doc: Value = response.old.unwrap();
+    let old_doc = result.old_doc().unwrap();
 
     assert_eq!(
         old_doc["no"], 1,
@@ -832,10 +831,10 @@ async fn test_delete_remove_document() {
     "testDescription":"update document"
     }));
     let create = coll.create_document(test_doc, Default::default()).await;
-    let response = create.unwrap().get_response().unwrap();
-    let header = response.header;
-    let _key = header._key;
-    let _rev = header._rev;
+    let result = create.unwrap();
+    let header = result.header().unwrap();
+    let _key = &header._key;
+    let _rev = &header._rev;
     let remove: Result<DocumentResponse<Value>, ClientError> = coll
         .remove_document(
             _key.as_str(),
@@ -853,10 +852,10 @@ async fn test_delete_remove_document() {
     "testDescription":"update document"
     }));
     let create = coll.create_document(test_doc, Default::default()).await;
-    let response = create.unwrap().get_response().unwrap();
-    let header = response.header;
-    let _key = header._key;
-    let _rev = header._rev;
+    let result = create.unwrap();
+    let header = result.header().unwrap();
+    let _key = &header._key;
+    let _rev = &header._rev;
     let remove: Result<DocumentResponse<Value>, ClientError> = coll
         .remove_document(
             _key.as_str(),
