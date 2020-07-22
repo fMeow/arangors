@@ -298,12 +298,6 @@ where
     {
         let mut obj = serde_json::Value::deserialize(deserializer)?;
 
-        if obj.get_mut("error").is_some() {
-            return ArangoError::deserialize(obj)
-                .map(DocumentResponse::Err)
-                .map_err(de::Error::custom);
-        }
-
         let json = obj.as_object_mut().unwrap();
 
         if json.contains_key("_key") != true {
