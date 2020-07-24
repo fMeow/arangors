@@ -442,7 +442,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// identifier, _key containing key which uniquely identifies a document in
     /// a given collection and _rev containing the revision.
     #[maybe_async]
-    pub async fn read_document<T>(&self, _key: &str) -> Result<Document<T>, ClientError>
+    pub async fn document<T>(&self, _key: &str) -> Result<Document<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
     {
@@ -476,13 +476,13 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// use this call to get the current revision of a document or check if the
     /// document was deleted.
     #[maybe_async]
-    pub async fn read_document_header(&self, _key: &str) -> Result<Header, ClientError> {
-        self.read_document_header_with_options(_key, Default::default())
+    pub async fn document_header(&self, _key: &str) -> Result<Header, ClientError> {
+        self.document_header_with_options(_key, Default::default())
             .await
     }
 
     #[maybe_async]
-    pub async fn read_document_header_with_options(
+    pub async fn document_header_with_options(
         &self,
         _key: &str,
         read_options: ReadOptions,

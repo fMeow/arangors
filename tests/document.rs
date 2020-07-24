@@ -344,7 +344,7 @@ async fn test_get_read_document() {
     let header = result.header().unwrap();
     let _key = &header._key;
     let _rev = &header._rev;
-    let read = coll.read_document(_key.as_str()).await;
+    let read = coll.document(_key.as_str()).await;
 
     let result: Document<Value> = read.unwrap();
 
@@ -397,7 +397,7 @@ async fn test_get_read_document_header() {
     let _key = &header._key;
     let _rev = &header._rev;
 
-    let read = coll.read_document_header(_key.as_str()).await;
+    let read = coll.document_header(_key.as_str()).await;
 
     assert_eq!(
         read.is_ok(),
@@ -415,7 +415,7 @@ async fn test_get_read_document_header() {
     );
 
     let read = coll
-        .read_document_header_with_options(_key.as_str(), ReadOptions::IfMatch(_rev.clone()))
+        .document_header_with_options(_key.as_str(), ReadOptions::IfMatch(_rev.clone()))
         .await;
 
     assert_eq!(read.is_ok(), true, "We should have the right header");
@@ -429,10 +429,7 @@ async fn test_get_read_document_header() {
     );
 
     let read = coll
-        .read_document_header_with_options(
-            _key.as_str(),
-            ReadOptions::IfMatch("_dsdsds".to_string()),
-        )
+        .document_header_with_options(_key.as_str(), ReadOptions::IfMatch("_dsdsds".to_string()))
         .await;
 
     assert_eq!(
@@ -441,7 +438,7 @@ async fn test_get_read_document_header() {
         "We should have an error and the right doc returned"
     );
     let read = coll
-        .read_document_header_with_options(_key.as_str(), ReadOptions::IfNoneMatch(_rev.clone()))
+        .document_header_with_options(_key.as_str(), ReadOptions::IfNoneMatch(_rev.clone()))
         .await;
 
     assert_eq!(
