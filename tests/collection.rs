@@ -67,6 +67,26 @@ async fn test_create_and_drop_collection() {
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
+async fn test_truncate_collection() {
+    test_setup();
+    let conn = connection().await;
+    let coll = collection(&conn, "test_collection_truncate").await;
+
+    let res = coll.truncate().await;
+    assert_eq!(res.is_ok(), true);
+
+    let res = res.unwrap();
+    assert_eq!(res.is_system, false);
+    assert_eq!(res.name, "test_collection");
+    assert_eq!(res.r#type, CollectionType::Document);
+
+    coll.drop().await.expect("Fail to drop the collection");
+}
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
 async fn test_get_properties() {
     test_setup();
     let collection_name = "test_collection_properties";
