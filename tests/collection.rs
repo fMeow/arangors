@@ -6,8 +6,10 @@ use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
 use crate::common::{collection, connection};
+use arangors::collection::options::ChecksumOptions;
 use arangors::{
-    collection::{CollectionPropertiesOptions, CollectionStatus, CollectionType},
+    collection::options::PropertiesOptions,
+    collection::response::{CollectionType, Status},
     ClientError, Connection, Document,
 };
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
@@ -117,7 +119,7 @@ async fn test_get_properties() {
         Some("traditional".to_string())
     );
     assert_eq!(result.detail.key_options.last_value, Some(0));
-    assert_eq!(result.info.status, CollectionStatus::Loaded);
+    assert_eq!(result.info.status, Status::Loaded);
     assert_eq!(result.detail.write_concern, 1);
 
     coll.drop().await.expect("Should drop the collection");
@@ -150,7 +152,7 @@ async fn test_get_document_count() {
         Some("traditional".to_string())
     );
     assert_eq!(result.detail.key_options.last_value, Some(0));
-    assert_eq!(result.info.status, CollectionStatus::Loaded);
+    assert_eq!(result.info.status, Status::Loaded);
     assert_eq!(result.detail.write_concern, 1);
 
     database
@@ -194,7 +196,7 @@ async fn test_get_statistics() {
         Some("traditional".to_string())
     );
     assert_eq!(result.detail.key_options.last_value, Some(0), "last value");
-    assert_eq!(result.info.status, CollectionStatus::Loaded);
+    assert_eq!(result.info.status, Status::Loaded);
     assert_eq!(result.detail.write_concern, 1);
 
     assert_eq!(result.figures.indexes.count, Some(1));
@@ -230,7 +232,7 @@ async fn test_get_revision_id() {
         Some("traditional".to_string())
     );
     assert_eq!(result.detail.key_options.last_value, Some(0));
-    assert_eq!(result.info.status, CollectionStatus::Loaded);
+    assert_eq!(result.info.status, Status::Loaded);
     assert_eq!(result.detail.write_concern, 1);
 
     coll.drop().await.expect("Should drop the collection");
@@ -254,18 +256,22 @@ async fn test_get_checksum() {
     assert_eq!(result.revision, "0");
     assert_eq!(result.info.name, collection_name);
     assert_eq!(result.info.is_system, false);
-    assert_eq!(result.info.status, CollectionStatus::Loaded);
+    assert_eq!(result.info.status, Status::Loaded);
     assert_eq!(result.info.r#type, CollectionType::Document);
     assert_eq!(result.checksum, "0");
     assert_eq!(result.checksum.is_empty(), false);
 
-    let checksum = coll.checksum_with_options(true, true).await;
+    let options = ChecksumOptions::builder()
+        .with_revision(true)
+        .with_data(true)
+        .build();
+    let checksum = coll.checksum_with_options(options).await;
 
     let updated_result = checksum.unwrap();
     assert_eq!(updated_result.revision, "0");
     assert_eq!(updated_result.info.name, collection_name);
     assert_eq!(updated_result.info.is_system, false);
-    assert_eq!(updated_result.info.status, CollectionStatus::Loaded);
+    assert_eq!(updated_result.info.status, Status::Loaded);
     assert_eq!(updated_result.info.r#type, CollectionType::Document);
     assert_eq!(updated_result.checksum, "0");
     assert_eq!(updated_result.checksum.is_empty(), false);
@@ -287,7 +293,7 @@ async fn test_get_checksum() {
     assert_eq!(changed, true);
     assert_eq!(updated_result.info.name, collection_name);
     assert_eq!(updated_result.info.is_system, false);
-    assert_eq!(updated_result.info.status, CollectionStatus::Loaded);
+    assert_eq!(updated_result.info.status, Status::Loaded);
     assert_eq!(updated_result.info.r#type, CollectionType::Document);
     assert_eq!(updated_result.checksum.is_empty(), false);
 
@@ -313,7 +319,7 @@ async fn test_put_load() {
     assert_eq!(result.name, collection_name);
     assert_eq!(result.is_system, false);
     assert_eq!(result.count, Some(0));
-    assert_eq!(result.status, CollectionStatus::Loaded);
+    assert_eq!(result.status, Status::Loaded);
     assert_eq!(result.r#type, CollectionType::Document);
 
     let load = coll.load(false).await;
@@ -322,7 +328,7 @@ async fn test_put_load() {
     assert_eq!(updated_result.name, collection_name);
     assert_eq!(updated_result.is_system, false);
     assert_eq!(updated_result.count, None);
-    assert_eq!(updated_result.status, CollectionStatus::Loaded);
+    assert_eq!(updated_result.status, Status::Loaded);
     assert_eq!(updated_result.r#type, CollectionType::Document);
 
     database
@@ -336,7 +342,7 @@ async fn test_put_load() {
     assert_eq!(updated_result.name, collection_name);
     assert_eq!(updated_result.is_system, false);
     assert_eq!(updated_result.count, Some(1));
-    assert_eq!(updated_result.status, CollectionStatus::Loaded);
+    assert_eq!(updated_result.status, Status::Loaded);
     assert_eq!(updated_result.r#type, CollectionType::Document);
 
     coll.drop().await.expect("Should drop the collection");
@@ -361,7 +367,7 @@ async fn test_put_unload() {
     assert_eq!(result.is_system, false);
     assert_eq!(result.count, None);
     assert_eq!(
-        result.status == CollectionStatus::Unloaded || result.status == CollectionStatus::Unloading,
+        result.status == Status::Unloaded || result.status == Status::Unloading,
         true,
         "wrong status: {:?}",
         result.status
@@ -401,11 +407,7 @@ async fn test_put_changes_properties() {
     let conn = connection().await;
     let coll = collection(&conn, collection_name).await;
 
-    let updated_properties = coll
-        .change_properties(CollectionPropertiesOptions {
-            wait_for_sync: Some(true),
-        })
-        .await;
+    let updated_properties = coll.change_properties(Default::default()).await;
 
     let result = updated_properties.unwrap();
     assert_eq!(result.info.name, collection_name);
@@ -419,7 +421,7 @@ async fn test_put_changes_properties() {
         Some("traditional".to_string())
     );
     assert_eq!(result.detail.key_options.last_value, Some(0));
-    assert_eq!(result.info.status, CollectionStatus::Loaded);
+    assert_eq!(result.info.status, Status::Loaded);
     assert_eq!(result.detail.write_concern, 1);
 
     coll.drop().await.expect("Should drop the collection");
@@ -443,7 +445,7 @@ async fn test_put_rename() {
     assert_eq!(coll.name(), new_name);
     assert_eq!(result.name, new_name);
     assert_eq!(result.is_system, false);
-    assert_eq!(result.status, CollectionStatus::Loaded);
+    assert_eq!(result.status, Status::Loaded);
     assert_eq!(result.r#type, CollectionType::Document);
 
     coll.drop().await.expect("Should drop the collection");

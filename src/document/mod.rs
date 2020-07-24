@@ -1,12 +1,10 @@
-use serde::de::Error as DeError;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 
-pub use options::*;
-
-mod options;
+pub mod options;
+pub mod response;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct DocumentHeader {
+pub struct Header {
     #[serde(skip_serializing_if = "String::is_empty")]
     pub _id: String,
     #[serde(skip_serializing_if = "String::is_empty")]
@@ -19,7 +17,7 @@ pub struct DocumentHeader {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Document<T> {
     #[serde(flatten)]
-    pub header: DocumentHeader,
+    pub header: Header,
     #[serde(flatten)]
     pub document: T,
 }
@@ -31,131 +29,11 @@ where
     pub fn new(data: T) -> Self {
         Document {
             document: data,
-            header: DocumentHeader {
+            header: Header {
                 _id: String::new(),
                 _key: String::new(),
                 _rev: String::new(),
             },
-        }
-    }
-}
-
-/// Standard Response when having CRUD operation on document
-/// TODO could add more response variant as shown in official doc
-/// 200: is returned if the document was found
-/// 304: is returned if the “If-None-Match” header is given and the document has
-/// the same version 404: is returned if the document or collection was not
-/// found 412: is returned if an “If-Match” header is given and the found
-/// document has a different version. The response will also contain the found
-/// document’s current revision in the Etag header.
-pub enum DocumentResponse<T> {
-    /// Silent is when there is empty object returned by the server
-    Silent,
-    /// Contain data after CRUD
-    Response {
-        header: DocumentHeader,
-        old: Option<T>,
-        new: Option<T>,
-        _old_rev: Option<String>,
-    },
-}
-
-/// Gives extra method on the DocumentResponse to quickly check what the server
-/// returns
-impl<T> DocumentResponse<T> {
-    /// Should be true when the server send back an empty object {}
-    pub fn is_silent(&self) -> bool {
-        match self {
-            DocumentResponse::Silent => true,
-            _ => false,
-        }
-    }
-    /// Should be true if there is a response from the server
-    pub fn has_response(&self) -> bool {
-        match self {
-            DocumentResponse::Response { .. } => true,
-            _ => false,
-        }
-    }
-
-    /// Return the document header contained inside the response
-    pub fn header(&self) -> Option<&DocumentHeader> {
-        if let DocumentResponse::Response { header, .. } = self {
-            Some(header)
-        } else {
-            None
-        }
-    }
-    /// Return the old document before changes
-    pub fn old_doc(&self) -> Option<&T> {
-        if let DocumentResponse::Response { old, .. } = self {
-            old.as_ref()
-        } else {
-            None
-        }
-    }
-    /// Return the new document
-    pub fn new_doc(&self) -> Option<&T> {
-        if let DocumentResponse::Response { new, .. } = self {
-            new.as_ref()
-        } else {
-            None
-        }
-    }
-    /// return the old revision of the document
-    pub fn old_rev(&self) -> Option<&String> {
-        if let DocumentResponse::Response { _old_rev, .. } = self {
-            _old_rev.as_ref()
-        } else {
-            None
-        }
-    }
-}
-
-impl<'de, T> Deserialize<'de> for DocumentResponse<T>
-where
-    T: Deserialize<'de>,
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let mut obj = serde_json::Value::deserialize(deserializer)?;
-
-        let json = obj
-            .as_object_mut()
-            .ok_or(DeError::custom("should be a json object"))?;
-
-        if json.is_empty() {
-            Ok(DocumentResponse::Silent)
-        } else {
-            let _id = json.remove("_id").ok_or(DeError::missing_field("_id"))?;
-            let _key = json.remove("_key").ok_or(DeError::missing_field("_key"))?;
-            let _rev = json.remove("_rev").ok_or(DeError::missing_field("_rev"))?;
-            let header: DocumentHeader = DocumentHeader {
-                _id: serde_json::from_value(_id).map_err(DeError::custom)?,
-                _key: serde_json::from_value(_key).map_err(DeError::custom)?,
-                _rev: serde_json::from_value(_rev).map_err(DeError::custom)?,
-            };
-
-            let old = json
-                .remove("old")
-                .map(T::deserialize)
-                .transpose()
-                .map_err(DeError::custom)?;
-            let new = json
-                .remove("new")
-                .map(T::deserialize)
-                .transpose()
-                .map_err(DeError::custom)?;
-            let _old_rev = json.remove("_old_rev").map(|v| v.to_string());
-
-            Ok(DocumentResponse::Response {
-                header,
-                old,
-                new,
-                _old_rev,
-            })
         }
     }
 }

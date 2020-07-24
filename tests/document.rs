@@ -6,10 +6,10 @@ use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
 use arangors::{
-    document::{
-        DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions, DocumentRemoveOptions,
-        DocumentReplaceOptions, DocumentResponse, DocumentUpdateOptions,
+    document::options::{
+        InsertOptions, OverwriteMode, ReadOptions, RemoveOptions, ReplaceOptions, UpdateOptions,
     },
+    document::response::DocumentResponse,
     ClientError, Connection, Document,
 };
 use common::{
@@ -67,10 +67,7 @@ async fn test_post_create_document() {
     }));
 
     let create = coll
-        .create_document(
-            test_doc,
-            DocumentInsertOptions::builder().return_new(true).build(),
-        )
+        .create_document(test_doc, InsertOptions::builder().return_new(true).build())
         .await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
     let result = create.unwrap();
@@ -101,7 +98,7 @@ async fn test_post_create_document() {
     let update = coll
         .create_document(
             test_doc,
-            DocumentInsertOptions::builder()
+            InsertOptions::builder()
                 .return_old(true)
                 .overwrite(true)
                 .build(),
@@ -129,10 +126,7 @@ async fn test_post_create_document() {
     "testDescription":"Test with silent"
     }));
     let create = coll
-        .create_document(
-            test_doc,
-            DocumentInsertOptions::builder().silent(true).build(),
-        )
+        .create_document(test_doc, InsertOptions::builder().silent(true).build())
         .await;
 
     assert_eq!(create.is_ok(), true, "succeed create a document silently");
@@ -191,10 +185,7 @@ async fn test_post_create_document_3_7() {
     }));
 
     let create = coll
-        .create_document(
-            test_doc,
-            DocumentInsertOptions::builder().return_new(true).build(),
-        )
+        .create_document(test_doc, InsertOptions::builder().return_new(true).build())
         .await;
     assert_eq!(create.is_ok(), true, "succeed create a document");
     let result = create.unwrap();
@@ -225,7 +216,7 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            DocumentInsertOptions::builder()
+            InsertOptions::builder()
                 .return_old(true)
                 .overwrite(true)
                 .build(),
@@ -252,10 +243,7 @@ async fn test_post_create_document_3_7() {
     "testDescription":"Test with silent"
     }));
     let create = coll
-        .create_document(
-            test_doc,
-            DocumentInsertOptions::builder().silent(true).build(),
-        )
+        .create_document(test_doc, InsertOptions::builder().silent(true).build())
         .await;
 
     let result = create.unwrap();
@@ -273,9 +261,9 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            DocumentInsertOptions::builder()
+            InsertOptions::builder()
                 .return_new(true)
-                .overwrite_mode(DocumentOverwriteMode::Ignore),
+                .overwrite_mode(OverwriteMode::Ignore),
         )
         .await;
 
@@ -293,7 +281,7 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            DocumentInsertOptions::builder().overwrite_mode(DocumentOverwriteMode::Replace),
+            InsertOptions::builder().overwrite_mode(OverwriteMode::Replace),
         )
         .await;
 
@@ -317,7 +305,7 @@ async fn test_post_create_document_3_7() {
     let update = coll
         .create_document(
             test_doc,
-            DocumentInsertOptions::builder().overwrite_mode(DocumentOverwriteMode::Update),
+            InsertOptions::builder().overwrite_mode(OverwriteMode::Update),
         )
         .await;
 
@@ -364,15 +352,12 @@ async fn test_get_read_document() {
     assert_eq!(result.document["testDescription"], "read a document");
     // Test if we get the right doc when it does match
     let read: Result<Document<Value>, ClientError> = coll
-        .read_document_with_options(_key.as_str(), DocumentReadOptions::IfMatch(_rev.clone()))
+        .read_document_with_options(_key.as_str(), ReadOptions::IfMatch(_rev.clone()))
         .await;
     assert_eq!(read.is_err(), false, "got the right document");
     // Test if we get the 412 code response when there is no match
     let read: Result<Document<Value>, ClientError> = coll
-        .read_document_with_options(
-            _key.as_str(),
-            DocumentReadOptions::IfMatch("_dsdsds_d".to_string()),
-        )
+        .read_document_with_options(_key.as_str(), ReadOptions::IfMatch("_dsdsds_d".to_string()))
         .await;
     // We should get a 412, for now for some reason the error is parsed as a
     // document todo fix how the reponse/error is built
@@ -430,10 +415,7 @@ async fn test_get_read_document_header() {
     );
 
     let read = coll
-        .read_document_header_with_options(
-            _key.as_str(),
-            DocumentReadOptions::IfMatch(_rev.clone()),
-        )
+        .read_document_header_with_options(_key.as_str(), ReadOptions::IfMatch(_rev.clone()))
         .await;
 
     assert_eq!(read.is_ok(), true, "We should have the right header");
@@ -449,7 +431,7 @@ async fn test_get_read_document_header() {
     let read = coll
         .read_document_header_with_options(
             _key.as_str(),
-            DocumentReadOptions::IfMatch("_dsdsds".to_string()),
+            ReadOptions::IfMatch("_dsdsds".to_string()),
         )
         .await;
 
@@ -459,10 +441,7 @@ async fn test_get_read_document_header() {
         "We should have an error and the right doc returned"
     );
     let read = coll
-        .read_document_header_with_options(
-            _key.as_str(),
-            DocumentReadOptions::IfNoneMatch(_rev.clone()),
-        )
+        .read_document_header_with_options(_key.as_str(), ReadOptions::IfNoneMatch(_rev.clone()))
         .await;
 
     assert_eq!(
@@ -501,7 +480,7 @@ async fn test_patch_update_document() {
         .update_document(
             _key.as_str(),
             json!({ "no":2}),
-            DocumentUpdateOptions::builder()
+            UpdateOptions::builder()
                 .return_new(true)
                 .return_old(true)
                 .build(),
@@ -536,7 +515,7 @@ async fn test_patch_update_document() {
         .update_document(
             _key.as_str(),
             json!({ "no":2 , "_rev" :"_dsds_dsds_dsds_" }),
-            DocumentUpdateOptions::builder().ignore_revs(false).build(),
+            UpdateOptions::builder().ignore_revs(false).build(),
         )
         .await;
 
@@ -579,7 +558,7 @@ async fn test_post_replace_document() {
         .replace_document(
             _key.as_str(),
             json!({ "no":2}),
-            DocumentReplaceOptions::builder()
+            ReplaceOptions::builder()
                 .return_new(true)
                 .return_old(true)
                 .build(),
@@ -616,7 +595,7 @@ async fn test_post_replace_document() {
         .replace_document(
             _key.as_str(),
             json!({ "no":2}),
-            DocumentReplaceOptions::builder().silent(true).build(),
+            ReplaceOptions::builder().silent(true).build(),
             None,
         )
         .await;
@@ -646,7 +625,7 @@ async fn test_post_replace_document() {
         .replace_document(
             _key.as_str(),
             json!({ "no":2 , "_rev" :_rev.clone() }),
-            DocumentReplaceOptions::builder().ignore_revs(false).build(),
+            ReplaceOptions::builder().ignore_revs(false).build(),
             None,
         )
         .await;
@@ -691,7 +670,7 @@ async fn test_delete_remove_document() {
     let remove: Result<DocumentResponse<Value>, ClientError> = coll
         .remove_document(
             _key.as_str(),
-            DocumentRemoveOptions::builder().return_old(true).build(),
+            RemoveOptions::builder().return_old(true).build(),
             None,
         )
         .await;
@@ -727,7 +706,7 @@ async fn test_delete_remove_document() {
     let remove: Result<DocumentResponse<Value>, ClientError> = coll
         .remove_document(
             _key.as_str(),
-            DocumentRemoveOptions::builder().silent(true).build(),
+            RemoveOptions::builder().silent(true).build(),
             None,
         )
         .await;

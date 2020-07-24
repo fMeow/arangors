@@ -13,7 +13,10 @@ use maybe_async::maybe_async;
 use crate::{
     aql::AqlQuery,
     client::ClientExt,
-    collection::{Collection, CollectionInfo, CollectionProperties},
+    collection::{
+        response::{Info, Properties},
+        Collection,
+    },
     connection::{DatabaseDetails, GenericConnection, Version},
     response::{deserialize_response, ArangoResult, Cursor},
     ClientError,
@@ -53,7 +56,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn accessible_collections(&self) -> Result<Vec<CollectionInfo>, ClientError> {
+    pub async fn accessible_collections(&self) -> Result<Vec<Info>, ClientError> {
         // an invalid arango_url should never running through initialization
         // so we assume arango_url is a valid url
         // When we pass an invalid path, it should panic to eliminate the bug
@@ -65,7 +68,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
             url.as_str()
         );
         let resp = self.session.get(url, "").await?;
-        let result: ArangoResult<Vec<CollectionInfo>> = deserialize_response(resp.body())?;
+        let result: ArangoResult<Vec<Info>> = deserialize_response(resp.body())?;
         trace!("Collections retrieved");
         Ok(result.unwrap())
     }
@@ -88,7 +91,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
             .base_url
             .join(&format!("_api/collection/{}", name))
             .unwrap();
-        let resp: CollectionInfo = deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Info = deserialize_response(self.session.get(url, "").await?.body())?;
         Ok(Collection::from_response(self, &resp))
     }
 
@@ -115,7 +118,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
             .session
             .post(url, &serde_json::to_string(&map)?)
             .await?;
-        let _result: CollectionProperties = deserialize_response(resp.body())?;
+        let _result: Properties = deserialize_response(resp.body())?;
         self.collection(name).await
     }
 

@@ -4,7 +4,7 @@ use typed_builder::TypedBuilder;
 /// Options for document insertion.
 #[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
-pub struct DocumentInsertOptions {
+pub struct InsertOptions {
     /// Wait until document has been synced to disk.
     #[builder(default, setter(strip_option))]
     wait_for_sync: Option<bool>,
@@ -30,10 +30,10 @@ pub struct DocumentInsertOptions {
     /// TODO add nice formatted documentation from official doc
     #[cfg(arango3_7)]
     #[builder(default, setter(strip_option))]
-    overwrite_mode: Option<DocumentOverwriteMode>,
+    overwrite_mode: Option<OverwriteMode>,
 }
 
-impl Default for DocumentInsertOptions {
+impl Default for InsertOptions {
     fn default() -> Self {
         Self::builder().build()
     }
@@ -42,7 +42,7 @@ impl Default for DocumentInsertOptions {
 /// Options for document update,
 #[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
-pub struct DocumentUpdateOptions {
+pub struct UpdateOptions {
     /// If the intention is to delete existing attributes with the patch
     /// command, the URL query parameter keepNull can be used with a value of
     /// false. This will modify the behavior of the patch command to remove any
@@ -80,14 +80,14 @@ pub struct DocumentUpdateOptions {
     silent: Option<bool>,
 }
 
-impl Default for DocumentUpdateOptions {
+impl Default for UpdateOptions {
     fn default() -> Self {
         Self::builder().build()
     }
 }
 
 #[derive(Serialize, Deserialize)]
-pub enum DocumentOverwriteMode {
+pub enum OverwriteMode {
     /// If a document with the specified _key value exists already,
     /// nothing will be done and no write operation will be carried out.
     /// The insert operation will return success in this case.
@@ -129,7 +129,7 @@ pub enum DocumentOverwriteMode {
 /// Options for document replace,
 #[derive(Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
-pub struct DocumentReplaceOptions {
+pub struct ReplaceOptions {
     /// Wait until document has been synced to disk.
     #[builder(default, setter(strip_option))]
     wait_for_sync: Option<bool>,
@@ -154,7 +154,7 @@ pub struct DocumentReplaceOptions {
     silent: Option<bool>,
 }
 
-impl Default for DocumentReplaceOptions {
+impl Default for ReplaceOptions {
     fn default() -> Self {
         Self::builder().build()
     }
@@ -163,7 +163,7 @@ impl Default for DocumentReplaceOptions {
 /// Options for document reading.
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum DocumentReadOptions {
+pub enum ReadOptions {
     /// If the “If-None-Match” header is given, then it must contain exactly one
     /// Etag. The document is returned, if it has a different revision than
     /// the given Etag. Otherwise an HTTP 304 is returned.
@@ -175,7 +175,7 @@ pub enum DocumentReadOptions {
     NoHeader,
 }
 
-impl Default for DocumentReadOptions {
+impl Default for ReadOptions {
     fn default() -> Self {
         Self::NoHeader
     }
@@ -184,7 +184,7 @@ impl Default for DocumentReadOptions {
 /// Options for document removes,
 #[derive(Serialize, Deserialize, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
-pub struct DocumentRemoveOptions {
+pub struct RemoveOptions {
     /// Wait until document has been synced to disk.
     #[builder(default, setter(strip_option))]
     wait_for_sync: Option<bool>,
@@ -199,7 +199,7 @@ pub struct DocumentRemoveOptions {
     silent: Option<bool>,
 }
 
-impl Default for DocumentRemoveOptions {
+impl Default for RemoveOptions {
     fn default() -> Self {
         Self::builder().build()
     }

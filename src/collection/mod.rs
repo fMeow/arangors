@@ -9,18 +9,20 @@ use serde_json::json;
 use url::Url;
 
 use super::{Database, Document};
-use crate::document::{
-    DocumentHeader, DocumentInsertOptions, DocumentReadOptions, DocumentRemoveOptions,
-    DocumentReplaceOptions, DocumentResponse, DocumentUpdateOptions,
+use crate::document::options::{
+    InsertOptions, ReadOptions, RemoveOptions, ReplaceOptions, UpdateOptions,
 };
+use crate::document::{response::DocumentResponse, Header};
 use crate::{
     client::ClientExt,
     response::{deserialize_response, ArangoResult},
     ClientError,
 };
-pub use response::*;
+use options::*;
+use response::*;
 
-mod response;
+pub mod options;
+pub mod response;
 
 /// A collection consists of documents. It is uniquely identified by its
 /// collection identifier. It also has a unique name that clients should use to
@@ -93,7 +95,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     pub(crate) fn from_response(
         database: &Database<'a, C>,
-        collection: &CollectionInfo,
+        collection: &Info,
     ) -> Collection<'a, C> {
         Self::new(
             database,
@@ -140,27 +142,25 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     /// Truncate current collection.
     #[maybe_async]
-    pub async fn truncate(&self) -> Result<CollectionInfo, ClientError> {
+    pub async fn truncate(&self) -> Result<Info, ClientError> {
         let url = self.base_url.join("truncate").unwrap();
-        let resp: CollectionInfo = deserialize_response(self.session.put(url, "").await?.body())?;
+        let resp: Info = deserialize_response(self.session.put(url, "").await?.body())?;
         Ok(resp)
     }
 
     /// Fetch the properties of collection
     #[maybe_async]
-    pub async fn properties(&self) -> Result<CollectionProperties, ClientError> {
+    pub async fn properties(&self) -> Result<Properties, ClientError> {
         let url = self.base_url.join("properties").unwrap();
-        let resp: CollectionProperties =
-            deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Properties = deserialize_response(self.session.get(url, "").await?.body())?;
         Ok(resp)
     }
 
     /// Counts the documents in this collection
     #[maybe_async]
-    pub async fn document_count(&self) -> Result<CollectionProperties, ClientError> {
+    pub async fn document_count(&self) -> Result<Properties, ClientError> {
         let url = self.base_url.join("count").unwrap();
-        let resp: CollectionProperties =
-            deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Properties = deserialize_response(self.session.get(url, "").await?.body())?;
         Ok(resp)
     }
     /// Fetch the statistics of a collection
@@ -189,10 +189,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// fileSize values. Still the sum of the fileSize values can still be used
     /// as a lower bound approximation of the disk usage.
     #[maybe_async]
-    pub async fn statistics(&self) -> Result<CollectionStatistics, ClientError> {
+    pub async fn statistics(&self) -> Result<Statistics, ClientError> {
         let url = self.base_url.join("figures").unwrap();
-        let resp: CollectionStatistics =
-            deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Statistics = deserialize_response(self.session.get(url, "").await?.body())?;
         Ok(resp)
     }
 
@@ -202,10 +201,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// check whether data in a collection has changed since the last revision
     /// check.
     #[maybe_async]
-    pub async fn revision_id(&self) -> Result<CollectionRevision, ClientError> {
+    pub async fn revision_id(&self) -> Result<Revision, ClientError> {
         let url = self.base_url.join("revision").unwrap();
-        let resp: CollectionRevision =
-            deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Revision = deserialize_response(self.session.get(url, "").await?.body())?;
         Ok(resp)
     }
     /// Fetch a checksum for the specified collection
@@ -232,10 +230,24 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// the checksumming slower. this function would make a request to
     /// arango server.
     #[maybe_async]
-    pub async fn checksum(&self) -> Result<CollectionChecksum, ClientError> {
-        self.checksum_with_options(false, false).await
+    pub async fn checksum(&self) -> Result<Checksum, ClientError> {
+        self.checksum_with_options(Default::default()).await
     }
 
+    /// Fetch a checksum for the specified collection
+    ///
+    /// Will calculate a checksum of the meta-data (keys and optionally
+    /// revision ids) and optionally the document data in the collection.
+    /// The checksum can be used to compare if two collections on different
+    /// ArangoDB instances contain the same contents. The current revision
+    /// of the collection is returned too so one can make sure the checksums
+    /// are calculated for the same state of data.
+    ///
+    /// By default, the checksum will only be calculated on the _key system
+    /// attribute of the documents contained in the collection. For edge
+    /// collections, the system attributes _from and _to will also be included
+    /// in the calculation.
+    ///
     /// By setting the optional query parameter withRevisions to true, then
     /// revision ids (_rev system attributes) are included in the
     /// checksumming.
@@ -243,24 +255,18 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// By providing the optional query parameter withData with a value of true,
     /// the user-defined document attributes will be included in the
     /// calculation too. Note: Including user-defined attributes will make
-    /// the checksumming slower.
+    /// the checksumming slower. this function would make a request to
+    /// arango server.
     #[maybe_async]
     pub async fn checksum_with_options(
         &self,
-        with_revisions: bool,
-        with_data: bool,
-    ) -> Result<CollectionChecksum, ClientError> {
+        options: ChecksumOptions,
+    ) -> Result<Checksum, ClientError> {
         let mut url = self.base_url.join("checksum").unwrap();
+        let query = serde_qs::to_string(&options).unwrap();
+        url.set_query(Some(query.as_str()));
 
-        if with_revisions {
-            url.query_pairs_mut().append_pair("withRevisions", "true");
-        }
-        if with_data {
-            url.query_pairs_mut().append_pair("withData", "true");
-        }
-
-        let resp: CollectionChecksum =
-            deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Checksum = deserialize_response(self.session.get(url, "").await?.body())?;
         Ok(resp)
     }
 
@@ -273,10 +279,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// Setting count to false may speed up loading a collection. The default
     /// value for count is true.
     #[maybe_async]
-    pub async fn load(&self, count: bool) -> Result<CollectionInfo, ClientError> {
+    pub async fn load(&self, count: bool) -> Result<Info, ClientError> {
         let url = self.base_url.join("load").unwrap();
         let body = json!({ "count": count });
-        let resp: CollectionInfo = deserialize_response(
+        let resp: Info = deserialize_response(
             self.session
                 .put(url, body.to_string().as_str())
                 .await?
@@ -289,9 +295,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// documents. You can use the collection afterwards; in which case it will
     /// be loaded into memory, again.
     #[maybe_async]
-    pub async fn unload(&self) -> Result<CollectionInfo, ClientError> {
+    pub async fn unload(&self) -> Result<Info, ClientError> {
         let url = self.base_url.join("unload").unwrap();
-        let resp: CollectionInfo = deserialize_response(self.session.put(url, "").await?.body())?;
+        let resp: Info = deserialize_response(self.session.put(url, "").await?.body())?;
         Ok(resp)
     }
 
@@ -328,28 +334,21 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     #[maybe_async]
     pub async fn change_properties(
         &self,
-        properties: CollectionPropertiesOptions,
-    ) -> Result<CollectionProperties, ClientError> {
+        properties: PropertiesOptions,
+    ) -> Result<Properties, ClientError> {
         let url = self.base_url.join("properties").unwrap();
-        let mut body = json!({});
-        if properties.wait_for_sync.is_some() {
-            body["waitForSync"] = json!(properties.wait_for_sync.unwrap());
-        }
-        let resp: CollectionProperties = deserialize_response(
-            self.session
-                .put(url, body.to_string().as_str())
-                .await?
-                .body(),
-        )?;
+
+        let body = serde_json::to_string(&properties).unwrap();
+        let resp: Properties = deserialize_response(self.session.put(url, &body).await?.body())?;
         Ok(resp)
     }
 
     /// Renames the collection
     #[maybe_async]
-    pub async fn rename(&mut self, name: &str) -> Result<CollectionInfo, ClientError> {
+    pub async fn rename(&mut self, name: &str) -> Result<Info, ClientError> {
         let url = self.base_url.join("rename").unwrap();
         let body = json!({ "name": name });
-        let resp: CollectionInfo =
+        let resp: Info =
             deserialize_response(self.session.put(url, &body.to_string()).await?.body())?;
         self.name = name.to_string();
         self.base_url = self.base_url.join(&format!("../{}/", name)).unwrap();
@@ -427,7 +426,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn create_document<T>(
         &self,
         doc: T,
-        insert_options: DocumentInsertOptions,
+        insert_options: InsertOptions,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
@@ -459,7 +458,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn read_document_with_options<T>(
         &self,
         _key: &str,
-        read_options: DocumentReadOptions,
+        read_options: ReadOptions,
     ) -> Result<Document<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
@@ -481,7 +480,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// use this call to get the current revision of a document or check if the
     /// document was deleted.
     #[maybe_async]
-    pub async fn read_document_header(&self, _key: &str) -> Result<DocumentHeader, ClientError> {
+    pub async fn read_document_header(&self, _key: &str) -> Result<Header, ClientError> {
         self.read_document_header_with_options(_key, Default::default())
             .await
     }
@@ -490,8 +489,8 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn read_document_header_with_options(
         &self,
         _key: &str,
-        read_options: DocumentReadOptions,
-    ) -> Result<DocumentHeader, ClientError> {
+        read_options: ReadOptions,
+    ) -> Result<Header, ClientError> {
         let url = self.document_base_url.join(_key).unwrap();
         let mut build = Request::get(url.to_string());
 
@@ -500,7 +499,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             build = build.header(h.0, h.1)
         }
         let req = build.body("".to_string()).unwrap();
-        let resp: DocumentHeader = deserialize_response(self.session.request(req).await?.body())?;
+        let resp: Header = deserialize_response(self.session.request(req).await?.body())?;
         Ok(resp)
     }
     /// Partially updates the document
@@ -509,7 +508,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         &self,
         _key: &str,
         doc: T,
-        update_options: DocumentUpdateOptions,
+        update_options: UpdateOptions,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
@@ -572,7 +571,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         &self,
         _key: &str,
         doc: T,
-        replace_options: DocumentReplaceOptions,
+        replace_options: ReplaceOptions,
         if_match_header: Option<String>,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
@@ -615,7 +614,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn remove_document<T>(
         &self,
         _key: &str,
-        remove_options: DocumentRemoveOptions,
+        remove_options: RemoveOptions,
         if_match_header: Option<String>,
     ) -> Result<DocumentResponse<T>, ClientError>
     where
@@ -641,19 +640,19 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
 /// Create header name and header value from read_options
 fn make_header_from_options(
-    document_read_options: DocumentReadOptions,
+    document_read_options: ReadOptions,
 ) -> Option<(http::header::HeaderName, http::header::HeaderValue)> {
     match document_read_options {
-        DocumentReadOptions::IfNoneMatch(value) => Some((
+        ReadOptions::IfNoneMatch(value) => Some((
             "If-None-Match".to_string().parse().unwrap(),
             http::HeaderValue::try_from(value).unwrap(),
         )),
 
-        DocumentReadOptions::IfMatch(value) => Some((
+        ReadOptions::IfMatch(value) => Some((
             "If-Match".to_string().parse().unwrap(),
             http::HeaderValue::try_from(value).unwrap(),
         )),
 
-        DocumentReadOptions::NoHeader => None,
+        ReadOptions::NoHeader => None,
     }
 }
