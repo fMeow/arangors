@@ -13,7 +13,7 @@ use maybe_async::maybe_async;
 use crate::{
     aql::AqlQuery,
     client::ClientExt,
-    collection::{Collection, CollectionProperties, CollectionResponse},
+    collection::{Collection, CollectionInfo, CollectionProperties},
     connection::{DatabaseDetails, GenericConnection, Version},
     response::{deserialize_response, ArangoResult, Cursor},
     ClientError,
@@ -53,7 +53,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn accessible_collections(&self) -> Result<Vec<CollectionResponse>, ClientError> {
+    pub async fn accessible_collections(&self) -> Result<Vec<CollectionInfo>, ClientError> {
         // an invalid arango_url should never running through initialization
         // so we assume arango_url is a valid url
         // When we pass an invalid path, it should panic to eliminate the bug
@@ -65,7 +65,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
             url.as_str()
         );
         let resp = self.session.get(url, "").await?;
-        let result: ArangoResult<Vec<CollectionResponse>> = deserialize_response(resp.body())?;
+        let result: ArangoResult<Vec<CollectionInfo>> = deserialize_response(resp.body())?;
         trace!("Collections retrieved");
         Ok(result.unwrap())
     }
@@ -88,8 +88,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
             .base_url
             .join(&format!("_api/collection/{}", name))
             .unwrap();
-        let resp: CollectionResponse =
-            deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: CollectionInfo = deserialize_response(self.session.get(url, "").await?.body())?;
         Ok(Collection::from_response(self, &resp))
     }
 
