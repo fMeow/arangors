@@ -83,7 +83,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn collection(&self, name: &str) -> Result<Collection<'_, C>, ClientError> {
+    pub async fn collection(&self, name: &str) -> Result<Collection<'a, C>, ClientError> {
         let url = self
             .base_url
             .join(&format!("_api/collection/{}", name))
@@ -121,9 +121,6 @@ impl<'a, C: ClientExt> Database<'a, C> {
     }
 
     /// Drops a collection
-    ///
-    /// # Note
-    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn drop_collection(&mut self, name: &str) -> Result<String, ClientError> {
         let url_path = format!("_api/collection/{}", name);

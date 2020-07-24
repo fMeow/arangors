@@ -185,16 +185,16 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// Base url should be like `http://server:port/_db/mydb/_api/collection/{collection-name}`
     /// Document root should be like: http://server:port/_db/mydb/_api/document/
     pub(crate) fn new<T: Into<String>>(
-        database: &'a Database<C>,
+        database: &Database<'a, C>,
         name: T,
         id: T,
         collection_type: CollectionType,
     ) -> Collection<'a, C> {
         let name = name.into();
-        let path = format!("_api/collection/{}/", name.as_str());
-        let url = database.get_url().join(path.as_str()).unwrap();
-        let document_path = format!("_api/document/{}/", name.as_str());
-        let document_base_url = database.get_url().join(document_path.as_str()).unwrap();
+        let path = format!("_api/collection/{}/", &name);
+        let url = database.get_url().join(&path).unwrap();
+        let document_path = format!("_api/document/{}/", &name);
+        let document_base_url = database.get_url().join(&document_path).unwrap();
         Collection {
             name,
             id: id.into(),
@@ -202,12 +202,12 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             base_url: url,
             document_base_url,
             collection_type,
-            phantom: database.phantom,
+            phantom: &(*database.phantom),
         }
     }
 
     pub(crate) fn from_response(
-        database: &'a Database<C>,
+        database: &Database<'a, C>,
         collection: &CollectionResponse,
     ) -> Collection<'a, C> {
         Self::new(
@@ -236,6 +236,21 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     pub fn session(&self) -> Arc<C> {
         Arc::clone(&self.session)
+    }
+
+    /// Drops a collection
+    #[maybe_async]
+    pub async fn drop(self) -> Result<String, ClientError> {
+        let url = self.base_url.join("").unwrap();
+
+        #[derive(Debug, Deserialize)]
+        struct DropCollectionResponse {
+            id: String,
+        }
+
+        let resp: DropCollectionResponse =
+            deserialize_response(self.session.delete(url, "").await?.body())?;
+        Ok(resp.id)
     }
 
     /// Truncate current collection.
