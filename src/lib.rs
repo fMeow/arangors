@@ -62,7 +62,7 @@
 //!     Implement both sync and async client. Also, offers a way to use custom
 //!     HTTP client ecosystem.
 //!
-//! - (WIP) Milestone 0.4.x
+//! - (WIP) Milestone 1.0.x
 //!
 //!     Provides the API related to graph, index and user management.
 //!
