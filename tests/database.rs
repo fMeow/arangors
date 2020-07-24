@@ -5,8 +5,8 @@ use pretty_assertions::assert_eq;
 
 use arangors::Connection;
 use common::{
-    get_arangodb_host, get_normal_password, get_normal_user, get_root_password, get_root_user,
-    test_root_and_normal, test_setup,
+    connection, get_arangodb_host, get_normal_password, get_normal_user, get_root_password,
+    get_root_user, test_root_and_normal, test_setup,
 };
 
 pub mod common;
@@ -20,13 +20,7 @@ const NEW_DB_NAME: &str = "example";
 )]
 async fn test_create_and_drop_database() {
     test_setup();
-    let host = get_arangodb_host();
-    let root_user = get_root_user();
-    let root_password = get_root_password();
-
-    let conn = Connection::establish_jwt(&host, &root_user, &root_password)
-        .await
-        .unwrap();
+    let conn = connection().await;
 
     let result = conn.create_database(NEW_DB_NAME).await;
     if let Err(e) = result {
@@ -77,13 +71,7 @@ async fn test_fetch_current_database_info() {
 )]
 async fn test_get_version() {
     test_setup();
-    let host = get_arangodb_host();
-    let user = get_normal_user();
-    let password = get_normal_password();
-
-    let conn = Connection::establish_jwt(&host, &user, &password)
-        .await
-        .unwrap();
+    let conn = connection().await;
     let db = conn.db("test_db").await.unwrap();
     let version = db.arango_version().await.unwrap();
     trace!("{:?}", version);

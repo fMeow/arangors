@@ -12,7 +12,9 @@ use arangors::{
     },
     ClientError, Connection, Document,
 };
-use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
+use common::{
+    collection, connection, get_arangodb_host, get_normal_password, get_normal_user, test_setup,
+};
 use std::{convert::TryInto, ptr::null};
 
 pub mod common;
@@ -25,23 +27,9 @@ pub mod common;
 )]
 async fn test_post_create_document() {
     test_setup();
-    let host = get_arangodb_host();
-    let user = get_normal_user();
-    let password = get_normal_password();
-
     let collection_name = "test_collection_create_document";
-
-    let conn = Connection::establish_jwt(&host, &user, &password)
-        .await
-        .unwrap();
-    let mut database = conn.db("test_db").await.unwrap();
-
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true, "drop collection");
-    let coll = database.create_collection(collection_name).await;
-    coll.expect("Should create the collection");
-
-    let coll = database.collection(collection_name).await.unwrap();
+    let conn = connection().await;
+    let coll = collection(&conn, collection_name).await;
 
     let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
     "testDescription":"Trying to make unit test for createDocument but there are many cases to handle"
@@ -153,8 +141,7 @@ async fn test_post_create_document() {
 
     assert_eq!(result.is_silent(), true);
 
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.drop().await.expect("Should drop the collection");
 }
 
 /// TODO need to use CI to validate this test
@@ -166,24 +153,9 @@ async fn test_post_create_document() {
 )]
 async fn test_post_create_document_3_7() {
     test_setup();
-    let host = get_arangodb_host();
-    let user = get_normal_user();
-    let password = get_normal_password();
-
     let collection_name = "test_collection_create_document_3_7";
-
-    let conn = Connection::establish_jwt(&host, &user, &password)
-        .await
-        .unwrap();
-    let mut database = conn.db("test_db").await.unwrap();
-
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
-
-    let coll = database.create_collection(collection_name).await;
-    coll.expect("Should create the collection");
-
-    let coll = database.collection(collection_name).await.unwrap();
+    let conn = connection().await;
+    let coll = collection(&conn, collection_name).await;
 
     let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
     "testDescription":"Trying to make unit test for createDocument but there are many cases to handle"
@@ -359,8 +331,7 @@ async fn test_post_create_document_3_7() {
 
     assert_eq!(result.header().is_none(), false);
 
-    let coll = database.drop_collection(collection_name).await;
-    coll.expect("Should drop the collection");
+    coll.drop().await.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -370,24 +341,9 @@ async fn test_post_create_document_3_7() {
 )]
 async fn test_get_read_document() {
     test_setup();
-    let host = get_arangodb_host();
-    let user = get_normal_user();
-    let password = get_normal_password();
-
     let collection_name = "test_collection_read_document";
-
-    let conn = Connection::establish_jwt(&host, &user, &password)
-        .await
-        .unwrap();
-    let mut database = conn.db("test_db").await.unwrap();
-
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
-
-    let coll = database.create_collection(collection_name).await;
-    coll.expect("Should create the collection");
-
-    let coll = database.collection(collection_name).await.unwrap();
+    let conn = connection().await;
+    let coll = collection(&conn, collection_name).await;
 
     let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
     "testDescription":"read a document"
@@ -429,8 +385,7 @@ async fn test_get_read_document() {
 
     // todo need to test with with IfNoneMatch and 304
 
-    let coll = database.drop_collection(collection_name).await;
-    coll.expect("Should drop the collection");
+    coll.drop().await.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -440,25 +395,9 @@ async fn test_get_read_document() {
 )]
 async fn test_get_read_document_header() {
     test_setup();
-    let host = get_arangodb_host();
-    let user = get_normal_user();
-    let password = get_normal_password();
-
     let collection_name = "test_collection_read_document_header";
-
-    let conn = Connection::establish_jwt(&host, &user, &password)
-        .await
-        .unwrap();
-    let mut database = conn.db("test_db").await.unwrap();
-
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
-
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true, "drop collection");
-    let coll = database.create_collection(collection_name).await;
-    coll.expect("Should create the collection");
-    let coll = database.collection(collection_name).await.unwrap();
+    let conn = connection().await;
+    let coll = collection(&conn, collection_name).await;
 
     let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
     "testDescription":"read a document"
@@ -531,8 +470,8 @@ async fn test_get_read_document_header() {
         true,
         "the If-None-Match header is given and the document has the same version"
     );
-    let coll = database.drop_collection(collection_name).await;
-    coll.expect("Should drop the collection");
+
+    coll.drop().await.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -542,26 +481,9 @@ async fn test_get_read_document_header() {
 )]
 async fn test_patch_update_document() {
     test_setup();
-    let host = get_arangodb_host();
-    let user = get_normal_user();
-    let password = get_normal_password();
-
     let collection_name = "test_collection_update_document";
-
-    let conn = Connection::establish_jwt(&host, &user, &password)
-        .await
-        .unwrap();
-    let mut database = conn.db("test_db").await.unwrap();
-
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
-
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true, "drop collection");
-    let coll = database.create_collection(collection_name).await;
-    coll.expect("Should create the collection");
-
-    let coll = database.collection(collection_name).await.unwrap();
+    let conn = connection().await;
+    let coll = collection(&conn, collection_name).await;
 
     let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
     "testDescription":"update document"
@@ -625,8 +547,7 @@ async fn test_patch_update_document() {
          specified _rev in body"
     );
 
-    let coll = database.drop_collection(collection_name).await;
-    coll.expect("Should drop the collection");
+    coll.drop().await.expect("Should drop the collection");
     // todo do more test for merge objects and stuff
 }
 
@@ -637,26 +558,9 @@ async fn test_patch_update_document() {
 )]
 async fn test_post_replace_document() {
     test_setup();
-    let host = get_arangodb_host();
-    let user = get_normal_user();
-    let password = get_normal_password();
-
     let collection_name = "test_collection_replace_document";
-
-    let conn = Connection::establish_jwt(&host, &user, &password)
-        .await
-        .unwrap();
-    let mut database = conn.db("test_db").await.unwrap();
-
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
-
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true, "drop collection");
-    let coll = database.create_collection(collection_name).await;
-    coll.expect("Should create the collection");
-
-    let coll = database.collection(collection_name).await.unwrap();
+    let conn = connection().await;
+    let coll = collection(&conn, collection_name).await;
 
     let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
     "testDescription":"update document"
@@ -754,8 +658,7 @@ async fn test_post_replace_document() {
          specified _rev in body"
     );
 
-    let coll = database.drop_collection(collection_name).await;
-    coll.expect("Should drop the collection");
+    coll.drop().await.expect("Should drop the collection");
 
     // todo do more test
 }
@@ -767,23 +670,9 @@ async fn test_post_replace_document() {
 )]
 async fn test_delete_remove_document() {
     test_setup();
-    let host = get_arangodb_host();
-    let user = get_normal_user();
-    let password = get_normal_password();
-
     let collection_name = "test_collection_remove_document";
-
-    let conn = Connection::establish_jwt(&host, &user, &password)
-        .await
-        .unwrap();
-    let mut database = conn.db("test_db").await.unwrap();
-
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true, "drop collection");
-    let coll = database.create_collection(collection_name).await;
-    coll.expect("Should create the collection");
-
-    let coll = database.collection(collection_name).await.unwrap();
+    let conn = connection().await;
+    let coll = collection(&conn, collection_name).await;
 
     let test_doc: Document<Value> = Document::new(json!({ "no":1 ,
     "testDescription":"update document"
@@ -888,7 +777,6 @@ async fn test_delete_remove_document() {
         "We should get 404 because we just have removed the doc before"
     );
 
-    let coll = database.drop_collection(collection_name).await;
-    coll.expect("Should drop the collection");
+    coll.drop().await.expect("Should drop the collection");
     // todo do more test
 }

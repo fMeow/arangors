@@ -5,7 +5,7 @@ use pretty_assertions::assert_eq;
 use serde::Deserialize;
 
 use arangors::{AqlQuery, Connection, Document};
-use common::test_setup;
+use common::{connection, test_setup};
 
 use crate::common::{get_arangodb_host, get_root_password, get_root_user};
 
@@ -24,13 +24,7 @@ struct User {
 )]
 async fn test_aql_str() {
     test_setup();
-    let host = get_arangodb_host();
-    let root_user = get_root_user();
-    let root_password = get_root_password();
-
-    let conn = Connection::establish_jwt(&host, &root_user, &root_password)
-        .await
-        .unwrap();
+    let conn = connection().await;
     let db = conn.db("test_db").await.unwrap();
     let result: Vec<Document<User>> = db
         .aql_str(r#"FOR i in test_collection FILTER i.username=="test2" return i"#)
@@ -47,13 +41,7 @@ async fn test_aql_str() {
 )]
 async fn test_aql() {
     test_setup();
-    let host = get_arangodb_host();
-    let root_user = get_root_user();
-    let root_password = get_root_password();
-
-    let conn = Connection::establish_jwt(&host, &root_user, &root_password)
-        .await
-        .unwrap();
+    let conn = connection().await;
     let db = conn.db("test_db").await.unwrap();
     let aql = AqlQuery::new(
         r#"FOR i in test_collection FILTER
@@ -71,13 +59,7 @@ async fn test_aql() {
 )]
 async fn test_aql_bind_vars() {
     test_setup();
-    let host = get_arangodb_host();
-    let root_user = get_root_user();
-    let root_password = get_root_password();
-
-    let conn = Connection::establish_jwt(&host, &root_user, &root_password)
-        .await
-        .unwrap();
+    let conn = connection().await;
     let db = conn.db("test_db").await.unwrap();
     let aql = AqlQuery::new(
         r#"FOR i in test_collection FILTER

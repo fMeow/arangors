@@ -1,5 +1,7 @@
 #![allow(unused_imports)]
 #![allow(unused_parens)]
+use arangors::connection::Connection;
+use arangors::{Collection, Database};
 use std::{env, future::Future};
 
 pub const ARANGODB_HOST: &str = "http://localhost:8529/";
@@ -63,6 +65,54 @@ pub fn test_setup() {
     {
         _ => {}
     }
+}
+
+#[maybe_async::maybe_async]
+pub async fn connection() -> arangors::Connection {
+    let host = get_arangodb_host();
+    let user = get_normal_user();
+    let password = get_normal_password();
+
+    Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap()
+}
+
+#[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
+#[maybe_async::maybe_async]
+pub async fn collection<'a>(
+    conn: &'a arangors::Connection,
+    name: &str,
+) -> Collection<'a, arangors::client::reqwest::ReqwestClient> {
+    let mut database = conn.db("test_db").await.unwrap();
+
+    match database.drop_collection(name).await {
+        _ => {}
+    };
+    database
+        .create_collection(name)
+        .await
+        .expect("Fail to create the collection");
+    database.collection(name).await.unwrap()
+}
+
+#[cfg(feature = "surf_async")]
+#[maybe_async::maybe_async]
+pub async fn collection<'a>(
+    conn: &'a arangors::Connection,
+    name: &str,
+) -> Collection<'a, arangors::client::surf::SurfClient> {
+    let mut database = conn.db("test_db").await.unwrap();
+
+    match database.drop_collection(name).await {
+        _ => {}
+    };
+
+    database
+        .create_collection(name)
+        .await
+        .expect("Fail to create the collection");
+    database.collection(name).await.unwrap()
 }
 
 #[maybe_async::sync_impl]
