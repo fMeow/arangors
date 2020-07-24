@@ -1,7 +1,7 @@
 #[cfg(feature = "reqwest_blocking")]
-use ::reqwest::blocking::{Client, Request, Response};
+use ::reqwest::blocking::Client;
 #[cfg(feature = "reqwest_async")]
-use ::reqwest::{Client, Request, Response};
+use ::reqwest::Client;
 
 use http::header::HeaderMap;
 

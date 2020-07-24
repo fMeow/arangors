@@ -1,5 +1,5 @@
 use crate::ArangoError;
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 /// Options for document insertion.
 #[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]

@@ -17,8 +17,8 @@ use crate::{
 
 use super::{Database, Document};
 use crate::document::{
-    DocumentHeader, DocumentInsertOptions, DocumentOverwriteMode, DocumentReadOptions,
-    DocumentRemoveOptions, DocumentReplaceOptions, DocumentResponse, DocumentUpdateOptions,
+    DocumentHeader, DocumentInsertOptions, DocumentReadOptions, DocumentRemoveOptions,
+    DocumentReplaceOptions, DocumentResponse, DocumentUpdateOptions,
 };
 use http::Request;
 use serde::de::DeserializeOwned;
