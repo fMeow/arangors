@@ -282,12 +282,8 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn load(&self, count: bool) -> Result<Info, ClientError> {
         let url = self.base_url.join("load").unwrap();
         let body = json!({ "count": count });
-        let resp: Info = deserialize_response(
-            self.session
-                .put(url, body.to_string().as_str())
-                .await?
-                .body(),
-        )?;
+        let resp: Info =
+            deserialize_response(self.session.put(url, body.to_string()).await?.body())?;
         Ok(resp)
     }
 
@@ -339,7 +335,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         let url = self.base_url.join("properties").unwrap();
 
         let body = serde_json::to_string(&properties).unwrap();
-        let resp: Properties = deserialize_response(self.session.put(url, &body).await?.body())?;
+        let resp: Properties = deserialize_response(self.session.put(url, body).await?.body())?;
         Ok(resp)
     }
 
@@ -349,7 +345,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         let url = self.base_url.join("rename").unwrap();
         let body = json!({ "name": name });
         let resp: Info =
-            deserialize_response(self.session.put(url, &body.to_string()).await?.body())?;
+            deserialize_response(self.session.put(url, body.to_string()).await?.body())?;
         self.name = name.to_string();
         self.base_url = self.base_url.join(&format!("../{}/", name)).unwrap();
         Ok(resp)
@@ -436,7 +432,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         let query = serde_qs::to_string(&insert_options).unwrap();
         url.set_query(Some(query.as_str()));
         let resp: DocumentResponse<T> =
-            deserialize_response(self.session.post(url, body.as_str()).await?.body())?;
+            deserialize_response(self.session.post(url, body).await?.body())?;
         Ok(resp)
     }
 
@@ -519,7 +515,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         url.set_query(Some(query.as_str()));
 
         let resp: DocumentResponse<T> =
-            deserialize_response(self.session.patch(url, body.as_str()).await?.body())?;
+            deserialize_response(self.session.patch(url, body).await?.body())?;
         Ok(resp)
     }
 
