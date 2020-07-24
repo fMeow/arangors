@@ -254,8 +254,12 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Truncate current collection.
-    pub fn truncate(&self) {
-        unimplemented!()
+    #[maybe_async]
+    pub async fn truncate(&self) -> Result<CollectionResponse, ClientError> {
+        let url = self.base_url.join("truncate").unwrap();
+        let resp: CollectionResponse =
+            deserialize_response(self.session.put(url, "").await?.body())?;
+        Ok(resp)
     }
 
     /// Fetch the properties of collection
