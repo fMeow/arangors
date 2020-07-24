@@ -20,7 +20,13 @@ const NEW_DB_NAME: &str = "example";
 )]
 async fn test_create_and_drop_database() {
     test_setup();
-    let conn = connection().await;
+    let host = get_arangodb_host();
+    let root_user = get_root_user();
+    let root_password = get_root_password();
+
+    let conn = Connection::establish_jwt(&host, &root_user, &root_password)
+        .await
+        .unwrap();
 
     let result = conn.create_database(NEW_DB_NAME).await;
     if let Err(e) = result {

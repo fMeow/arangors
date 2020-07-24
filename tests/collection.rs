@@ -43,12 +43,12 @@ async fn test_create_and_drop_collection() {
     let conn = connection().await;
 
     let mut database = conn.db("test_db").await.unwrap();
-
-    database
-        .drop_collection(collection_name)
-        .await
-        .expect("Should have dropped collection");
-
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(
+        coll.is_err(),
+        true,
+        "The collection should have been drop previously"
+    );
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false, "Fail to create the collection");
 
@@ -69,15 +69,16 @@ async fn test_create_and_drop_collection() {
 )]
 async fn test_truncate_collection() {
     test_setup();
+    let collection_name = "test_collection_truncate";
     let conn = connection().await;
-    let coll = collection(&conn, "test_collection_truncate").await;
+    let coll = collection(&conn, collection_name).await;
 
     let res = coll.truncate().await;
     assert_eq!(res.is_ok(), true);
 
     let res = res.unwrap();
     assert_eq!(res.is_system, false);
-    assert_eq!(res.name, "test_collection");
+    assert_eq!(res.name, collection_name);
     assert_eq!(res.r#type, CollectionType::Document);
 
     coll.drop().await.expect("Fail to drop the collection");
@@ -433,7 +434,7 @@ async fn test_put_rename() {
     test_setup();
     let collection_name = "test_collection_rename";
     let conn = connection().await;
-    let coll = collection(&conn, collection_name).await;
+    let mut coll = collection(&conn, collection_name).await;
 
     let new_name = "test_collection_renamed_2";
     let renamed = coll.rename(new_name).await;
