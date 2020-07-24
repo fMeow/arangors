@@ -4,7 +4,6 @@ use http::{
     header::{HeaderMap, HeaderName, HeaderValue, CONTENT_LENGTH, SERVER},
     Method, StatusCode, Version,
 };
-use url::Url;
 
 use crate::client::ClientExt;
 
@@ -50,14 +49,13 @@ impl ClientExt for SurfClient {
             m @ _ => return Err(ClientError::HttpClient(format!("invalid method {}", m))),
         };
 
-        let mut req = self.headers.iter().fold(req, |req, (k, v)| {
+        let req = self.headers.iter().fold(req, |req, (k, v)| {
             req.set_header(
                 SurfHeaderName::from_str(k.as_str()).unwrap(),
                 v.to_str().unwrap(),
             )
         });
-        let copy_req = req;
-        let mut req = request.headers().iter().fold(copy_req, |req, (k, v)| {
+        let req = request.headers().iter().fold(req, |req, (k, v)| {
             req.set_header(
                 SurfHeaderName::from_str(k.as_str()).unwrap(),
                 v.to_str().unwrap(),
