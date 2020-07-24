@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use http::{
     header::{HeaderMap, HeaderName, HeaderValue, CONTENT_LENGTH, SERVER},
-    StatusCode, Version,
+    Method, StatusCode, Version,
 };
 use url::Url;
 
@@ -17,13 +17,24 @@ pub struct SurfClient {
 
 #[async_trait::async_trait]
 impl ClientExt for SurfClient {
+    fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
+        let headers = match headers.into() {
+            Some(h) => h,
+            None => HeaderMap::new(),
+        };
+
+        Ok(SurfClient { headers })
+    }
+
     async fn request(
         &self,
-        method: Method,
-        url: Url,
-        text: &str,
-    ) -> Result<ClientResponse, ClientError> {
+        request: http::Request<String>,
+    ) -> Result<http::Response<String>, ClientError> {
         use ::surf::http_types::headers::HeaderName as SurfHeaderName;
+
+        let method = request.method().clone();
+        let url = request.uri().to_owned().to_string();
+        let text = request.body();
         log::trace!("{:?}({:?}): {} ", method, url, text);
 
         let req = match method {
@@ -39,19 +50,27 @@ impl ClientExt for SurfClient {
             m @ _ => return Err(ClientError::HttpClient(format!("invalid method {}", m))),
         };
 
-        let req = self.headers.iter().fold(req, |req, (k, v)| {
+        let mut req = self.headers.iter().fold(req, |req, (k, v)| {
             req.set_header(
                 SurfHeaderName::from_str(k.as_str()).unwrap(),
                 v.to_str().unwrap(),
             )
         });
+        let copy_req = req;
+        let mut req = request.headers().iter().fold(copy_req, |req, (k, v)| {
+            req.set_header(
+                SurfHeaderName::from_str(k.as_str()).unwrap(),
+                v.to_str().unwrap(),
+            )
+        });
+
         let mut resp = req
             .body_string(text.to_owned())
             .await
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
         let status_code = resp.status();
-
+        let status = u16::from(status_code);
         let mut headers = HeaderMap::new();
         let conv_header = |hn: HeaderName| -> HeaderValue {
             let v = resp
@@ -71,27 +90,27 @@ impl ClientExt for SurfClient {
             .await
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
-        Ok(ClientResponse {
-            status_code: StatusCode::from_u16(status_code.into()).unwrap(),
-            headers,
-            version: version.map(|v| match v {
-                http_types::Version::Http0_9 => Version::HTTP_09,
-                http_types::Version::Http1_0 => Version::HTTP_10,
-                http_types::Version::Http1_1 => Version::HTTP_11,
-                http_types::Version::Http2_0 => Version::HTTP_2,
-                http_types::Version::Http3_0 => Version::HTTP_3,
-                _ => unreachable!(),
-            }),
-            content,
-        })
-    }
+        let mut build = http::Response::builder();
 
-    fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
-        let headers = match headers.into() {
-            Some(h) => h,
-            None => HeaderMap::new(),
-        };
+        for header in headers.iter() {
+            build = build.header(header.0, header.1);
+        }
 
-        Ok(SurfClient { headers })
+        let http_version = version.map(|v| match v {
+            http_types::Version::Http0_9 => Version::HTTP_09,
+            http_types::Version::Http1_0 => Version::HTTP_10,
+            http_types::Version::Http1_1 => Version::HTTP_11,
+            http_types::Version::Http2_0 => Version::HTTP_2,
+            http_types::Version::Http3_0 => Version::HTTP_3,
+            _ => unreachable!(),
+        });
+
+        let mut resp =
+            http::response::Builder::from(build).status(StatusCode::from_u16(status).unwrap());
+        if version.is_some() {
+            resp = resp.version(http_version.unwrap());
+        }
+        resp.body(content)
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 }

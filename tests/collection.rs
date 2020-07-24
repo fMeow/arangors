@@ -3,10 +3,12 @@
 
 use log::trace;
 use pretty_assertions::assert_eq;
-use serde_json::Value;
+use serde_json::{json, Value};
 
-use arangors::collection::{CollectionPropertiesOptions, CollectionStatus, CollectionType};
-use arangors::{ClientError, Connection, Document};
+use arangors::{
+    collection::{CollectionPropertiesOptions, CollectionStatus, CollectionType},
+    ClientError, Connection, Document,
+};
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
 
 pub mod common;
@@ -51,13 +53,17 @@ async fn test_create_and_drop_collection() {
         .await
         .unwrap();
     let mut database = conn.db("test_db").await.unwrap();
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(
+        coll.is_err(),
+        true,
+        "The collection should have been drop previously"
+    );
+    let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false, "It should have create the collection");
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
-    let coll = database.create_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    assert_eq!(coll.is_err(), false, "It should drop the collection");
 }
 
 #[maybe_async::test(
@@ -79,13 +85,12 @@ async fn test_get_properties() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
+    assert_eq!(coll.is_err(), true, "Dropped collection ");
 
     let coll = database.create_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should create the collection");
 
     let coll = database.collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
 
     let properties = coll.unwrap().properties().await;
     assert_eq!(properties.is_err(), false);
@@ -114,7 +119,7 @@ async fn test_get_properties() {
     assert_eq!(result.detail.write_concern, 1);
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -136,13 +141,13 @@ async fn test_get_document_count() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
+    assert_eq!(coll.is_err(), true, "Dropped collection ");
 
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 
     let coll = database.collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+
     let coll = coll.unwrap();
     let count = coll.document_count().await;
 
@@ -172,7 +177,7 @@ async fn test_get_document_count() {
     assert_eq!(updated_result.info.count, Some(1));
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -194,7 +199,7 @@ async fn test_get_statistics() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true, "drop collection");
+    assert_eq!(coll.is_err(), true, "Dropped collection ");
 
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false, "create collection");
@@ -226,7 +231,12 @@ async fn test_get_statistics() {
     assert_eq!(result.figures.indexes.size, Some(0), "indexes size");
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false, "fail to drop collection: {:?}", coll);
+    assert_eq!(
+        coll.is_err(),
+        false,
+        "fail to dropped collection : {:?}",
+        coll
+    );
 }
 
 #[maybe_async::test(
@@ -248,13 +258,13 @@ async fn test_get_revision_id() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
+    assert_eq!(coll.is_err(), true, "Dropped collection ");
 
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 
     let coll = database.collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+
     let coll = coll.unwrap();
     let revision = coll.revision_id().await;
 
@@ -275,7 +285,7 @@ async fn test_get_revision_id() {
     assert_eq!(result.detail.write_concern, 1);
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -297,13 +307,13 @@ async fn test_get_checksum() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
+    assert_eq!(coll.is_err(), true, "Dropped collection ");
 
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 
     let coll = database.collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+
     let coll = coll.unwrap();
     let checksum = coll.checksum().await;
 
@@ -349,7 +359,7 @@ async fn test_get_checksum() {
     assert_eq!(updated_result.checksum.is_empty(), false);
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -371,13 +381,13 @@ async fn test_put_load() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
+    assert_eq!(coll.is_err(), true, "Dropped collection ");
 
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 
     let coll = database.collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+
     let coll = coll.unwrap();
     let load = coll.load(true).await;
 
@@ -413,7 +423,7 @@ async fn test_put_load() {
     assert_eq!(updated_result.r#type, CollectionType::Document);
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -435,13 +445,13 @@ async fn test_put_unload() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
+    assert_eq!(coll.is_err(), true, "Dropped collection ");
 
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 
     let coll = database.collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+
     let coll = coll.unwrap();
     let unload = coll.unload().await;
 
@@ -459,7 +469,7 @@ async fn test_put_unload() {
     assert_eq!(result.r#type, CollectionType::Document);
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -481,13 +491,13 @@ async fn test_put_load_indexes_into_memory() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
+    assert_eq!(coll.is_err(), true, "Dropped collection ");
 
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 
     let coll = database.collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+
     let coll = coll.unwrap();
     let load_index = coll.load_indexes().await;
 
@@ -495,7 +505,7 @@ async fn test_put_load_indexes_into_memory() {
     assert_eq!(result, true);
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -517,13 +527,13 @@ async fn test_put_changes_properties() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
+    assert_eq!(coll.is_err(), true, "Dropped collection ");
 
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 
     let coll = database.collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+
     let coll = coll.unwrap();
 
     let updated_properties = coll
@@ -548,7 +558,7 @@ async fn test_put_changes_properties() {
     assert_eq!(result.detail.write_concern, 1);
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[maybe_async::test(
@@ -570,13 +580,13 @@ async fn test_put_rename() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
+    assert_eq!(coll.is_err(), true, "Dropped collection ");
 
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 
     let coll = database.collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+
     let coll = coll.unwrap();
     let new_name = "test_collection_renamed_2";
     let renamed = coll.rename(new_name).await;
@@ -587,8 +597,6 @@ async fn test_put_rename() {
     assert_eq!(result.status, CollectionStatus::Loaded);
     assert_eq!(result.r#type, CollectionType::Document);
 
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
     let coll = database.drop_collection(new_name).await;
     assert_eq!(coll.is_err(), false);
 }
@@ -613,13 +621,13 @@ async fn test_put_recalculate() {
     let mut database = conn.db("test_db").await.unwrap();
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
+    assert_eq!(coll.is_err(), true, "Dropped collection ");
 
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
 
     let coll = database.collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+
     let coll = coll.unwrap();
     let recalculate = coll.recalculate_count().await;
 
@@ -627,7 +635,7 @@ async fn test_put_recalculate() {
     assert_eq!(result, true);
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }
 
 #[cfg(any(feature = "mmfiles"))]
@@ -648,9 +656,6 @@ async fn test_put_rotate_journal() {
         .await
         .unwrap();
     let mut database = conn.db("test_db").await.unwrap();
-
-    let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), true);
 
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false);
@@ -675,5 +680,5 @@ async fn test_put_rotate_journal() {
     // assert_eq!(result, true, "rotate result should be true");
 
     let coll = database.drop_collection(collection_name).await;
-    assert_eq!(coll.is_err(), false);
+    coll.expect("Should drop the collection");
 }

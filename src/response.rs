@@ -26,7 +26,7 @@ use super::aql::QueryStats;
 /// response of success and failure.
 ///
 /// When ArangoDB server response error code, then an error would be cast.
-pub(crate) fn serialize_response<T>(text: &str) -> Result<T, ClientError>
+pub(crate) fn deserialize_response<T>(text: &str) -> Result<T, ClientError>
 where
     T: DeserializeOwned,
 {
@@ -167,12 +167,12 @@ mod test {
     #[test]
     fn response() {
         let text = "{\"id\":\"9947\",\"name\":\"relation\",\"status\":2,\"type\":3,\"isSystem\": \
-                false,\"globallyUniqueId\":\"hD260BE2A30F9/9947\"}";
+                    false,\"globallyUniqueId\":\"hD260BE2A30F9/9947\"}";
         let result = serde_json::from_str::<Response<CollectionResponse>>(text);
         assert_eq!(result.is_ok(), true, "failed: {:?}", result);
 
-        let text = "{\"error\":false,\"code\":412,\"id\":\"9947\",\"name\":\"relation\",\"status\":2,\"type\":3,\"isSystem\": \
-        false,\"globallyUniqueId\":\"hD260BE2A30F9/9947\"}";
+        let text = "{\"error\":false,\"code\":412,\"id\":\"9947\",\"name\":\"relation\",\"status\"\
+                    :2,\"type\":3,\"isSystem\": false,\"globallyUniqueId\":\"hD260BE2A30F9/9947\"}";
         let result = serde_json::from_str::<Response<CollectionResponse>>(text);
         assert_eq!(result.is_ok(), true, "failed: {:?}", result);
 

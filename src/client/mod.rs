@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 
-use http::{method::Method, HeaderMap};
-use serde::de::DeserializeOwned;
+use http::{HeaderMap, Request, Response};
 use url::Url;
 
 use crate::ClientError;
@@ -39,133 +38,119 @@ pub trait ClientExt: Sync + Debug + Clone {
         Self: Sized;
 
     #[inline]
-    async fn get(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn get(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::GET, url, text).await
+        self.request(
+            Request::get(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
     #[inline]
-    async fn post(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn post(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::POST, url, text).await
+        self.request(
+            Request::post(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
     #[inline]
-    async fn put(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn put(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::PUT, url, text).await
+        self.request(
+            Request::put(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
     #[inline]
-    async fn delete(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn delete(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::DELETE, url, text).await
+        self.request(
+            Request::delete(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
     #[inline]
-    async fn patch(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn patch(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::PATCH, url, text).await
+        self.request(
+            Request::patch(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
 
     #[inline]
-    async fn connect(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn connect(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::CONNECT, url, text).await
+        self.request(
+            Request::connect(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
 
     #[inline]
-    async fn head(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn head(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::HEAD, url, text).await
+        self.request(
+            Request::head(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
 
     #[inline]
-    async fn options(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn options(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::OPTIONS, url, text).await
+        self.request(
+            Request::options(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
 
     #[inline]
-    async fn trace(&self, url: Url, text: &str) -> Result<ClientResponse, ClientError>
+    async fn trace(&self, url: Url, text: &str) -> Result<Response<String>, ClientError>
     where
         Self: Sized,
     {
-        self.request(Method::TRACE, url, text).await
+        self.request(
+            Request::trace(url.to_string())
+                .body(text.to_string())
+                .unwrap(),
+        )
+        .await
     }
 
-    async fn request(
-        &self,
-        method: Method,
-        url: Url,
-        text: &str,
-    ) -> Result<ClientResponse, ClientError>
+    async fn request(&self, request: Request<String>) -> Result<Response<String>, ClientError>
     where
         Self: Sized;
-}
-
-#[derive(Debug)]
-pub struct ClientResponse {
-    status_code: http::StatusCode,
-    headers: http::HeaderMap,
-    content: String,
-    version: Option<http::Version>,
-}
-
-impl ClientResponse {
-    pub fn new(
-        status_code: http::StatusCode,
-        headers: http::HeaderMap,
-        content: String,
-        version: Option<http::Version>,
-    ) -> Self {
-        Self {
-            status_code,
-            headers,
-            content,
-            version,
-        }
-    }
-
-    /// Get the `StatusCode` of this `Response`.
-    #[inline]
-    pub fn status(&self) -> http::StatusCode {
-        self.status_code
-    }
-
-    /// Get the HTTP `Version` of this `Response`.
-    #[inline]
-    pub fn version(&self) -> Option<http::Version> {
-        self.version
-    }
-
-    /// Get the `Headers` of this `Response`.
-    #[inline]
-    pub fn headers(&self) -> &HeaderMap {
-        &self.headers
-    }
-
-    /// Get response content in `String`
-    #[inline]
-    pub fn text(&self) -> &str {
-        &self.content
-    }
-
-    /// Get response content in `Json`
-    #[inline]
-    pub fn json<T: DeserializeOwned>(&self) -> Result<T, ClientError> {
-        Ok(serde_json::from_str(self.text())?)
-    }
 }

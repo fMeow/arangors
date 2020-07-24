@@ -17,10 +17,8 @@ use http::{HeaderMap, Method};
 use reqwest::Client;
 use url::Url;
 
-use arangors::{
-    client::{ClientExt, ClientResponse},
-    ClientError, GenericConnection,
-};
+use arangors::{client::ClientExt, ClientError, GenericConnection};
+use std::convert::TryInto;
 
 /// when use async http client, `blocking` feature MUST be disabled
 // This cfg is only to make rust compiler happy, you can just ignore it
@@ -38,31 +36,6 @@ pub struct ReqwestClient(pub Client);
 #[cfg(feature = "reqwest_async")]
 #[async_trait::async_trait]
 impl ClientExt for ReqwestClient {
-    async fn request(
-        &self,
-        method: Method,
-        url: Url,
-        text: &str,
-    ) -> Result<ClientResponse, ClientError> {
-        let resp = self
-            .0
-            .request(method, url)
-            .body(text.to_owned())
-            .send()
-            .await
-            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
-
-        let status_code = resp.status();
-        let headers = resp.headers().clone();
-        let version = Some(resp.version());
-        let content = resp
-            .text()
-            .await
-            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
-
-        Ok(ClientResponse::new(status_code, headers, content, version))
-    }
-
     fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
         match headers.into() {
             Some(h) => Client::builder().default_headers(h),
@@ -71,6 +44,37 @@ impl ClientExt for ReqwestClient {
         .build()
         .map(|c| ReqwestClient(c))
         .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
+    }
+
+    async fn request(
+        &self,
+        request: http::Request<String>,
+    ) -> Result<http::Response<String>, ClientError> {
+        let req = request.try_into().unwrap();
+
+        let resp = self
+            .0
+            .execute(req)
+            .await
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
+        let status_code = resp.status();
+        let headers = resp.headers().clone();
+        let version = resp.version();
+        let content = resp
+            .text()
+            .await
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
+        let mut build = http::Response::builder();
+
+        for header in headers.iter() {
+            build = build.header(header.0, header.1);
+        }
+
+        http::response::Builder::from(build)
+            .status(status_code)
+            .version(version)
+            .body(content)
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 }
 
