@@ -88,27 +88,27 @@ impl<T> DocumentResponse<T> {
     }
     /// Return the old document before changes
     pub fn old_doc(&self) -> Option<&T> {
-        Option::from(if let DocumentResponse::Response { old, .. } = self {
-            old
+        if let DocumentResponse::Response { old, .. } = self {
+            old.as_ref()
         } else {
-            &None
-        })
+            None
+        }
     }
     /// Return the new document
     pub fn new_doc(&self) -> Option<&T> {
-        Option::from(if let DocumentResponse::Response { new, .. } = self {
-            new
+        if let DocumentResponse::Response { new, .. } = self {
+            new.as_ref()
         } else {
-            &None
-        })
+            None
+        }
     }
     /// return the old revision of the document
     pub fn old_rev(&self) -> Option<&String> {
-        Option::from(if let DocumentResponse::Response { _old_rev, .. } = self {
-            _old_rev
+        if let DocumentResponse::Response { _old_rev, .. } = self {
+            _old_rev.as_ref()
         } else {
-            &None
-        })
+            None
+        }
     }
 }
 
@@ -122,33 +122,33 @@ where
     {
         let mut obj = serde_json::Value::deserialize(deserializer)?;
 
-        let json = obj.as_object_mut().unwrap();
+        let json = obj
+            .as_object_mut()
+            .ok_or(DeError::custom("should be a json object"))?;
 
-        if json.contains_key("_key") != true {
+        if json.is_empty() {
             Ok(DocumentResponse::Silent)
         } else {
+            let _id = json.remove("_id").ok_or(DeError::missing_field("_id"))?;
+            let _key = json.remove("_key").ok_or(DeError::missing_field("_key"))?;
+            let _rev = json.remove("_rev").ok_or(DeError::missing_field("_rev"))?;
             let header: DocumentHeader = DocumentHeader {
-                _id: serde_json::from_value(json.remove("_id").unwrap()).unwrap(),
-                _key: serde_json::from_value(json.remove("_key").unwrap()).unwrap(),
-                _rev: serde_json::from_value(json.remove("_rev").unwrap()).unwrap(),
+                _id: serde_json::from_value(_id).map_err(DeError::custom)?,
+                _key: serde_json::from_value(_key).map_err(DeError::custom)?,
+                _rev: serde_json::from_value(_rev).map_err(DeError::custom)?,
             };
 
-            let old = if json.contains_key("old") {
-                T::deserialize(json.remove("old").unwrap()).ok()
-            } else {
-                None
-            };
-
-            let new = if json.contains_key("new") {
-                T::deserialize(json.remove("new").unwrap()).ok()
-            } else {
-                None
-            };
-            let _old_rev = if json.contains_key("_old_rev") {
-                Some(json.remove("_old_rev").unwrap().to_string())
-            } else {
-                None
-            };
+            let old = json
+                .remove("old")
+                .map(T::deserialize)
+                .transpose()
+                .map_err(DeError::custom)?;
+            let new = json
+                .remove("new")
+                .map(T::deserialize)
+                .transpose()
+                .map_err(DeError::custom)?;
+            let _old_rev = json.remove("_old_rev").map(|v| v.to_string());
 
             Ok(DocumentResponse::Response {
                 header,
