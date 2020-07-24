@@ -407,7 +407,8 @@ async fn test_put_changes_properties() {
     let conn = connection().await;
     let coll = collection(&conn, collection_name).await;
 
-    let updated_properties = coll.change_properties(Default::default()).await;
+    let options = PropertiesOptions::builder().wait_for_sync(true).build();
+    let updated_properties = coll.change_properties(options).await;
 
     let result = updated_properties.unwrap();
     assert_eq!(result.info.name, collection_name);
