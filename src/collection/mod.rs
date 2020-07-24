@@ -349,13 +349,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     pub async fn rename(&mut self, name: &str) -> Result<CollectionInfo, ClientError> {
         let url = self.base_url.join("rename").unwrap();
         let body = json!({ "name": name });
-        let resp: CollectionInfo = deserialize_response(
-            self.session
-                .put(url, body.to_string().as_str())
-                .await?
-                .body(),
-        )?;
+        let resp: CollectionInfo =
+            deserialize_response(self.session.put(url, &body.to_string()).await?.body())?;
         self.name = name.to_string();
+        self.base_url = self.base_url.join(&format!("../{}/", name)).unwrap();
         Ok(resp)
     }
 

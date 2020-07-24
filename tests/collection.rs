@@ -440,6 +440,7 @@ async fn test_put_rename() {
     let renamed = coll.rename(new_name).await;
 
     let result = renamed.unwrap();
+    assert_eq!(coll.name(), new_name);
     assert_eq!(result.name, new_name);
     assert_eq!(result.is_system, false);
     assert_eq!(result.status, CollectionStatus::Loaded);
