@@ -346,7 +346,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
 
     /// Renames the collection
     #[maybe_async]
-    pub async fn rename(&self, name: &str) -> Result<CollectionInfo, ClientError> {
+    pub async fn rename(&mut self, name: &str) -> Result<CollectionInfo, ClientError> {
         let url = self.base_url.join("rename").unwrap();
         let body = json!({ "name": name });
         let resp: CollectionInfo = deserialize_response(
@@ -355,6 +355,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
                 .await?
                 .body(),
         )?;
+        self.name = name.to_string();
         Ok(resp)
     }
 
