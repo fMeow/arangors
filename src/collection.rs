@@ -24,7 +24,7 @@ use http::Request;
 use serde::de::DeserializeOwned;
 use std::convert::TryFrom;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionKeyOptions {
     pub allow_user_keys: bool,
@@ -34,7 +34,7 @@ pub struct CollectionKeyOptions {
     pub r#type: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionProperties {
     #[serde(flatten)]
@@ -43,7 +43,7 @@ pub struct CollectionProperties {
     pub detail: CollectionDetails,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionDetails {
     pub status_string: String,
@@ -64,20 +64,20 @@ pub struct CollectionDetails {
     pub index_buckets: usize,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ArangoIndex {
     pub count: Option<u32>,
     pub size: Option<u32>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Figures {
     pub indexes: ArangoIndex,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionStatistics {
     /// The number of documents currently present in the collection.
@@ -91,7 +91,7 @@ pub struct CollectionStatistics {
     pub detail: CollectionDetails,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionRevision {
     // pub uses_revisions_as_document_ids: Option<bool>,
@@ -105,7 +105,7 @@ pub struct CollectionRevision {
     pub detail: CollectionDetails,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionChecksum {
     pub revision: String,
@@ -114,7 +114,7 @@ pub struct CollectionChecksum {
     pub info: CollectionInfo,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionPropertiesOptions {
     /// If true then creating or changing a document will wait until the data
@@ -125,7 +125,7 @@ pub struct CollectionPropertiesOptions {
      * pub schema: Option<SchemaRules>, */
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CollectionInfo {
     pub count: Option<u32>,
