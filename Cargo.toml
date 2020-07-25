@@ -30,7 +30,7 @@ default = ["rocksdb", "reqwest_async"]
 blocking = ["maybe-async/is_sync"]
 reqwest_async = ["reqwest"]
 reqwest_blocking = ["reqwest/blocking", "blocking"]
-surf_async = ["surf", "http-types"]
+surf_async = ["surf"]
 
 cluster = []
 enterprise = []
@@ -44,18 +44,16 @@ async-trait = "0.1"
 base64 = "0.12"
 http = "0.2"
 log = "0.4"
-maybe-async = "0.2.0"
+maybe-async = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-serde_qs = "0.6.1"
+serde_qs = "0.6"
 thiserror = "1"
-typed-builder = "0.6.0"
+typed-builder = "0.7"
 url = "2"
-
 
 reqwest  = { version = "0.10.4", features = ["gzip", "json"], optional = true }
 surf  = { version = "2.0.0-alpha.4", optional = true }
-http-types  = { version = "2.2", optional = true }
 
 
 [dev-dependencies]

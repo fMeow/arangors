@@ -95,11 +95,11 @@ impl ClientExt for SurfClient {
         }
 
         let http_version = version.map(|v| match v {
-            http_types::Version::Http0_9 => Version::HTTP_09,
-            http_types::Version::Http1_0 => Version::HTTP_10,
-            http_types::Version::Http1_1 => Version::HTTP_11,
-            http_types::Version::Http2_0 => Version::HTTP_2,
-            http_types::Version::Http3_0 => Version::HTTP_3,
+            ::surf::http_types::Version::Http0_9 => Version::HTTP_09,
+            ::surf::http_types::Version::Http1_0 => Version::HTTP_10,
+            ::surf::http_types::Version::Http1_1 => Version::HTTP_11,
+            ::surf::http_types::Version::Http2_0 => Version::HTTP_2,
+            ::surf::http_types::Version::Http3_0 => Version::HTTP_3,
             _ => unreachable!(),
         });
 
