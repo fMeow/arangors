@@ -97,9 +97,9 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn create_collection_with_options(
+    pub async fn create_collection_with_options<'f>(
         &self,
-        options: CreateOptions,
+        options: CreateOptions<'f>,
         parameters: CreateParameters,
     ) -> Result<Collection<'_, C>, ClientError> {
         let mut url = self.base_url.join("_api/collection").unwrap();
