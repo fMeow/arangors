@@ -79,15 +79,6 @@ pub struct Version {
     pub license: String,
 }
 
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct DatabaseDetails {
-    pub name: String,
-    pub id: String,
-    pub path: String,
-    pub is_system: bool,
-}
-
 #[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
 pub type Connection = GenericConnection<crate::client::reqwest::ReqwestClient>;
 

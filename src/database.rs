@@ -17,16 +17,10 @@ use crate::{
         response::{Info, Properties},
         Collection,
     },
-    connection::{DatabaseDetails, GenericConnection, Version},
+    connection::{GenericConnection, Version},
     response::{deserialize_response, ArangoResult},
     ClientError,
 };
-
-#[derive(Debug)]
-pub struct ReadOnly;
-
-#[derive(Debug)]
-pub struct ReadWrite;
 
 #[derive(Debug, Clone)]
 pub struct Database<'a, C: ClientExt> {
@@ -282,3 +276,13 @@ impl<'a, C: ClientExt> Database<'a, C> {
         self.aql_query(aql).await
     }
 }
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DatabaseDetails {
+    pub name: String,
+    pub id: String,
+    pub path: String,
+    pub is_system: bool,
+}
+
