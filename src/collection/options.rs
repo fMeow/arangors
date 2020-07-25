@@ -46,7 +46,7 @@ pub struct CreateOptions<'a> {
     name: &'a str,
 
     /// the type of the collection to create
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     collection_type: Option<CollectionType>,
 
