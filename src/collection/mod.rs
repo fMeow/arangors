@@ -1,20 +1,19 @@
-use std::convert::TryFrom;
-use std::sync::Arc;
+use std::{convert::TryFrom, sync::Arc};
 
 use http::Request;
 use maybe_async::maybe_async;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::json;
 use url::Url;
 
 use super::{Database, Document};
-use crate::document::options::{
-    InsertOptions, ReadOptions, RemoveOptions, ReplaceOptions, UpdateOptions,
-};
-use crate::document::{response::DocumentResponse, Header};
 use crate::{
     client::ClientExt,
+    document::{
+        options::{InsertOptions, ReadOptions, RemoveOptions, ReplaceOptions, UpdateOptions},
+        response::DocumentResponse,
+        Header,
+    },
     response::{deserialize_response, ArangoResult},
     ClientError,
 };

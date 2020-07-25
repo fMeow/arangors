@@ -44,7 +44,7 @@ async fn test_get_url() {
     let conn = Connection::establish_jwt(&host, &user, &password)
         .await
         .unwrap();
-    let url = conn.get_url().clone().into_string();
+    let url = conn.url().clone().into_string();
     assert_eq!(url, host)
 }
 
@@ -76,7 +76,7 @@ async fn test_basic_auth() {
     let conn = Connection::establish_jwt(&host, &user, &password)
         .await
         .unwrap();
-    let session = conn.get_session();
+    let session = conn.session();
     let resp = session.get(host.parse().unwrap(), "").await.unwrap();
     let headers = resp.headers();
     assert_eq!(headers.get("Server").unwrap(), "ArangoDB");
@@ -95,7 +95,7 @@ async fn test_jwt() {
         let conn = Connection::establish_jwt(&host, &user, &passwd)
             .await
             .unwrap();
-        let session = conn.get_session();
+        let session = conn.session();
         let resp = session.get(host.parse().unwrap(), "").await.unwrap();
         let headers = resp.headers();
         assert_eq!(headers.get("Server").unwrap(), "ArangoDB");

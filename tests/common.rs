@@ -1,7 +1,6 @@
 #![allow(unused_imports)]
 #![allow(unused_parens)]
-use arangors::connection::Connection;
-use arangors::{Collection, Database};
+use arangors::{connection::Connection, Collection, Database};
 use std::{env, future::Future};
 
 pub const ARANGODB_HOST: &str = "http://localhost:8529/";

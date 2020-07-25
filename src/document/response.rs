@@ -1,5 +1,4 @@
-use serde::de::Error as DeError;
-use serde::{Deserialize, Deserializer};
+use serde::{de::Error as DeError, Deserialize, Deserializer};
 
 use super::Header;
 

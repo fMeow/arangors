@@ -6,10 +6,12 @@ use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
 use arangors::{
-    document::options::{
-        InsertOptions, OverwriteMode, ReadOptions, RemoveOptions, ReplaceOptions, UpdateOptions,
+    document::{
+        options::{
+            InsertOptions, OverwriteMode, ReadOptions, RemoveOptions, ReplaceOptions, UpdateOptions,
+        },
+        response::DocumentResponse,
     },
-    document::response::DocumentResponse,
     ClientError, Connection, Document,
 };
 use common::{
@@ -352,12 +354,12 @@ async fn test_get_read_document() {
     assert_eq!(result.document["testDescription"], "read a document");
     // Test if we get the right doc when it does match
     let read: Result<Document<Value>, ClientError> = coll
-        .read_document_with_options(_key.as_str(), ReadOptions::IfMatch(_rev.clone()))
+        .document_with_options(_key.as_str(), ReadOptions::IfMatch(_rev.clone()))
         .await;
     assert_eq!(read.is_err(), false, "got the right document");
     // Test if we get the 412 code response when there is no match
     let read: Result<Document<Value>, ClientError> = coll
-        .read_document_with_options(_key.as_str(), ReadOptions::IfMatch("_dsdsds_d".to_string()))
+        .document_with_options(_key.as_str(), ReadOptions::IfMatch("_dsdsds_d".to_string()))
         .await;
     // We should get a 412, for now for some reason the error is parsed as a
     // document todo fix how the reponse/error is built
