@@ -384,7 +384,7 @@
 ))]
 pub use crate::connection::Connection;
 pub use crate::{
-    aql::{AqlOption, AqlQuery, Cursor},
+    aql::{AqlOptions, AqlQuery, Cursor},
     collection::Collection,
     connection::GenericConnection,
     database::Database,

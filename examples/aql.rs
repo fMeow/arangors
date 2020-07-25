@@ -24,7 +24,7 @@ async fn main() {
         .unwrap();
 
     let database = conn.db("test_db").await.unwrap();
-    let aql = AqlQuery::new("FOR u IN test_collection LIMIT 3 RETURN u");
+    let aql = AqlQuery::builder().query("FOR u IN test_collection LIMIT 3 RETURN u").build();
     println!("{:?}", aql);
     println!("{:?}", serde_json::to_string(&aql).unwrap());
 

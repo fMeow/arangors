@@ -251,7 +251,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     where
         R: DeserializeOwned + Debug,
     {
-        let aql = AqlQuery::new(query);
+        let aql = AqlQuery::builder().query(query).build();
         self.aql_query(aql).await
     }
 
@@ -269,10 +269,10 @@ impl<'a, C: ClientExt> Database<'a, C> {
     where
         R: DeserializeOwned + Debug,
     {
-        let mut aql = AqlQuery::new(query);
-        for (key, value) in bind_vars {
-            aql = aql.bind_var(key, value);
-        }
+        let aql = AqlQuery::builder()
+            .query(query)
+            .bind_vars(bind_vars)
+            .build();
         self.aql_query(aql).await
     }
 }
@@ -285,4 +285,3 @@ pub struct DatabaseDetails {
     pub path: String,
     pub is_system: bool,
 }
-
