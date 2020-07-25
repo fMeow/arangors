@@ -16,7 +16,7 @@ pub enum ClientError {
     InvalidServer(String),
     #[error("Error from server: {0}")]
     Arango(#[from] ArangoError),
-    #[error("error from serde")]
+    #[error("Error from serde: {0}")]
     Serde(#[from] serde_json::error::Error),
     #[error("HTTP client error: {0}")]
     HttpClient(String),
