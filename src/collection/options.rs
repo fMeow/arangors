@@ -12,7 +12,9 @@ pub struct ChecksumOptions {
     with_revision: Option<bool>,
     /// By providing the optional query parameter withData with a value of true,
     /// the user-defined document attributes will be included in the
-    /// calculation too. Note: Including user-defined attributes will make
+    /// calculation too.
+    ///
+    /// Note: Including user-defined attributes will make
     /// the checksumming slower.
     #[builder(default, setter(strip_option))]
     with_data: Option<bool>,

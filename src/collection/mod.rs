@@ -23,10 +23,14 @@ use response::*;
 pub mod options;
 pub mod response;
 
-/// A collection consists of documents. It is uniquely identified by its
+/// Represent a collection in Arango server that consists of documents/edges.
+///
+/// It is uniquely identified by its
 /// collection identifier. It also has a unique name that clients should use to
 /// identify and access it. Collections can be renamed. This will change the
-/// collection name, but not the collection identifier. Collections have a type
+/// collection name, but not the collection identifier.
+///
+/// Collections have a type
 /// that is specified by the user when the collection is created. There are
 /// currently two types: document and edge. The default type is document.
 #[derive(Debug, Clone)]
@@ -41,7 +45,7 @@ pub struct Collection<'a, C: ClientExt> {
 }
 
 impl<'a, C: ClientExt> Collection<'a, C> {
-    /// Construct Collection given
+    /// Construct Collection given collection info from server
     ///
     /// Base url should be like `http://server:port/_db/mydb/_api/collection/{collection-name}`
     /// Document root should be like: http://server:port/_db/mydb/_api/document/
@@ -112,7 +116,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// characters only. Please refer to Naming Conventions in ArangoDB for more
     /// information on valid collection names.
     pub fn name(&self) -> &str {
-        self.name.as_str()
+        &self.name.as_str()
     }
 
     /// Collection url: http://server:port/_db/mydb/_api/collection/{collection-name}
@@ -133,7 +137,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Arc::clone(&self.session)
     }
 
-    /// Drops a collection
+    /// Drop a collection
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -151,7 +155,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp.id)
     }
 
-    /// Truncate current collection.
+    /// Truncate current collection
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -173,7 +177,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
-    /// Counts the documents in this collection
+    /// Count the documents in this collection
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -185,7 +189,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
     /// Fetch the statistics of a collection
     ///
-    /// the result also contains the number of documents and additional
+    /// The result also contains the number of documents and additional
     /// statistical information about the collection. **Note**: This will
     /// always load the collection into memory.
     ///
@@ -194,7 +198,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// collected, documents might be added to journals and datafiles of
     /// the collection, which may modify the figures of the collection.
     ///
-    /// Additionally, the filesizes of collection and index parameter JSON
+    /// Additionally, the file sizes of collection and index parameter JSON
     /// files are not reported. These files should normally have a size of a
     /// few bytes each. Please also note that the fileSize values are reported
     /// in bytes and reflect the logical file sizes. Some filesystems may use
@@ -273,7 +277,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     /// By providing the optional query parameter withData with a value of true,
     /// the user-defined document attributes will be included in the
-    /// calculation too. Note: Including user-defined attributes will make
+    /// calculation too.
+    ///
+    /// Note: Including user-defined attributes will make
     /// the checksumming slower. this function would make a request to
     /// arango server.
     ///
@@ -292,12 +298,16 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
-    /// Loads a collection into memory. Returns the collection on success.
+    /// Load a collection into memory
+    ///
+    /// Returns the collection on success.
     ///
     /// The request body object might optionally contain the following
     /// attribute:
     ///
-    /// - count: If set, this controls whether the return value should include
+    /// - count
+    ///
+    ///   If set, this controls whether the return value should include
     ///   the number of documents in the collection. Setting count to false may
     ///   speed up loading a collection. The default value for count is true.
     ///
@@ -312,11 +322,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
-    /// Removes a collection from memory.
+    /// Remove a collection from memory
     ///
-    /// This call does not delete any documents.
-    /// You can use the collection afterwards; in which case it will
-    /// be loaded into memory, again.
+    /// This call does not delete any documents. You can use the collection
+    /// afterwards; in which case it will be loaded into memory, again.
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -359,7 +368,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp.unwrap())
     }
 
-    /// Changes the properties of a collection.
+    /// Change the properties of a collection
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -375,7 +384,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
-    /// Renames the collection
+    /// Rename the collection
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -390,7 +399,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
-    /// Recalculates the document count of a collection
+    /// Recalculate the document count of a collection
     ///
     /// **Note**: this method is specific for the RocksDB storage engine
     ///
@@ -404,7 +413,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             deserialize_response(self.session.put(url, "").await?.body())?;
         Ok(resp.unwrap())
     }
-    /// Rotates the journal of a collection.
+    /// Rotate the journal of a collection
     ///
     /// The current journal of the collection will be closed and made a
     /// read-only datafile. The purpose of the rotate method is to make the
@@ -430,9 +439,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp.unwrap())
     }
 
-    /// Creates a new document from the document given in the body, unless
-    /// there is already a document with the _key given. If no _key is given, a
-    /// new unique _key is generated automatically.
+    /// Create a new document from the document given in the body, unless
+    /// there is already a document with the _key given.
+    ///
+    /// If no _key is given, a new unique _key is generated automatically.
     /// Possibly given _id and _rev attributes in the body are always ignored,
     /// the URL part or the query parameter collection respectively counts.
     ///
@@ -487,7 +497,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
-    /// Reads a single document
+    /// Read a single document with `_key`
     ///
     /// Returns the document identified by document-id. The returned document
     /// contains three special attributes: _id containing the document
@@ -504,7 +514,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         self.document_with_options(_key, Default::default()).await
     }
 
-    /// Reads a single document with options
+    /// Read a single document with options
     ///
     /// Returns the document identified by document-id. The returned document
     /// contains three special attributes: _id containing the document
@@ -534,7 +544,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
-    /// Reads a single document header
+    /// Read a single document header
     ///
     /// Like GET, but only returns the header fields and not the body. You can
     /// use this call to get the current revision of a document or check if the
@@ -548,7 +558,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             .await
     }
 
-    /// Reads a single document header with options
+    /// Read a single document header with options
     ///
     /// Like GET, but only returns the header fields and not the body. You can
     /// use this call to get the current revision of a document or check if the
@@ -573,7 +583,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         let resp: Header = deserialize_response(self.session.request(req).await?.body())?;
         Ok(resp)
     }
-    /// Partially updates the document
+    /// Partially update a document
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -597,7 +607,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
-    /// Replaces the document
+    /// Replace a document
     ///
     /// Replaces the specified document with the one in the body, provided there
     /// is such a document and no precondition is violated.
@@ -679,7 +689,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
-    /// Removes a document
+    /// Remove a document
     ///
     /// If silent is not set to true, the body of the response contains a JSON
     /// object with the information about the identifier and the revision. The
