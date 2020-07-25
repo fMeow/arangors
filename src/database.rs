@@ -21,6 +21,7 @@ use crate::{
     response::{deserialize_response, ArangoResult},
     ClientError,
 };
+use crate::collection::CollectionType;
 
 #[derive(Debug, Clone)]
 pub struct Database<'a, C: ClientExt> {

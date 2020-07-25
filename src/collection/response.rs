@@ -1,4 +1,5 @@
 //! Types of response related to collection
+use crate::collection::{options::KeyOptions, CollectionType};
 use serde::{
     de::{Deserializer, Error as DeError},
     Deserialize,
@@ -45,39 +46,6 @@ impl<'de> Deserialize<'de> for Status {
             )),
         }
     }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
-pub enum CollectionType {
-    Document = 2,
-    Edge = 3,
-}
-
-impl<'de> Deserialize<'de> for CollectionType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let value = u8::deserialize(deserializer)?;
-        match value {
-            2 => Ok(CollectionType::Document),
-            3 => Ok(CollectionType::Edge),
-            _ => Err(DeError::custom(
-                "Undefined behavior. If the crate breaks after an upgrade of ArangoDB, please \
-                 contact the author.",
-            )),
-        }
-    }
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct KeyOptions {
-    pub allow_user_keys: bool,
-    pub increment: Option<u32>,
-    pub last_value: Option<u32>,
-    pub offset: Option<u32>,
-    pub r#type: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]

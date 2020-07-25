@@ -9,7 +9,8 @@ use crate::common::{collection, connection};
 use arangors::{
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
-        response::{CollectionType, Status},
+        response::Status,
+        CollectionType
     },
     ClientError, Connection, Document,
 };
