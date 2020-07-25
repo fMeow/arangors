@@ -14,14 +14,14 @@ use crate::{
     aql::{AqlQuery, Cursor},
     client::ClientExt,
     collection::{
+        options::{CreateOptions, CreateParameters},
         response::{Info, Properties},
-        Collection,
+        Collection, CollectionType,
     },
     connection::{GenericConnection, Version},
     response::{deserialize_response, ArangoResult},
     ClientError,
 };
-use crate::collection::CollectionType;
 
 #[derive(Debug, Clone)]
 pub struct Database<'a, C: ClientExt> {
@@ -90,9 +90,28 @@ impl<'a, C: ClientExt> Database<'a, C> {
         Ok(Collection::from_response(self, &resp))
     }
 
+    /// Create a collection via HTTP request with options.
+    ///
+    /// Return a collection object if success.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn create_edge_collection(&self, _name: &str) -> Collection<'_, C> {
-        unimplemented!()
+    pub async fn create_collection_with_options(
+        &self,
+        options: CreateOptions,
+        parameters: CreateParameters,
+    ) -> Result<Collection<'_, C>, ClientError> {
+        let mut url = self.base_url.join("_api/collection").unwrap();
+        let query = serde_qs::to_string(&parameters).unwrap();
+        url.set_query(Some(query.as_str()));
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&options)?)
+            .await?;
+        let result: Properties = deserialize_response(resp.body())?;
+        self.collection(&result.info.name).await
     }
 
     /// Create a collection via HTTP request.
@@ -102,19 +121,27 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn create_collection(
-        &mut self,
+    pub async fn create_collection(&self, name: &str) -> Result<Collection<'_, C>, ClientError> {
+        self.create_collection_with_options(
+            CreateOptions::builder().name(name).build(),
+            Default::default(),
+        )
+        .await
+    }
+
+    #[maybe_async]
+    pub async fn create_edge_collection(
+        &self,
         name: &str,
     ) -> Result<Collection<'_, C>, ClientError> {
-        let mut map = HashMap::new();
-        map.insert("name", name);
-        let url = self.base_url.join("_api/collection").unwrap();
-        let resp = self
-            .session
-            .post(url, &serde_json::to_string(&map)?)
-            .await?;
-        let _result: Properties = deserialize_response(resp.body())?;
-        self.collection(name).await
+        self.create_collection_with_options(
+            CreateOptions::builder()
+                .name(name)
+                .collection_type(CollectionType::Edge)
+                .build(),
+            Default::default(),
+        )
+        .await
     }
 
     /// Drops a collection

@@ -10,7 +10,7 @@ use arangors::{
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
         response::Status,
-        CollectionType
+        CollectionType,
     },
     ClientError, Connection, Document,
 };
@@ -117,7 +117,7 @@ async fn test_get_properties() {
     assert_eq!(result.detail.wait_for_sync, false);
     assert_eq!(result.detail.key_options.allow_user_keys, true);
     assert_eq!(
-        result.detail.key_options.r#type,
+        result.detail.key_options.key_type,
         Some("traditional".to_string())
     );
     assert_eq!(result.detail.key_options.last_value, Some(0));
@@ -150,7 +150,7 @@ async fn test_get_document_count() {
     assert_eq!(result.detail.wait_for_sync, false);
     assert_eq!(result.detail.key_options.allow_user_keys, true);
     assert_eq!(
-        result.detail.key_options.r#type,
+        result.detail.key_options.key_type,
         Some("traditional".to_string())
     );
     assert_eq!(result.detail.key_options.last_value, Some(0));
@@ -194,7 +194,7 @@ async fn test_get_statistics() {
         "allow user keys"
     );
     assert_eq!(
-        result.detail.key_options.r#type,
+        result.detail.key_options.key_type,
         Some("traditional".to_string())
     );
     assert_eq!(result.detail.key_options.last_value, Some(0), "last value");
@@ -230,7 +230,7 @@ async fn test_get_revision_id() {
     assert_eq!(result.detail.wait_for_sync, false);
     assert_eq!(result.detail.key_options.allow_user_keys, true);
     assert_eq!(
-        result.detail.key_options.r#type,
+        result.detail.key_options.key_type,
         Some("traditional".to_string())
     );
     assert_eq!(result.detail.key_options.last_value, Some(0));
@@ -420,7 +420,7 @@ async fn test_put_changes_properties() {
     assert_eq!(result.detail.wait_for_sync, true);
     assert_eq!(result.detail.key_options.allow_user_keys, true);
     assert_eq!(
-        result.detail.key_options.r#type,
+        result.detail.key_options.key_type,
         Some("traditional".to_string())
     );
     assert_eq!(result.detail.key_options.last_value, Some(0));
