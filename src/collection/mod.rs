@@ -31,43 +31,18 @@ pub mod response;
 /// currently two types: document and edge. The default type is document.
 #[derive(Debug, Clone)]
 pub struct Collection<'a, C: ClientExt> {
-    /// The collection identifier
-    /// A collection identifier lets you refer to a collection in a database. It
-    /// is a string value and is unique within the database. Up to including
-    /// ArangoDB 1.1, the collection identifier has been a client’s primary
-    /// means to access collections. Starting with ArangoDB 1.2, clients should
-    /// instead use a collection’s unique name to access a collection instead of
-    /// its identifier. ArangoDB currently uses 64bit unsigned integer values to
-    /// maintain collection ids internally. When returning collection ids to
-    /// clients, ArangoDB will put them into a string to ensure the collection
-    /// id is not clipped by clients that do not support big integers. Clients
-    /// should treat the collection ids returned by ArangoDB as opaque strings
-    /// when they store or use them locally.
-    //
-    // Note: collection ids have been returned as integers up to including ArangoDB 1.1
     id: String,
-    /// The collection name
-    /// A collection name identifies a collection in a database. It is a string
-    /// and is unique within the database. Unlike the collection identifier it
-    /// is supplied by the creator of the collection. The collection name must
-    /// consist of letters, digits, and the _ (underscore) and - (dash)
-    /// characters only. Please refer to Naming Conventions in ArangoDB for more
-    /// information on valid collection names.
     name: String,
     collection_type: CollectionType,
-    /// Collection url: http://server:port/_db/mydb/_api/collection/{collection-name}
-    /// This url is used to work on the collection itself
     base_url: Url,
-    /// Document base url: http://server:port/_db/mydb/_api/document/{collection-name}
-    /// This url is used to work with documents
     document_base_url: Url,
-    /// Client used to query the server
     session: Arc<C>,
     phantom: &'a (),
 }
 
 impl<'a, C: ClientExt> Collection<'a, C> {
     /// Construct Collection given
+    ///
     /// Base url should be like `http://server:port/_db/mydb/_api/collection/{collection-name}`
     /// Document root should be like: http://server:port/_db/mydb/_api/document/
     pub(crate) fn new<T: Into<String>>(
@@ -108,23 +83,60 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         &self.collection_type
     }
 
+    /// The collection identifier
+    ///
+    /// A collection identifier lets you refer to a collection in a database. It
+    /// is a string value and is unique within the database. Up to including
+    /// ArangoDB 1.1, the collection identifier has been a client’s primary
+    /// means to access collections. Starting with ArangoDB 1.2, clients should
+    /// instead use a collection’s unique name to access a collection instead of
+    /// its identifier. ArangoDB currently uses 64bit unsigned integer values to
+    /// maintain collection ids internally. When returning collection ids to
+    /// clients, ArangoDB will put them into a string to ensure the collection
+    /// id is not clipped by clients that do not support big integers. Clients
+    /// should treat the collection ids returned by ArangoDB as opaque strings
+    /// when they store or use them locally.
+    //
+    // Note: collection ids have been returned as integers up to including ArangoDB
+    // 1.1
     pub fn id(&self) -> &str {
         self.id.as_str()
     }
 
+    /// The collection name
+    ///
+    /// A collection name identifies a collection in a database. It is a string
+    /// and is unique within the database. Unlike the collection identifier it
+    /// is supplied by the creator of the collection. The collection name must
+    /// consist of letters, digits, and the _ (underscore) and - (dash)
+    /// characters only. Please refer to Naming Conventions in ArangoDB for more
+    /// information on valid collection names.
     pub fn name(&self) -> &str {
         self.name.as_str()
     }
 
+    /// Collection url: http://server:port/_db/mydb/_api/collection/{collection-name}
+    ///
+    /// This url is used to work on the collection itself
     pub fn url(&self) -> &Url {
         &self.base_url
     }
+    /// Document base url: http://server:port/_db/mydb/_api/document/{collection-name}
+    ///
+    /// This url is used to work with documents
+    pub fn doc_url(&self) -> &Url {
+        &self.document_base_url
+    }
 
+    /// HTTP Client used to query the server
     pub fn session(&self) -> Arc<C> {
         Arc::clone(&self.session)
     }
 
     /// Drops a collection
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn drop(self) -> Result<String, ClientError> {
         let url = self.base_url.join("").unwrap();
@@ -140,6 +152,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Truncate current collection.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn truncate(&self) -> Result<Info, ClientError> {
         let url = self.base_url.join("truncate").unwrap();
@@ -148,6 +163,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Fetch the properties of collection
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn properties(&self) -> Result<Properties, ClientError> {
         let url = self.base_url.join("properties").unwrap();
@@ -156,6 +174,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Counts the documents in this collection
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn document_count(&self) -> Result<Properties, ClientError> {
         let url = self.base_url.join("count").unwrap();
@@ -187,6 +208,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// collection is normally slightly higher than the sum of the reported
     /// fileSize values. Still the sum of the fileSize values can still be used
     /// as a lower bound approximation of the disk usage.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn statistics(&self) -> Result<Statistics, ClientError> {
         let url = self.base_url.join("figures").unwrap();
@@ -199,6 +223,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// The revision id is a server-generated string that clients can use to
     /// check whether data in a collection has changed since the last revision
     /// check.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn revision_id(&self) -> Result<Revision, ClientError> {
         let url = self.base_url.join("revision").unwrap();
@@ -219,15 +246,8 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// collections, the system attributes _from and _to will also be included
     /// in the calculation.
     ///
-    /// By setting the optional query parameter withRevisions to true, then
-    /// revision ids (_rev system attributes) are included in the
-    /// checksumming.
-    ///
-    /// By providing the optional query parameter withData with a value of true,
-    /// the user-defined document attributes will be included in the
-    /// calculation too. Note: Including user-defined attributes will make
-    /// the checksumming slower. this function would make a request to
-    /// arango server.
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn checksum(&self) -> Result<Checksum, ClientError> {
         self.checksum_with_options(Default::default()).await
@@ -256,6 +276,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// calculation too. Note: Including user-defined attributes will make
     /// the checksumming slower. this function would make a request to
     /// arango server.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn checksum_with_options(
         &self,
@@ -273,10 +296,13 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     /// The request body object might optionally contain the following
     /// attribute:
+    ///
     /// - count: If set, this controls whether the return value should include
-    ///   the number of documents in the collection.
-    /// Setting count to false may speed up loading a collection. The default
-    /// value for count is true.
+    ///   the number of documents in the collection. Setting count to false may
+    ///   speed up loading a collection. The default value for count is true.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn load(&self, count: bool) -> Result<Info, ClientError> {
         let url = self.base_url.join("load").unwrap();
@@ -286,9 +312,14 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
 
-    /// Removes a collection from memory. This call does not delete any
-    /// documents. You can use the collection afterwards; in which case it will
+    /// Removes a collection from memory.
+    ///
+    /// This call does not delete any documents.
+    /// You can use the collection afterwards; in which case it will
     /// be loaded into memory, again.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn unload(&self) -> Result<Info, ClientError> {
         let url = self.base_url.join("unload").unwrap();
@@ -317,6 +348,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ///
     /// On success this function returns an object with attribute result set to
     /// true
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn load_indexes(&self) -> Result<bool, ClientError> {
         let url = self.base_url.join("loadIndexesIntoMemory").unwrap();
@@ -326,6 +360,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Changes the properties of a collection.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn change_properties(
         &self,
@@ -339,6 +376,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Renames the collection
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn rename(&mut self, name: &str) -> Result<Info, ClientError> {
         let url = self.base_url.join("rename").unwrap();
@@ -351,7 +391,11 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Recalculates the document count of a collection
-    /// Note: this method is specific for the RocksDB storage engine
+    ///
+    /// **Note**: this method is specific for the RocksDB storage engine
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[cfg(feature = "rocksdb")]
     #[maybe_async]
     pub async fn recalculate_count(&self) -> Result<bool, ClientError> {
@@ -371,8 +415,12 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// journal file automatically if there is no current journal.
     ///
     /// This methods is not documented on 3.7
-    /// Note: this method is specific for the MMFiles storage engine, and there
-    /// it is not available in a cluster.
+    ///
+    /// **Note**: this method is specific for the MMFiles storage engine, and
+    /// there it is not available in a cluster.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[cfg(feature = "mmfiles")]
     #[maybe_async]
     pub async fn rotate_journal(&self) -> Result<bool, ClientError> {
@@ -396,9 +444,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// If silent is not set to true, the body of the response contains a JSON
     /// object with the following attributes:
     ///
-    /// _id contains the document identifier of the newly created document
-    /// _key contains the document key
-    /// _rev contains the document revision
+    /// - _id contains the document identifier of the newly created document
+    /// - _key contains the document key
+    /// - _rev contains the document revision
+    ///
     /// If the collection parameter waitForSync is false, then the call returns
     /// as soon as the document has been accepted. It will not wait until
     /// the documents have been synced to disk.
@@ -417,6 +466,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// If the query parameter returnNew is true, then, for each generated
     /// document, the complete new document is returned under the new attribute
     /// in the result.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn create_document<T>(
         &self,
@@ -436,21 +488,33 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Reads a single document
+    ///
     /// Returns the document identified by document-id. The returned document
     /// contains three special attributes: _id containing the document
     /// identifier, _key containing key which uniquely identifies a document in
     /// a given collection and _rev containing the revision.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn document<T>(&self, _key: &str) -> Result<Document<T>, ClientError>
     where
         T: Serialize + DeserializeOwned,
     {
-        self.read_document_with_options(_key, Default::default())
-            .await
+        self.document_with_options(_key, Default::default()).await
     }
 
+    /// Reads a single document with options
+    ///
+    /// Returns the document identified by document-id. The returned document
+    /// contains three special attributes: _id containing the document
+    /// identifier, _key containing key which uniquely identifies a document in
+    /// a given collection and _rev containing the revision.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn read_document_with_options<T>(
+    pub async fn document_with_options<T>(
         &self,
         _key: &str,
         read_options: ReadOptions,
@@ -471,15 +535,27 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Reads a single document header
+    ///
     /// Like GET, but only returns the header fields and not the body. You can
     /// use this call to get the current revision of a document or check if the
     /// document was deleted.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn document_header(&self, _key: &str) -> Result<Header, ClientError> {
         self.document_header_with_options(_key, Default::default())
             .await
     }
 
+    /// Reads a single document header with options
+    ///
+    /// Like GET, but only returns the header fields and not the body. You can
+    /// use this call to get the current revision of a document or check if the
+    /// document was deleted.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn document_header_with_options(
         &self,
@@ -498,6 +574,9 @@ impl<'a, C: ClientExt> Collection<'a, C> {
         Ok(resp)
     }
     /// Partially updates the document
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn update_document<T>(
         &self,
@@ -519,6 +598,7 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Replaces the document
+    ///
     /// Replaces the specified document with the one in the body, provided there
     /// is such a document and no precondition is violated.
     ///
@@ -531,10 +611,12 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// is a _rev attribute in the body and its value does not match the
     /// revision of the document in the database, the precondition is violated.
     /// If a precondition is violated, an HTTP 412 is returned.
+    ///
     /// If the document exists and can be updated, then an HTTP 201 or an HTTP
     /// 202 is returned (depending on waitForSync, see below), the Etag header
     /// field contains the new revision of the document and the Location header
     /// contains a complete URL under which the document can be queried.
+    ///
     /// Cluster only: The replace documents may contain values for the
     /// collection’s pre-defined shard keys. Values for the shard keys are
     /// treated as hints to improve performance. Should the shard keys values be
@@ -548,19 +630,26 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     /// then the collection’s default waitForSync behavior is applied. The
     /// waitForSync query parameter cannot be used to disable synchronization
     /// for collections that have a default waitForSync value of true.
+    ///
     /// If silent is not set to true, the body of the response contains a JSON
     /// object with the information about the identifier and the revision. The
     /// attribute _id contains the known document-id of the updated document,
     /// _key contains the key which uniquely identifies a document in a given
     /// collection, and the attribute _rev contains the new document revision.
+    ///
     /// If the query parameter returnOld is true, then the complete previous
     /// revision of the document is returned under the old attribute in the
     /// result. If the query parameter returnNew is true, then the complete
     /// new document is returned under the new attribute in the result.
+    ///
     /// If the document does not exist, then a HTTP 404 is returned and the body
     /// of the response contains an error document.
+    ///
     /// You can conditionally replace a document based on a target revision id
     /// by using the if-match HTTP header.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn replace_document<T>(
         &self,
@@ -591,20 +680,28 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     }
 
     /// Removes a document
+    ///
     /// If silent is not set to true, the body of the response contains a JSON
     /// object with the information about the identifier and the revision. The
     /// attribute _id contains the known document-id of the removed document,
     /// _key contains the key which uniquely identifies a document in a given
     /// collection, and the attribute _rev contains the document revision.
-    //
-    // If the waitForSync parameter is not specified or set to false, then the collection’s default
-    // waitForSync behavior is applied. The waitForSync query parameter cannot be used to disable
-    // synchronization for collections that have a default waitForSync value of true.
-    //
-    // If the query parameter returnOld is true, then the complete previous revision of the document
-    // is returned under the old attribute in the result.
+    ///
+    /// If the waitForSync parameter is not specified or set to false, then the
+    /// collection’s default waitForSync behavior is applied. The
+    /// waitForSync query parameter cannot be used to disable
+    /// synchronization for collections that have a default waitForSync value of
+    /// true.
+    ///
+    /// If the query parameter returnOld is true, then the complete previous
+    /// revision of the document is returned under the old attribute in the
+    /// result.
+    ///
     /// You can conditionally replace a document based on a target revision id
     /// by using the if-match HTTP header.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn remove_document<T>(
         &self,

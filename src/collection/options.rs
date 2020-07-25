@@ -31,9 +31,9 @@ pub struct PropertiesOptions {
     /// has been synchronized to disk.
     #[builder(default, setter(strip_option))]
     wait_for_sync: Option<bool>,
-    // TODO need to implement this with feature gate between versions maybe
-    //  for ArangoDB 3.7
-    // schema: Option<SchemaRules>,
+    /* TODO need to implement this with feature gate between versions maybe
+     *  for ArangoDB 3.7
+     * schema: Option<SchemaRules>, */
 }
 impl Default for PropertiesOptions {
     fn default() -> Self {
