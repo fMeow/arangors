@@ -7,29 +7,35 @@ use typed_builder::TypedBuilder;
 #[serde(rename_all = "camelCase")]
 pub struct InsertOptions {
     /// Wait until document has been synced to disk.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     wait_for_sync: Option<bool>,
     /// Additionally return the complete new document under the attribute new in
     /// the result.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     return_new: Option<bool>,
     /// Additionally return the complete old document under the attribute old in
     /// the result. Only available if the overwrite option is used.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     return_old: Option<bool>,
     /// If set to true, an empty object will be returned as response.
     /// No meta-data will be returned for the created document.
     /// This option can be used to save some network traffic.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     silent: Option<bool>,
     /// If set to true, the insert becomes a replace-insert.
     /// If a document with the same _key already exists the new document is not
     /// rejected with unique constraint violated but will replace the old
     /// document.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     overwrite: Option<bool>,
     /// TODO add nice formatted documentation from official doc
     #[cfg(arango3_7)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     overwrite_mode: Option<OverwriteMode>,
 }
@@ -49,34 +55,41 @@ pub struct UpdateOptions {
     /// false. This will modify the behavior of the patch command to remove any
     /// attributes from the existing document that are contained in the patch
     /// document with an attribute value of null.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     keep_null: Option<bool>,
     /// Controls whether objects (not arrays) will be merged if present in both
     /// the existing and the patch document. If set to false, the value in the
     /// patch document will overwrite the existing document’s value. If set to
     /// true, objects will be merged. The default is true.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     merge_objects: Option<bool>,
     /// Wait until document has been synced to disk.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     wait_for_sync: Option<bool>,
     /// By default, or if this is set to true, the _rev attributes in the given
     /// document is ignored. If this is set to false, then the _rev
     /// attribute given in the body document is taken as a precondition. The
     /// document is only update if the current revision is the one specified.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     ignore_revs: Option<bool>,
     /// Additionally return the complete new document under the attribute new in
     /// the result.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     return_new: Option<bool>,
     /// Return additionally the complete previous revision of the changed
     /// document under the attribute old in the result.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     return_old: Option<bool>,
     /// If set to true, an empty object will be returned as response.
     /// No meta-data will be returned for the updated document.
     /// This option can be used to save some network traffic.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     silent: Option<bool>,
 }
@@ -132,25 +145,30 @@ pub enum OverwriteMode {
 #[serde(rename_all = "camelCase")]
 pub struct ReplaceOptions {
     /// Wait until document has been synced to disk.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     wait_for_sync: Option<bool>,
     /// By default, or if this is set to true, the _rev attributes in the given
     /// document is ignored. If this is set to false, then the _rev
     /// attribute given in the body document is taken as a precondition. The
     /// document is only replaced if the current revision is the one specified.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     ignore_revs: Option<bool>,
     /// Additionally return the complete new document under the attribute new in
     /// the result.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     return_new: Option<bool>,
     /// Additionally return the complete old document under the attribute old in
     /// the result.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     return_old: Option<bool>,
     /// If set to true, an empty object will be returned as response.
     /// No meta-data will be returned for the replaced document.
     /// This option can be used to save some network traffic.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     silent: Option<bool>,
 }
@@ -187,15 +205,18 @@ impl Default for ReadOptions {
 #[serde(rename_all = "camelCase")]
 pub struct RemoveOptions {
     /// Wait until document has been synced to disk.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     wait_for_sync: Option<bool>,
     /// Additionally return the complete old document under the attribute old in
     /// the result.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     return_old: Option<bool>,
     /// If set to true, an empty object will be returned as response.
     /// No meta-data will be returned for the created document.
     /// This option can be used to save some network traffic.
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     silent: Option<bool>,
 }
