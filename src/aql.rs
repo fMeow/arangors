@@ -83,13 +83,100 @@ pub struct AqlQuery<'a> {
     options: Option<AqlOptions>,
 }
 
-impl<'a> AqlQuery<'a> {
-    pub fn bind_var<K, V>(mut self, key: K, value: V) -> Self
+#[allow(non_camel_case_types, missing_docs)]
+impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __options>
+    AqlQueryBuilder<
+        'a,
+        (
+            __query,
+            (),
+            __count,
+            __batch_size,
+            __cache,
+            __memory_limit,
+            __ttl,
+            __options,
+        ),
+    >
+{
+    pub fn bind_var<K, V>(
+        self,
+        key: K,
+        value: V,
+    ) -> AqlQueryBuilder<
+        'a,
+        (
+            __query,
+            (HashMap<&'a str, Value>,),
+            __count,
+            __batch_size,
+            __cache,
+            __memory_limit,
+            __ttl,
+            __options,
+        ),
+    >
     where
         K: Into<&'a str>,
         V: Into<Value>,
     {
-        self.bind_vars.insert(key.into(), value.into());
+        let mut bind_vars = HashMap::new();
+        bind_vars.insert(key.into(), value.into());
+        let (query, _, count, batch_size, cache, memory_limit, ttl, options) = self.fields;
+        AqlQueryBuilder {
+            fields: (
+                query,
+                (bind_vars,),
+                count,
+                batch_size,
+                cache,
+                memory_limit,
+                ttl,
+                options,
+            ),
+            _phantom: self._phantom,
+        }
+    }
+}
+
+#[allow(non_camel_case_types, missing_docs)]
+impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __options>
+    AqlQueryBuilder<
+        'a,
+        (
+            __query,
+            (HashMap<&'a str, Value>,),
+            __count,
+            __batch_size,
+            __cache,
+            __memory_limit,
+            __ttl,
+            __options,
+        ),
+    >
+{
+    pub fn bind_var<K, V>(
+        mut self,
+        key: K,
+        value: V,
+    ) -> AqlQueryBuilder<
+        'a,
+        (
+            __query,
+            (HashMap<&'a str, Value>,),
+            __count,
+            __batch_size,
+            __cache,
+            __memory_limit,
+            __ttl,
+            __options,
+        ),
+    >
+    where
+        K: Into<&'a str>,
+        V: Into<Value>,
+    {
+        (self.fields.1).0.insert(key.into(), value.into());
         self
     }
 }

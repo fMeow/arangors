@@ -204,10 +204,10 @@ next batch and update cursor with the cursor.
 
 let aql = AqlQuery::builder()
     .query("FOR u IN @@collection LIMIT 3 RETURN u")
+    .bind_var("@collection", "test_collection")
     .batch_size(1)
     .count(true)
-    .build()
-    .bind_var("@collection", "test_collection");
+    .build();
 
 // fetch the first cursor
 let mut cursor = db.aql_query_batch(aql).await.unwrap();
@@ -298,9 +298,9 @@ use serde_json::value::Value;
 
 let aql = AqlQuery::builder()
     .query("FOR u IN @@collection LIMIT 3 RETURN u")
+    .bind_var("@collection", "test_collection")
     .batch_size(1)
     .count(true)
-    .bind_var("@collection", "test_collection")
     .build();
 
 let resp: Vec<Value> = db.aql_query(aql).await.unwrap();
