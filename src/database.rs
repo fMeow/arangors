@@ -169,14 +169,13 @@ impl<'a, C: ClientExt> Database<'a, C> {
     #[maybe_async]
     pub async fn aql_query_batch<R>(&self, aql: AqlQuery<'_>) -> Result<Cursor<R>, ClientError>
     where
-        R: DeserializeOwned + Debug,
+        R: DeserializeOwned,
     {
         let url = self.base_url.join("_api/cursor").unwrap();
         let resp = self
             .session
             .post(url, &serde_json::to_string(&aql)?)
             .await?;
-        trace!("{:?}", serde_json::to_string(&aql));
         deserialize_response(resp.body())
     }
 
@@ -187,7 +186,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     #[maybe_async]
     pub async fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, ClientError>
     where
-        R: DeserializeOwned + Debug,
+        R: DeserializeOwned  ,
     {
         let url = self
             .base_url
@@ -201,7 +200,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     #[maybe_async]
     async fn aql_fetch_all<R>(&self, response: Cursor<R>) -> Result<Vec<R>, ClientError>
     where
-        R: DeserializeOwned + Debug,
+        R: DeserializeOwned,
     {
         let mut response_cursor = response;
         let mut results: Vec<R> = Vec::new();
@@ -230,10 +229,9 @@ impl<'a, C: ClientExt> Database<'a, C> {
     #[maybe_async]
     pub async fn aql_query<R>(&self, aql: AqlQuery<'_>) -> Result<Vec<R>, ClientError>
     where
-        R: DeserializeOwned + Debug,
+        R: DeserializeOwned  ,
     {
         let response = self.aql_query_batch(aql).await?;
-        trace!("AQL query response: {:?}", response);
         if response.more {
             self.aql_fetch_all(response).await
         } else {
@@ -249,7 +247,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     #[maybe_async]
     pub async fn aql_str<R>(&self, query: &str) -> Result<Vec<R>, ClientError>
     where
-        R: DeserializeOwned + Debug,
+        R: DeserializeOwned,
     {
         let aql = AqlQuery::builder().query(query).build();
         self.aql_query(aql).await
@@ -267,7 +265,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
         bind_vars: HashMap<&str, Value>,
     ) -> Result<Vec<R>, ClientError>
     where
-        R: DeserializeOwned + Debug,
+        R: DeserializeOwned,
     {
         let aql = AqlQuery::builder()
             .query(query)
