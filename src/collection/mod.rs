@@ -38,27 +38,26 @@ pub mod response;
 /// that is specified by the user when the collection is created. There are
 /// currently two types: document and edge. The default type is document.
 #[derive(Debug, Clone)]
-pub struct Collection<'a, C: ClientExt> {
+pub struct Collection<C: ClientExt> {
     id: String,
     name: String,
     collection_type: CollectionType,
     base_url: Url,
     document_base_url: Url,
     session: Arc<C>,
-    phantom: &'a (),
 }
 
-impl<'a, C: ClientExt> Collection<'a, C> {
+impl<'a, C: ClientExt> Collection<C> {
     /// Construct Collection given collection info from server
     ///
     /// Base url should be like `http://server:port/_db/mydb/_api/collection/{collection-name}`
     /// Document root should be like: http://server:port/_db/mydb/_api/document/
     pub(crate) fn new<T: Into<String>>(
-        database: &Database<'a, C>,
+        database: &Database<C>,
         name: T,
         id: T,
         collection_type: CollectionType,
-    ) -> Collection<'a, C> {
+    ) -> Collection<C> {
         let name = name.into();
         let path = format!("_api/collection/{}/", &name);
         let url = database.url().join(&path).unwrap();
@@ -71,14 +70,10 @@ impl<'a, C: ClientExt> Collection<'a, C> {
             base_url: url,
             document_base_url,
             collection_type,
-            phantom: &(*database.phantom),
         }
     }
 
-    pub(crate) fn from_response(
-        database: &Database<'a, C>,
-        collection: &Info,
-    ) -> Collection<'a, C> {
+    pub(crate) fn from_response(database: &Database<C>, collection: &Info) -> Collection<C> {
         Self::new(
             database,
             collection.name.to_owned(),

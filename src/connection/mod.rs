@@ -144,7 +144,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn db(&self, name: &str) -> Result<Database<'_, C>, ClientError> {
+    pub async fn db(&self, name: &str) -> Result<Database<C>, ClientError> {
         let db = Database::new(&self, name);
         db.info().await?;
         Ok(db)
@@ -358,7 +358,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn create_database(&self, name: &str) -> Result<Database<'_, C>, ClientError> {
+    pub async fn create_database(&self, name: &str) -> Result<Database<C>, ClientError> {
         let mut map = HashMap::new();
         map.insert("name", name);
         let url = self.arango_url.join("/_api/database").unwrap();
