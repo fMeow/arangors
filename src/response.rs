@@ -1,13 +1,12 @@
-/// This module contains structures to deserialize responses from arangoDB
-/// server via HTTP request, as well as convenient functions to deserialize
-/// `Response`.
-///
-/// For response with `error` and `code` fields indicating the whether the
-/// request is succesful, use `Response` to abstract over request status
-/// and data of concerns.
-///
-/// For response storing all information in `result` filed, use
-/// `ArangoResult`.
+//! types to deserialize responses from arangoDB server via HTTP request, as
+//! well as convenient functions to deserialize `Response`.
+//!
+//! For response with `error` and `code` fields indicating the whether the
+//! request is successful, use `deserialize_response` to abstract over request
+//! status and data of concerns.
+//!
+//! For response storing all information in `result` filed, use
+//! `ArangoResult`.
 use std::ops::Deref;
 
 use log::trace;
@@ -19,8 +18,8 @@ use serde_json::value::Value;
 
 use crate::{ArangoError, ClientError};
 
-use super::aql::QueryStats;
-
+/// Deserialize response from arango server
+///
 /// There are different type of json object when requests to arangoDB
 /// server is accepted or not. Here provides an abstraction for
 /// response of success and failure.
@@ -34,15 +33,16 @@ where
     Ok(Into::<Result<T, ArangoError>>::into(response)?)
 }
 
-/// An enum to divide into successful and failed response.
+/// An helper enum to divide into successful and failed response
 ///
 /// Request to server can failed at application level, like insufficient
 /// permission, database not found and etc. Response from arangoDB can tell
 /// whether the query succeeded and why if it failed.
 ///
-/// The function of this enum is almost the same as
-/// Result, except that it's used to deserialize from
-/// server response.
+/// The function of this enum is almost the same as `Result`, except that it's
+/// used to deserialize from server response. This enum is to facilitate
+/// deserialization and it should be converted to `Result<T, ArangoError>`
+/// eventually.
 #[derive(Debug)]
 pub(crate) enum Response<T> {
     Ok(T),
@@ -87,7 +87,7 @@ where
 }
 
 /// Helper struct to deserialize json result that store
-/// information in "result" field.
+/// information in "result" field
 #[derive(Deserialize, Debug)]
 pub(crate) struct ArangoResult<T> {
     #[serde(rename = "result")]
@@ -105,49 +105,6 @@ impl<T> Deref for ArangoResult<T> {
     fn deref(&self) -> &Self::Target {
         &self.result
     }
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Cursor<T> {
-    /// the total number of result documents available
-    ///
-    /// only available if the query was executed with the count attribute
-    /// set
-    pub count: Option<usize>,
-    /// a boolean flag indicating whether the query result was served from
-    /// the query cache or not.
-    ///
-    /// If the query result is served from the query cache, the extra
-    /// return attribute will not contain any stats sub-attribute
-    /// and no profile sub-attribute.,
-    pub cached: bool,
-    /// A boolean indicator whether there are more results available for
-    /// the cursor on the server
-    #[serde(rename = "hasMore")]
-    pub more: bool,
-
-    /// (anonymous json object): an array of result documents (might be
-    /// empty if query has no results)
-    pub result: Vec<T>,
-    ///  id of temporary cursor created on the server
-    pub id: Option<String>,
-
-    /// an optional JSON object with extra information about the query
-    /// result contained in its stats sub-attribute. For
-    /// data-modification queries, the extra.stats sub-attribute
-    /// will contain the number of
-    /// modified documents and the number of documents that could
-    /// not be modified due to an error if ignoreErrors query
-    /// option is specified.
-    pub extra: Option<Extra>,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Extra {
-    // TODO
-    stats: Option<QueryStats>,
-    // TODO
-    warnings: Option<Vec<Value>>,
 }
 
 #[cfg(test)]

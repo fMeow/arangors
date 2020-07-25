@@ -384,13 +384,12 @@
 ))]
 pub use crate::connection::Connection;
 pub use crate::{
-    aql::{AqlOption, AqlQuery},
+    aql::{AqlOption, AqlQuery, Cursor},
     collection::Collection,
     connection::GenericConnection,
     database::Database,
     document::Document,
     error::{ArangoError, ClientError},
-    response::Cursor,
 };
 
 pub mod aql;

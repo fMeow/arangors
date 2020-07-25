@@ -1,4 +1,4 @@
-/// This module 'aql' contains all things related to AQL query in arangoDB.
+/// Types related to AQL query in arangoDB.
 ///
 /// While aql queries are performed on database, it would be ponderous to
 /// place all aql query related methods and types in `arangors::database`.
@@ -343,4 +343,47 @@ pub struct QueryStats {
     full_count: Option<usize>,
     http_requests: usize,
     execution_time: f64,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Cursor<T> {
+    /// the total number of result documents available
+    ///
+    /// only available if the query was executed with the count attribute
+    /// set
+    pub count: Option<usize>,
+    /// a boolean flag indicating whether the query result was served from
+    /// the query cache or not.
+    ///
+    /// If the query result is served from the query cache, the extra
+    /// return attribute will not contain any stats sub-attribute
+    /// and no profile sub-attribute.,
+    pub cached: bool,
+    /// A boolean indicator whether there are more results available for
+    /// the cursor on the server
+    #[serde(rename = "hasMore")]
+    pub more: bool,
+
+    /// (anonymous json object): an array of result documents (might be
+    /// empty if query has no results)
+    pub result: Vec<T>,
+    ///  id of temporary cursor created on the server
+    pub id: Option<String>,
+
+    /// an optional JSON object with extra information about the query
+    /// result contained in its stats sub-attribute. For
+    /// data-modification queries, the extra.stats sub-attribute
+    /// will contain the number of
+    /// modified documents and the number of documents that could
+    /// not be modified due to an error if ignoreErrors query
+    /// option is specified.
+    pub extra: Option<Extra>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Extra {
+    // TODO
+    stats: Option<QueryStats>,
+    // TODO
+    warnings: Option<Vec<Value>>,
 }

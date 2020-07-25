@@ -1,4 +1,4 @@
-//! database contains all struct and enum pertain to arangoDB "database" level.
+//! struct and enum pertain to arangoDB database
 //!
 //! AQL query are all executed in database level, so Database offers AQL query.
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
@@ -11,14 +11,14 @@ use url::Url;
 use maybe_async::maybe_async;
 
 use crate::{
-    aql::AqlQuery,
+    aql::{AqlQuery, Cursor},
     client::ClientExt,
     collection::{
         response::{Info, Properties},
         Collection,
     },
     connection::{DatabaseDetails, GenericConnection, Version},
-    response::{deserialize_response, ArangoResult, Cursor},
+    response::{deserialize_response, ArangoResult},
     ClientError,
 };
 
