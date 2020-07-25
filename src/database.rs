@@ -186,7 +186,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     #[maybe_async]
     pub async fn aql_next_batch<R>(&self, cursor_id: &str) -> Result<Cursor<R>, ClientError>
     where
-        R: DeserializeOwned  ,
+        R: DeserializeOwned,
     {
         let url = self
             .base_url
@@ -229,7 +229,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     #[maybe_async]
     pub async fn aql_query<R>(&self, aql: AqlQuery<'_>) -> Result<Vec<R>, ClientError>
     where
-        R: DeserializeOwned  ,
+        R: DeserializeOwned,
     {
         let response = self.aql_query_batch(aql).await?;
         if response.more {
