@@ -1,3 +1,11 @@
+//! HTTP client
+//!
+//! Feature gates are used to conditionally enable specific http ecosystem.
+//! Currently reqwest(both blocking and async) and surf(async only) are
+//! supported out of the box.
+//!
+//! But it's possible to incorporate custom ecosystem. See
+//! `examples/custom_client.rs`.
 use std::fmt::Debug;
 
 use http::{HeaderMap, Request, Response};

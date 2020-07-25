@@ -1,15 +1,14 @@
+//! Reqwest HTTP client
+use std::convert::TryInto;
+
 #[cfg(feature = "reqwest_blocking")]
 use ::reqwest::blocking::Client;
 #[cfg(feature = "reqwest_async")]
 use ::reqwest::Client;
-
 use http::header::HeaderMap;
 
-use crate::client::ClientExt;
-
 use super::*;
-
-use std::convert::TryInto;
+use crate::client::ClientExt;
 
 #[derive(Debug, Clone)]
 pub struct ReqwestClient(pub Client);

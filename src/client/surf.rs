@@ -1,3 +1,4 @@
+//! Surf HTTP client
 use std::str::FromStr;
 
 use http::{
@@ -5,9 +6,8 @@ use http::{
     Method, StatusCode, Version,
 };
 
-use crate::client::ClientExt;
-
 use super::*;
+use crate::client::ClientExt;
 
 #[derive(Debug, Clone)]
 pub struct SurfClient {

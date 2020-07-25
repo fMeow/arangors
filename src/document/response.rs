@@ -1,3 +1,4 @@
+//! Types of response related to document
 use serde::{de::Error as DeError, Deserialize, Deserializer};
 
 use super::Header;

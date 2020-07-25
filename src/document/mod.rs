@@ -1,3 +1,7 @@
+//! Document level types
+//!
+//! This mod contains document related types.
+//! Operations are conducted on collection level struct
 use serde::{Deserialize, Serialize};
 
 pub mod options;

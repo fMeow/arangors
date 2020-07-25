@@ -1,3 +1,4 @@
+//! Types of response related to collection
 use serde::{
     de::{Deserializer, Error as DeError},
     Deserialize,

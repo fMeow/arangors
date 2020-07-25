@@ -1,3 +1,7 @@
+//! Collection level operations
+//!
+//! This mod contains struct and type of colleciton info and management, as well
+//! as document related operations.
 use std::{convert::TryFrom, sync::Arc};
 
 use http::Request;

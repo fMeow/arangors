@@ -1,3 +1,4 @@
+//! Types of response related to collection
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 

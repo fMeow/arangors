@@ -1,3 +1,4 @@
+//! Types of options related to document
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
