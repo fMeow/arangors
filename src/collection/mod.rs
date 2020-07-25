@@ -765,7 +765,9 @@ fn make_header_from_options(
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy, Serialize)]
 pub enum CollectionType {
+    #[serde(rename = "2")]
     Document = 2,
+    #[serde(rename = "3")]
     Edge = 3,
 }
 
