@@ -43,10 +43,10 @@ impl<'a, C: ClientExt> Database<'a, C> {
     ) -> Database<C> {
         let name = name.into();
         let path = format!("/_db/{}/", name.as_str());
-        let url = conn.get_url().join(path.as_str()).unwrap();
+        let url = conn.url().join(path.as_str()).unwrap();
         Database {
             name,
-            session: conn.get_session(),
+            session: conn.session(),
             base_url: url,
             phantom: &conn.phantom,
         }
@@ -73,11 +73,11 @@ impl<'a, C: ClientExt> Database<'a, C> {
         Ok(result.unwrap())
     }
 
-    pub fn get_url(&self) -> &Url {
+    pub fn url(&self) -> &Url {
         &self.base_url
     }
 
-    pub fn get_session(&self) -> Arc<C> {
+    pub fn session(&self) -> Arc<C> {
         Arc::clone(&self.session)
     }
 

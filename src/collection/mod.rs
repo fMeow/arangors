@@ -79,13 +79,13 @@ impl<'a, C: ClientExt> Collection<'a, C> {
     ) -> Collection<'a, C> {
         let name = name.into();
         let path = format!("_api/collection/{}/", &name);
-        let url = database.get_url().join(&path).unwrap();
+        let url = database.url().join(&path).unwrap();
         let document_path = format!("_api/document/{}/", &name);
-        let document_base_url = database.get_url().join(&document_path).unwrap();
+        let document_base_url = database.url().join(&document_path).unwrap();
         Collection {
             name,
             id: id.into(),
-            session: database.get_session(),
+            session: database.session(),
             base_url: url,
             document_base_url,
             collection_type,

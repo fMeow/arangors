@@ -133,7 +133,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     }
 
     /// Get url for remote arangoDB server.
-    pub fn get_url(&self) -> &Url {
+    pub fn url(&self) -> &Url {
         &self.arango_url
     }
 
@@ -144,7 +144,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     ///
     /// TODO This method should only be public in this crate when all features
     ///     are implemented.
-    pub fn get_session(&self) -> Arc<C> {
+    pub fn session(&self) -> Arc<C> {
         Arc::clone(&self.session)
     }
 
