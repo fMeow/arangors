@@ -12,48 +12,25 @@ pub const NORMAL_USERNAME: &str = "username";
 pub const NORMAL_PASSWORD: &str = "password";
 
 pub fn get_root_user() -> String {
-    let root_user = env::var("ARANGO_ROOT_USER");
-
-    match root_user {
-        Err(_e) => ROOT_USERNAME.to_owned(),
-        Ok(s) => s,
-    }
+    env::var("ARANGO_ROOT_USER").unwrap_or(ROOT_USERNAME.to_owned())
 }
 
 pub fn get_root_password() -> String {
-    let password = env::var("ARANGO_ROOT_PASSWORD");
-
-    match password {
-        Err(_e) => ROOT_PASSWORD.to_owned(),
-        Ok(s) => s,
-    }
+    env::var("ARANGO_ROOT_PASSWORD").unwrap_or(ROOT_PASSWORD.to_owned())
 }
 
 pub fn get_normal_user() -> String {
-    let user = env::var("ARANGO_USER");
-
-    match user {
-        Err(_e) => NORMAL_USERNAME.to_owned(),
-        Ok(s) => s,
-    }
+    env::var("ARANGO_USER").unwrap_or(NORMAL_USERNAME.to_owned())
 }
 
 pub fn get_normal_password() -> String {
-    let password = env::var("ARANGO_PASSWORD");
-
-    match password {
-        Err(_e) => NORMAL_PASSWORD.to_owned(),
-        Ok(s) => s,
-    }
+    env::var("ARANGO_PASSWORD").unwrap_or(NORMAL_PASSWORD.to_owned())
 }
 
 pub fn get_arangodb_host() -> String {
-    let host = env::var("ARANGODB_HOST");
-
-    match host {
-        Err(_e) => ARANGODB_HOST.to_owned(),
-        Ok(s) => format!("http://{}", s),
-    }
+    env::var("ARANGODB_HOST")
+        .map(|s| format!("http://{}", s))
+        .unwrap_or(ARANGODB_HOST.to_owned())
 }
 
 #[test]
