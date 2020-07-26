@@ -97,7 +97,8 @@ pub struct GenericConnection<C: ClientExt, S = Normal> {
 impl<S, C: ClientExt> GenericConnection<C, S> {
     /// Validate the server at given arango url
     ///
-    /// Cast `failure::Error` if
+    /// Cast `ClientError` if
+    /// - Invalid url
     /// - Connection failed
     /// - SERVER header in response header is not `ArangoDB` or empty
     #[maybe_async]
