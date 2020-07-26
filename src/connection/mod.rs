@@ -38,10 +38,9 @@ use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
 use http::header::{HeaderMap, AUTHORIZATION, SERVER};
 use log::{info, trace};
+use maybe_async::maybe_async;
 use serde::{Deserialize, Serialize};
 use url::Url;
-
-use maybe_async::maybe_async;
 
 use crate::{client::ClientExt, response::ArangoResult, ClientError};
 
@@ -144,7 +143,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn db(&self, name: &str) -> Result<Database<C>, ClientError> {
-        let db = Database::new(&self, name);
+        let db = Database::new(name, self.url(), self.session());
         db.info().await?;
         Ok(db)
     }

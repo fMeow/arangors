@@ -4,11 +4,10 @@
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
 use log::trace;
+use maybe_async::maybe_async;
 use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::value::Value;
 use url::Url;
-
-use maybe_async::maybe_async;
 
 use crate::{
     aql::{AqlQuery, Cursor},
@@ -18,7 +17,7 @@ use crate::{
         response::{Info, Properties},
         Collection, CollectionType,
     },
-    connection::{GenericConnection, Version},
+    connection::Version,
     response::{deserialize_response, ArangoResult},
     ClientError,
 };
@@ -31,19 +30,17 @@ pub struct Database<C: ClientExt> {
 }
 
 impl<'a, C: ClientExt> Database<C> {
-    pub(crate) fn new<T: Into<String>, S>(
-        conn: &'a GenericConnection<C, S>,
-        name: T,
-    ) -> Database<C> {
+    pub(crate) fn new<T: Into<String>>(name: T, arango_url: &Url, session: Arc<C>) -> Database<C> {
         let name = name.into();
         let path = format!("/_db/{}/", name.as_str());
-        let url = conn.url().join(path.as_str()).unwrap();
+        let url = arango_url.join(path.as_str()).unwrap();
         Database {
             name,
-            session: conn.session(),
+            session,
             base_url: url,
         }
     }
+
     /// Retrieve all collections of this database.
     ///
     /// # Note

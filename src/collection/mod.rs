@@ -10,7 +10,9 @@ use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
 use serde_json::json;
 use url::Url;
 
-use super::{Database, Document};
+use options::*;
+use response::*;
+
 use crate::{
     client::ClientExt,
     document::{
@@ -21,8 +23,8 @@ use crate::{
     response::{deserialize_response, ArangoResult},
     ClientError,
 };
-use options::*;
-use response::*;
+
+use super::{Database, Document};
 
 pub mod options;
 pub mod response;
@@ -52,21 +54,22 @@ impl<'a, C: ClientExt> Collection<C> {
     ///
     /// Base url should be like `http://server:port/_db/mydb/_api/collection/{collection-name}`
     /// Document root should be like: http://server:port/_db/mydb/_api/document/
-    pub(crate) fn new<T: Into<String>>(
-        database: &Database<C>,
+    pub(crate) fn new<T: Into<String>, S: Into<String>>(
         name: T,
-        id: T,
+        id: S,
         collection_type: CollectionType,
+        db_url: &Url,
+        session: Arc<C>,
     ) -> Collection<C> {
         let name = name.into();
         let path = format!("_api/collection/{}/", &name);
-        let url = database.url().join(&path).unwrap();
+        let url = db_url.join(&path).unwrap();
         let document_path = format!("_api/document/{}/", &name);
-        let document_base_url = database.url().join(&document_path).unwrap();
+        let document_base_url = db_url.join(&document_path).unwrap();
         Collection {
             name,
             id: id.into(),
-            session: database.session(),
+            session,
             base_url: url,
             document_base_url,
             collection_type,
@@ -75,10 +78,11 @@ impl<'a, C: ClientExt> Collection<C> {
 
     pub(crate) fn from_response(database: &Database<C>, collection: &Info) -> Collection<C> {
         Self::new(
-            database,
-            collection.name.to_owned(),
-            collection.id.to_owned(),
-            collection.r#type.clone(),
+            &collection.name,
+            &collection.id,
+            collection.collection_type,
+            database.url(),
+            database.session(),
         )
     }
 
