@@ -101,7 +101,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     /// - Connection failed
     /// - SERVER header in response header is not `ArangoDB` or empty
     #[maybe_async]
-    pub async fn validate_server(arango_url:&str) -> Result<(), ClientError> {
+    pub async fn validate_server(arango_url: &str) -> Result<(), ClientError> {
         let client = C::new(None)?;
         let resp = client.get(arango_url.parse().unwrap(), "").await?;
         // have `Server` in header
@@ -182,34 +182,30 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         arango_url: T,
         auth: Auth<'_>,
     ) -> Result<GenericConnection<C, Normal>, ClientError> {
-        let url = arango_url.into();
-        let mut conn = GenericConnection {
-            arango_url: Url::parse(&url)
-                .expect(&format!("invaid url: {}", url))
-                .join("/")
-                .unwrap(),
-            username: String::new(),
-            session: Arc::new(C::new(None)?),
-            state: Normal,
-        };
-        Self::validate_server(&url).await?;
+        let url_str = arango_url.into();
+        let arango_url = Url::parse(&url_str)
+            .map_err(|_| ClientError::InvalidServer(format!("invalid url: {}", url_str)))?
+            .join("/")
+            .unwrap();
 
-        let user: String;
+        Self::validate_server(&url_str).await?;
+
+        let username: String;
         let authorization = match auth {
             Auth::Basic(cred) => {
-                user = String::from(cred.username);
+                username = String::from(cred.username);
 
                 let token = base64::encode(&format!("{}:{}", cred.username, cred.password));
                 Some(format!("Basic {}", token))
             }
             Auth::Jwt(cred) => {
-                user = String::from(cred.username);
+                username = String::from(cred.username);
 
-                let token = conn.jwt_login(cred.username, cred.password).await?;
+                let token = Self::jwt_login(&arango_url, cred.username, cred.password).await?;
                 Some(format!("Bearer {}", token))
             }
             Auth::None => {
-                user = String::from("root");
+                username = String::from("root");
                 None
             }
         };
@@ -219,10 +215,13 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
             headers.insert(AUTHORIZATION, value.parse().unwrap());
         }
 
-        conn.username = user;
-        conn.session = Arc::new(C::new(headers)?);
         info!("Established");
-        Ok(conn)
+        Ok(GenericConnection {
+            arango_url,
+            username,
+            session: Arc::new(C::new(headers)?),
+            state: Normal,
+        })
     }
 
     /// Establish connection to ArangoDB sever without Authentication.
@@ -303,7 +302,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
 
     #[maybe_async]
     async fn jwt_login<T: Into<String>>(
-        &self,
+        arango_url: &Url,
         username: T,
         password: T,
     ) -> Result<String, ClientError> {
@@ -311,14 +310,14 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         struct JWT {
             pub jwt: String,
         }
-        let url = self.arango_url.join("/_open/auth").unwrap();
+        let url = arango_url.join("/_open/auth").unwrap();
 
         let mut map = HashMap::new();
         map.insert("username", username.into());
         map.insert("password", password.into());
 
         let jwt: JWT = serde_json::from_str(
-            self.session
+            C::new(None)?
                 .post(url, &serde_json::to_string(&map)?)
                 .await?
                 .body(),
