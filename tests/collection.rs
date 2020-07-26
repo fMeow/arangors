@@ -41,6 +41,24 @@ async fn test_get_collection() {
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
+async fn test_get_db_from_collection() {
+    test_setup();
+    let conn = connection().await;
+
+    let database = conn.db("test_db").await.unwrap();
+    let coll = database.accessible_collections().await;
+    trace!("{:?}", coll);
+    let coll = database.collection("test_collection").await.unwrap();
+    let db = coll.db();
+    assert_eq!(db.name(), database.name());
+    assert_eq!(db.url(), database.url());
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
 async fn test_create_and_drop_collection() {
     test_setup();
     let collection_name = "test_collection_create_and_drop";
