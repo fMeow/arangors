@@ -93,7 +93,6 @@ pub struct GenericConnection<C: ClientExt, S = Normal> {
     arango_url: Url,
     username: String,
     state: S,
-    pub(crate) phantom: (),
 }
 
 impl<S, C: ClientExt> GenericConnection<C, S> {
@@ -194,7 +193,6 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
             username: String::new(),
             session: Arc::new(C::new(None)?),
             state: Normal,
-            phantom: (),
         };
         conn.validate_server().await?;
 
@@ -418,7 +416,6 @@ impl<C: ClientExt> From<GenericConnection<C, Normal>> for GenericConnection<C, A
             session: conn.session,
             username: conn.username,
             state: Admin,
-            phantom: (),
         }
     }
 }
@@ -430,7 +427,6 @@ impl<C: ClientExt> From<GenericConnection<C, Admin>> for GenericConnection<C, No
             session: conn.session,
             username: conn.username,
             state: Normal,
-            phantom: (),
         }
     }
 }
