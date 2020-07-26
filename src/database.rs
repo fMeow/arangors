@@ -24,14 +24,13 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct Database<'a, C: ClientExt> {
+pub struct Database<C: ClientExt> {
     name: String,
     base_url: Url,
     session: Arc<C>,
-    pub(crate) phantom: &'a (),
 }
 
-impl<'a, C: ClientExt> Database<'a, C> {
+impl<'a, C: ClientExt> Database<C> {
     pub(crate) fn new<T: Into<String>, S>(
         conn: &'a GenericConnection<C, S>,
         name: T,
@@ -43,7 +42,6 @@ impl<'a, C: ClientExt> Database<'a, C> {
             name,
             session: conn.session(),
             base_url: url,
-            phantom: &conn.phantom,
         }
     }
     /// Retrieve all collections of this database.
@@ -81,7 +79,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn collection(&self, name: &str) -> Result<Collection<'a, C>, ClientError> {
+    pub async fn collection(&self, name: &str) -> Result<Collection<C>, ClientError> {
         let url = self
             .base_url
             .join(&format!("_api/collection/{}", name))
@@ -101,7 +99,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
         &self,
         options: CreateOptions<'f>,
         parameters: CreateParameters,
-    ) -> Result<Collection<'_, C>, ClientError> {
+    ) -> Result<Collection<C>, ClientError> {
         let mut url = self.base_url.join("_api/collection").unwrap();
         let query = serde_qs::to_string(&parameters).unwrap();
         url.set_query(Some(query.as_str()));
@@ -121,7 +119,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn create_collection(&self, name: &str) -> Result<Collection<'_, C>, ClientError> {
+    pub async fn create_collection(&self, name: &str) -> Result<Collection<C>, ClientError> {
         self.create_collection_with_options(
             CreateOptions::builder().name(name).build(),
             Default::default(),
@@ -130,10 +128,7 @@ impl<'a, C: ClientExt> Database<'a, C> {
     }
 
     #[maybe_async]
-    pub async fn create_edge_collection(
-        &self,
-        name: &str,
-    ) -> Result<Collection<'_, C>, ClientError> {
+    pub async fn create_edge_collection(&self, name: &str) -> Result<Collection<C>, ClientError> {
         self.create_collection_with_options(
             CreateOptions::builder()
                 .name(name)
