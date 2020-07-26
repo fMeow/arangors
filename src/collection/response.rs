@@ -14,6 +14,7 @@ pub struct Info {
     pub globally_unique_id: String,
     pub is_system: bool,
     pub status: Status,
+    #[serde(rename = "type")]
     pub collection_type: CollectionType,
 }
 
