@@ -82,8 +82,8 @@ impl<'a, C: ClientExt> Collection<C> {
         )
     }
 
-    pub fn collection_type(&self) -> &CollectionType {
-        &self.collection_type
+    pub fn collection_type(&self) -> CollectionType {
+        self.collection_type
     }
 
     /// The collection identifier
