@@ -14,7 +14,7 @@ pub struct Info {
     pub globally_unique_id: String,
     pub is_system: bool,
     pub status: Status,
-    pub r#type: CollectionType,
+    pub collection_type: CollectionType,
 }
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]

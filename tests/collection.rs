@@ -126,7 +126,7 @@ async fn test_truncate_collection() {
     let res = res.unwrap();
     assert_eq!(res.is_system, false);
     assert_eq!(res.name, collection_name);
-    assert_eq!(res.r#type, CollectionType::Document);
+    assert_eq!(res.collection_type, CollectionType::Document);
 
     coll.drop().await.expect("Fail to drop the collection");
 }
@@ -302,7 +302,7 @@ async fn test_get_checksum() {
     assert_eq!(result.info.name, collection_name);
     assert_eq!(result.info.is_system, false);
     assert_eq!(result.info.status, Status::Loaded);
-    assert_eq!(result.info.r#type, CollectionType::Document);
+    assert_eq!(result.info.collection_type, CollectionType::Document);
     assert_eq!(result.checksum, "0");
     assert_eq!(result.checksum.is_empty(), false);
 
@@ -317,7 +317,10 @@ async fn test_get_checksum() {
     assert_eq!(updated_result.info.name, collection_name);
     assert_eq!(updated_result.info.is_system, false);
     assert_eq!(updated_result.info.status, Status::Loaded);
-    assert_eq!(updated_result.info.r#type, CollectionType::Document);
+    assert_eq!(
+        updated_result.info.collection_type,
+        CollectionType::Document
+    );
     assert_eq!(updated_result.checksum, "0");
     assert_eq!(updated_result.checksum.is_empty(), false);
 
@@ -339,7 +342,10 @@ async fn test_get_checksum() {
     assert_eq!(updated_result.info.name, collection_name);
     assert_eq!(updated_result.info.is_system, false);
     assert_eq!(updated_result.info.status, Status::Loaded);
-    assert_eq!(updated_result.info.r#type, CollectionType::Document);
+    assert_eq!(
+        updated_result.info.collection_type,
+        CollectionType::Document
+    );
     assert_eq!(updated_result.checksum.is_empty(), false);
 
     coll.drop().await.expect("Should drop the collection");
@@ -365,7 +371,7 @@ async fn test_put_load() {
     assert_eq!(result.is_system, false);
     assert_eq!(result.count, Some(0));
     assert_eq!(result.status, Status::Loaded);
-    assert_eq!(result.r#type, CollectionType::Document);
+    assert_eq!(result.collection_type, CollectionType::Document);
 
     let load = coll.load(false).await;
 
@@ -374,7 +380,7 @@ async fn test_put_load() {
     assert_eq!(updated_result.is_system, false);
     assert_eq!(updated_result.count, None);
     assert_eq!(updated_result.status, Status::Loaded);
-    assert_eq!(updated_result.r#type, CollectionType::Document);
+    assert_eq!(updated_result.collection_type, CollectionType::Document);
 
     database
         .aql_str::<Value>(r#"INSERT { "name": "test_user" } INTO test_collection_load"#)
@@ -388,7 +394,7 @@ async fn test_put_load() {
     assert_eq!(updated_result.is_system, false);
     assert_eq!(updated_result.count, Some(1));
     assert_eq!(updated_result.status, Status::Loaded);
-    assert_eq!(updated_result.r#type, CollectionType::Document);
+    assert_eq!(updated_result.collection_type, CollectionType::Document);
 
     coll.drop().await.expect("Should drop the collection");
 }
@@ -417,7 +423,7 @@ async fn test_put_unload() {
         "wrong status: {:?}",
         result.status
     );
-    assert_eq!(result.r#type, CollectionType::Document);
+    assert_eq!(result.collection_type, CollectionType::Document);
 
     coll.drop().await.expect("Should drop the collection");
 }
@@ -492,7 +498,7 @@ async fn test_put_rename() {
     assert_eq!(result.name, new_name);
     assert_eq!(result.is_system, false);
     assert_eq!(result.status, Status::Loaded);
-    assert_eq!(result.r#type, CollectionType::Document);
+    assert_eq!(result.collection_type, CollectionType::Document);
 
     coll.drop().await.expect("Should drop the collection");
 }
