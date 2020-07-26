@@ -137,6 +137,49 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
             _phantom: self._phantom,
         }
     }
+
+    pub fn try_bind<K, V>(
+        self,
+        key: K,
+        value: V,
+    ) -> Result<
+        AqlQueryBuilder<
+            'a,
+            (
+                __query,
+                (HashMap<&'a str, Value>,),
+                __count,
+                __batch_size,
+                __cache,
+                __memory_limit,
+                __ttl,
+                __options,
+            ),
+        >,
+        serde_json::Error,
+    >
+    where
+        K: Into<&'a str>,
+        V: serde::Serialize,
+    {
+        let mut bind_vars = HashMap::new();
+        bind_vars.insert(key.into(), serde_json::to_value(value)?);
+        let (query, _, count, batch_size, cache, memory_limit, ttl, options) = self.fields;
+        let b = AqlQueryBuilder {
+            fields: (
+                query,
+                (bind_vars,),
+                count,
+                batch_size,
+                cache,
+                memory_limit,
+                ttl,
+                options,
+            ),
+            _phantom: self._phantom,
+        };
+        Ok(b)
+    }
 }
 
 #[allow(non_camel_case_types, missing_docs)]
@@ -178,6 +221,35 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
     {
         (self.fields.1).0.insert(key.into(), value.into());
         self
+    }
+
+    pub fn try_bind<K, V>(
+        mut self,
+        key: K,
+        value: V,
+    ) -> Result<
+        AqlQueryBuilder<
+            'a,
+            (
+                __query,
+                (HashMap<&'a str, Value>,),
+                __count,
+                __batch_size,
+                __cache,
+                __memory_limit,
+                __ttl,
+                __options,
+            ),
+        >,
+        serde_json::Error,
+    >
+    where
+        K: Into<&'a str>,
+        V: serde::Serialize,
+    {
+        let serialized_value = serde_json::to_value(value)?;
+        (self.fields.1).0.insert(key.into(), serialized_value);
+        Ok(self)
     }
 }
 
