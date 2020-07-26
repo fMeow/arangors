@@ -140,6 +140,17 @@ impl<'a, C: ClientExt> Collection<C> {
         Arc::clone(&self.session)
     }
 
+    /// Get the db od current collection
+    pub fn db(&self) -> Database<C> {
+        // Base url should be like `http://server:port/_db/mydb/_api/collection/{collection-name}`
+        let mut paths = self.base_url.path_segments().unwrap();
+        // must be `_db`
+        paths.next();
+        // must be db name
+        let name = paths.next().unwrap();
+        Database::new(name, &self.url().join("/").unwrap(), self.session())
+    }
+
     /// Drop a collection
     ///
     /// # Note
