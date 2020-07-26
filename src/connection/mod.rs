@@ -101,9 +101,8 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     /// - Connection failed
     /// - SERVER header in response header is not `ArangoDB` or empty
     #[maybe_async]
-    pub async fn validate_server(&self) -> Result<(), ClientError> {
-        let arango_url = self.arango_url.as_str();
-        let client = &self.session;
+    pub async fn validate_server(arango_url:&str) -> Result<(), ClientError> {
+        let client = C::new(None)?;
         let resp = client.get(arango_url.parse().unwrap(), "").await?;
         // have `Server` in header
         match resp.headers().get(SERVER) {
@@ -193,7 +192,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
             session: Arc::new(C::new(None)?),
             state: Normal,
         };
-        conn.validate_server().await?;
+        Self::validate_server(&url).await?;
 
         let user: String;
         let authorization = match auth {
