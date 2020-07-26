@@ -88,7 +88,7 @@ connect with ArangoDB. You can switch other ecosystem in feature gate:
 
 ```toml
 [dependencies]
-arangors = { version = "0.3", features = ["surf_async"], default-features = false }
+arangors = { version = "0.4", features = ["surf_async"], default-features = false }
 ```
 
 Or if you want to stick with other ecosystem that are not listed in the
@@ -98,9 +98,9 @@ dependency:
 ```toml
 [dependencies]
 ## This one is async
-arangors = { version = "0.3", default-features = false }
+arangors = { version = "0.4", default-features = false }
 ## This one is synchronous
-arangors = { version = "0.3", features = ["blocking"], default-features = false }
+arangors = { version = "0.4", features = ["blocking"], default-features = false }
 ```
 
 Thanks to `maybe_async`, `arangors` can unify sync and async API and toggle
