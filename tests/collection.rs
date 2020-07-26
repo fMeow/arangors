@@ -56,10 +56,53 @@ async fn test_create_and_drop_collection() {
     let coll = database.create_collection(collection_name).await;
     assert_eq!(coll.is_err(), false, "Fail to create the collection");
 
+    let coll = coll.unwrap();
+    assert_eq!(
+        coll.collection_type(),
+        CollectionType::Document,
+        "Got Edge collection"
+    );
+
     let res = database.drop_collection(collection_name).await;
     assert_eq!(res.is_err(), false, "Fail to drop the collection");
 
     let coll = database.create_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false, "Fail to create the collection");
+
+    let res = coll.unwrap().drop().await;
+    assert_eq!(res.is_err(), false, "Fail to drop the collection");
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_create_and_drop_edge_collection() {
+    test_setup();
+    let collection_name = "test_edge_collection_create_and_drop";
+    let conn = connection().await;
+
+    let mut database = conn.db("test_db").await.unwrap();
+    let coll = database.drop_collection(collection_name).await;
+    assert_eq!(
+        coll.is_err(),
+        true,
+        "The collection should have been drop previously"
+    );
+    let coll = database.create_edge_collection(collection_name).await;
+    assert_eq!(coll.is_err(), false, "Fail to create the collection");
+    let coll = coll.unwrap();
+    assert_eq!(
+        coll.collection_type(),
+        CollectionType::Edge,
+        "Got Document collection"
+    );
+
+    let res = database.drop_collection(collection_name).await;
+    assert_eq!(res.is_err(), false, "Fail to drop the collection");
+
+    let coll = database.create_edge_collection(collection_name).await;
     assert_eq!(coll.is_err(), false, "Fail to create the collection");
 
     let res = coll.unwrap().drop().await;
