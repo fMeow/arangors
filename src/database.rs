@@ -67,6 +67,10 @@ impl<'a, C: ClientExt> Database<C> {
         &self.base_url
     }
 
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
     pub fn session(&self) -> Arc<C> {
         Arc::clone(&self.session)
     }
