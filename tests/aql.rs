@@ -85,7 +85,7 @@ async fn test_aql_try_bind() {
         password: "test2_pwd".to_owned(),
     };
     let aql = AqlQuery::builder()
-        .query(r#"FOR i in test_collection FILTER i==@user return i"#)
+        .query(r#"FOR i in test_collection FILTER i.username==@user.username AND i.password==@user.password return i"#)
         .try_bind("user", user)
         .unwrap()
         .build();
