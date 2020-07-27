@@ -163,23 +163,7 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
         K: Into<&'a str>,
         V: serde::Serialize,
     {
-        let mut bind_vars = HashMap::new();
-        bind_vars.insert(key.into(), serde_json::to_value(value)?);
-        let (query, _, count, batch_size, cache, memory_limit, ttl, options) = self.fields;
-        let b = AqlQueryBuilder {
-            fields: (
-                query,
-                (bind_vars,),
-                count,
-                batch_size,
-                cache,
-                memory_limit,
-                ttl,
-                options,
-            ),
-            _phantom: self._phantom,
-        };
-        Ok(b)
+        Ok(self.bind_var(key, serde_json::to_value(value)?))
     }
 }
 
@@ -226,7 +210,7 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
     }
 
     pub fn try_bind<K, V>(
-        mut self,
+        self,
         key: K,
         value: V,
     ) -> Result<
@@ -249,9 +233,7 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
         K: Into<&'a str>,
         V: serde::Serialize,
     {
-        let serialized_value = serde_json::to_value(value)?;
-        (self.fields.1).0.insert(key.into(), serialized_value);
-        Ok(self)
+        Ok(self.bind_var(key, serde_json::to_value(value)?))
     }
 }
 
