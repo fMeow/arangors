@@ -6,8 +6,6 @@
 //!
 //! But it's possible to incorporate custom ecosystem. See
 //! `examples/custom_client.rs`.
-use std::fmt::Debug;
-
 use http::{HeaderMap, Request, Response};
 use url::Url;
 
