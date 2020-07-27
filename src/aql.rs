@@ -83,6 +83,7 @@ pub struct AqlQuery<'a> {
     options: Option<AqlOptions>,
 }
 
+// when binding the first query variable
 #[allow(non_camel_case_types, missing_docs)]
 impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __options>
     AqlQueryBuilder<
@@ -182,6 +183,7 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
     }
 }
 
+// when bind_var(s) are not empty
 #[allow(non_camel_case_types, missing_docs)]
 impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __options>
     AqlQueryBuilder<
@@ -253,7 +255,7 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
     }
 }
 
-#[derive(Debug, Serialize, TypedBuilder)]
+#[derive(Debug, Serialize, TypedBuilder, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct AqlOptions {
     /// When set to true, the query will throw an exception and abort instead of
@@ -459,4 +461,90 @@ pub struct QueryExtra {
     pub stats: Option<QueryStats>,
     // TODO
     pub warnings: Option<Vec<Value>>,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn aql_query_builder_bind_var() {
+        let q = r#"FOR i in test_collection FILTER i.username==@username AND i.password==@password return i"#;
+        let aql = AqlQuery::builder()
+            .query(q)
+            // test the first bind
+            .bind_var("username", "test2")
+            // test the second bind
+            .bind_var("password", "test2_pwd")
+            .count(true)
+            .batch_size(256)
+            .cache(false)
+            .memory_limit(100)
+            .ttl(10)
+            .build();
+        assert_eq!(aql.query, q);
+        assert_eq!(aql.count, Some(true));
+        assert_eq!(aql.batch_size, Some(256u32));
+        assert_eq!(aql.cache, Some(false));
+        assert_eq!(aql.memory_limit, Some(100));
+        assert_eq!(aql.ttl, Some(10));
+        assert_eq!(aql.options, None);
+
+        assert_eq!(
+            aql.bind_vars.get("username"),
+            Some(&Value::String("test2".to_owned()))
+        );
+        assert_eq!(
+            aql.bind_vars.get("password"),
+            Some(&Value::String("test2_pwd".to_owned()))
+        );
+    }
+
+    #[test]
+    fn aql_query_builder_try_bind() {
+        #[derive(Serialize, Deserialize, Debug)]
+        struct User {
+            pub username: String,
+            pub password: String,
+        }
+        let user = User {
+            username: "test2".to_owned(),
+            password: "test2_pwd".to_owned(),
+        };
+        let q = r#"FOR i in test_collection FILTER i==@user return i"#;
+        let aql = AqlQuery::builder()
+            .query(q)
+            .try_bind("user", user)
+            .unwrap()
+            .build();
+
+        assert_eq!(aql.query, q);
+        assert_eq!(aql.count, None);
+        assert_eq!(aql.batch_size, None);
+
+        let mut map = serde_json::Map::new();
+        map.insert("username".into(), "test2".into());
+        map.insert("password".into(), "test2_pwd".into());
+
+        assert_eq!(aql.bind_vars.get("user"), Some(&Value::Object(map)));
+
+        let aql = AqlQuery::builder()
+            .query(r#"FOR i in test_collection FILTER i.username==@username AND i.password==@password return i"#)
+            // test the first bind
+            .try_bind("username", "test2")
+            .unwrap()
+            // test the second bind
+            .try_bind("password", "test2_pwd")
+            .unwrap()
+            .build();
+
+        assert_eq!(
+            aql.bind_vars.get("username"),
+            Some(&Value::String("test2".to_owned()))
+        );
+        assert_eq!(
+            aql.bind_vars.get("password"),
+            Some(&Value::String("test2_pwd".to_owned()))
+        );
+    }
 }
