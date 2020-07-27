@@ -40,7 +40,7 @@ pub mod reqwest;
 pub mod surf;
 
 #[maybe_async::maybe_async]
-pub trait ClientExt: Sync + Debug + Clone {
+pub trait ClientExt: Sync + Clone {
     fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError>
     where
         Self: Sized;
