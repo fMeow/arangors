@@ -21,7 +21,7 @@ use arangors::{client::ClientExt, ClientError, GenericConnection};
 use std::convert::TryInto;
 
 /// when use async http client, `blocking` feature MUST be disabled
-// This cfg is only to make rust compiler happy, you can just ignore it
+// This cfg is only to make rust compiler happy in Github Action, you can just ignore it
 #[cfg(feature = "reqwest_async")]
 #[derive(Debug, Clone)]
 pub struct ReqwestClient(pub Client);
@@ -32,7 +32,7 @@ pub struct ReqwestClient(pub Client);
 /// use maybe_async::maybe_async to remove async/await keyword in need, and just
 /// import reqwesat::Client and rewest::blocking::Client respectively in async
 /// and sync implementation. See `arangors::client::reqwest` source code.
-// This cfg is only to make rust compiler happy, you can just ignore it
+// This cfg is only to make rust compiler happy in Github Action, you can just ignore it
 #[cfg(feature = "reqwest_async")]
 #[async_trait::async_trait]
 impl ClientExt for ReqwestClient {
@@ -78,7 +78,7 @@ impl ClientExt for ReqwestClient {
     }
 }
 
-// This cfg is only to make rust compiler happy, you can just ignore it
+// This cfg is only to make rust compiler happy in Github Action, you can just ignore it
 #[cfg(feature = "reqwest_async")]
 #[tokio::main]
 async fn main() -> Result<(), Error> {

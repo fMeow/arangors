@@ -12,11 +12,10 @@ use arangors::{AqlQuery, Connection};
 
 const URL: &str = "http://localhost:8529";
 
+// See this example when you want an async code
 #[cfg_attr(feature = "reqwest_async", tokio::main)]
 #[cfg_attr(feature = "surf_async", async_std::main)]
-#[cfg_attr(feature = "reqwest_blocking", maybe_async::must_be_sync)]
 async fn main() {
-    // asynchronous version
     env_logger::init();
 
     let conn = Connection::establish_jwt(URL, "username", "password")
@@ -31,6 +30,24 @@ async fn main() {
     println!("{:?}", serde_json::to_string(&aql).unwrap());
 
     let resp: Vec<Value> = database.aql_query(aql).await.unwrap();
+    println!("{:?}", resp);
+}
+
+// See this example when you want an blocking code
+#[cfg_attr(feature = "reqwest_blocking")]
+fn main() {
+    env_logger::init();
+
+    let conn = Connection::establish_jwt(URL, "username", "password").unwrap();
+
+    let database = conn.db("test_db").unwrap();
+    let aql = AqlQuery::builder()
+        .query("FOR u IN test_collection LIMIT 3 RETURN u")
+        .build();
+    println!("{:?}", aql);
+    println!("{:?}", serde_json::to_string(&aql).unwrap());
+
+    let resp: Vec<Value> = database.aql_query(aql).unwrap();
     println!("{:?}", resp);
 }
 
