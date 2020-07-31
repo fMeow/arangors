@@ -7,6 +7,7 @@ use arangors::Connection;
 
 const URL: &str = "http://localhost:8529";
 
+#[cfg(any(feature = "reqwest_async", feature = "surf_async"))]
 #[cfg_attr(feature = "reqwest_async", tokio::main)]
 #[cfg_attr(feature = "surf_async", async_std::main)]
 async fn main() -> Result<(), Error> {
@@ -25,7 +26,7 @@ async fn main() -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg_attr(feature = "reqwest_blocking")]
+#[cfg(feature = "reqwest_blocking")]
 fn main() -> Result<(), Error> {
     let conn = Connection::establish_jwt(URL, "username", "password")?;
     let database = conn.db("test_db")?;

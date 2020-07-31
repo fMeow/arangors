@@ -8,6 +8,7 @@ use arangors::Connection;
 const URL: &str = "http://localhost:8529";
 
 // See this example when you want an async code
+#[cfg(any(feature = "reqwest_async", feature = "surf_async"))]
 #[cfg_attr(feature = "reqwest_async", tokio::main)]
 #[cfg_attr(feature = "surf_async", async_std::main)]
 async fn main() -> Result<(), Error> {
@@ -33,7 +34,7 @@ async fn main() -> Result<(), Error> {
 }
 
 // See this example when you want an blocking code
-#[cfg_attr(feature = "reqwest_blocking")]
+#[cfg(feature = "reqwest_blocking")]
 fn main() -> Result<(), Error> {
     let collection_name = "test_collection_create_and_drop";
 
