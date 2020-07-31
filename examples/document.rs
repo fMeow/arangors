@@ -69,7 +69,20 @@ async fn main() -> Result<(), Error> {
     eprintln!("John Doh was called John Doe before ->  {:?}", old_doc);
 
     let header = update_doc_response.header().unwrap();
+    let old_rev = &header._rev;
+
+    let patch = json!({"email" : "john.doh@who"});
+    let update_doc_response = collection
+        .update_document(_key, patch, Default::default())
+        .await
+        .unwrap();
+
+    let header = update_doc_response.header().unwrap();
     let _rev = &header._rev;
+
+    if old_rev != _rev {
+        eprintln!("John Doh has changed his address email");
+    }
 
     let replace = User {
         first_name: "Bob".to_string(),
