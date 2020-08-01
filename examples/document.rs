@@ -14,6 +14,13 @@ use serde_json::json;
 
 const URL: &str = "http://localhost:8529";
 
+#[derive(Serialize, Deserialize, Debug)]
+struct User {
+    first_name: String,
+    last_name: String,
+    email: String,
+}
+
 #[cfg_attr(feature = "reqwest_async", tokio::main)]
 #[cfg_attr(feature = "surf_async", async_std::main)]
 #[cfg_attr(feature = "reqwest_blocking", maybe_async::must_be_sync)]
@@ -22,9 +29,7 @@ async fn main() -> Result<(), Error> {
 
     let conn = Connection::establish_jwt(URL, "username", "password").await?;
     let mut database = conn.db("test_db").await?;
-
-    let coll = database.create_collection(collection_name).await;
-
+    database.create_collection(collection_name).await.unwrap();
     let collection = database.collection(collection_name).await?;
 
     let new_user = User {
@@ -33,23 +38,23 @@ async fn main() -> Result<(), Error> {
         email: "john.doe@who".to_string(),
     };
 
+    // create a document
     let new_doc_response = collection
         .create_document(new_user, InsertOptions::builder().return_new(true).build())
         .await
         .unwrap();
 
     let new_doc = new_doc_response.new_doc();
-
     eprintln!(
         "Your new document should have been created -> {:?} ",
         new_doc
     );
 
+    // update a document
     let header = new_doc_response.header().unwrap();
     let _key = &header._key;
 
     let patch = json!({"last_name" : "Doh"});
-
     let update_doc_response = collection
         .update_document(
             _key,
@@ -68,10 +73,12 @@ async fn main() -> Result<(), Error> {
     let old_doc = update_doc_response.old_doc();
     eprintln!("John Doh was called John Doe before ->  {:?}", old_doc);
 
+    // update a document with default option
     let header = update_doc_response.header().unwrap();
     let old_rev = &header._rev;
 
     let patch = json!({"email" : "john.doh@who"});
+    // use Default::default() to set default options
     let update_doc_response = collection
         .update_document(_key, patch, Default::default())
         .await
@@ -84,6 +91,7 @@ async fn main() -> Result<(), Error> {
         eprintln!("John Doh has changed his address email");
     }
 
+    // replace a document
     let replace = User {
         first_name: "Bob".to_string(),
         last_name: "Johnson".to_string(),
@@ -116,6 +124,7 @@ async fn main() -> Result<(), Error> {
         old_doc
     );
 
+    // remove a document
     let remove_doc_response: DocumentResponse<User> = collection
         .remove_document(
             _key,
@@ -132,16 +141,10 @@ async fn main() -> Result<(), Error> {
         old_doc
     );
 
-    let coll = database.drop_collection(collection_name).await;
+    // cleanup
+    database.drop_collection(collection_name).await.unwrap();
 
     Ok(())
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct User {
-    first_name: String,
-    last_name: String,
-    email: String,
 }
 
 #[cfg(not(any(
