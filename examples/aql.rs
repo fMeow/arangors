@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::value::Value;
 
 use arangors::{AqlQuery, Connection};
+use std::collections::HashMap;
 
 const URL: &str = "http://localhost:8529";
 
@@ -67,6 +68,24 @@ async fn main() {
         .bind_var("@collection", collection)
         .try_bind("user", jane_doe)
         .unwrap()
+        .build();
+
+    let result: Vec<User> = database.aql_query(aql).await.unwrap();
+    println!("{:?}", result);
+
+    let homer_simpson = User {
+        first_name: "Homer".to_string(),
+        last_name: "Simpson".to_string(),
+        email: "homer.sompson@springfield.com".to_string(),
+    };
+
+    let mut map: HashMap<&str, Value> = HashMap::new();
+    map.insert("@collection", Value::from(collection));
+    map.insert("user", serde_json::to_value(homer_simpson).unwrap());
+
+    let aql = AqlQuery::builder()
+        .query("INSERT @user INTO @@collection LET result = NEW RETURN result")
+        .bind_vars(map)
         .build();
 
     let result: Vec<User> = database.aql_query(aql).await.unwrap();
