@@ -55,7 +55,22 @@ async fn main() {
         .build();
 
     let result: Vec<User> = database.aql_query(aql).await.unwrap();
-    println!("{:?}", result)
+    println!("{:?}", result);
+
+    let jane_doe = User {
+        first_name: "Jane".to_string(),
+        last_name: "Doe".to_string(),
+        email: "jane.done@who.com".to_string(),
+    };
+    let aql = AqlQuery::builder()
+        .query("INSERT @user INTO @@collection LET result = NEW RETURN result")
+        .bind_var("@collection", collection)
+        .try_bind("user", jane_doe)
+        .unwrap()
+        .build();
+
+    let result: Vec<User> = database.aql_query(aql).await.unwrap();
+    println!("{:?}", result);
 }
 
 // See this example when you want an blocking code
