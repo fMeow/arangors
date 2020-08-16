@@ -21,6 +21,7 @@ use crate::{
     response::{deserialize_response, ArangoResult},
     ClientError,
 };
+use crate::index::Index;
 
 #[derive(Debug, Clone)]
 pub struct Database<C: ClientExt> {
@@ -297,6 +298,25 @@ impl<'a, C: ClientExt> Database<C> {
             .build();
         self.aql_query(aql).await
     }
+
+    /// Create a new index on a collection.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+     pub async fn create_index(&self, collection: &str, index: &Index) -> Result<Index, ClientError> {
+        let mut url = self.base_url.join("_api/index").unwrap();
+        url.set_query(Some(&format!("collection={}", collection)));
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&index)?)
+            .await?;
+
+        let result: Index = deserialize_response::<Index>(resp.body())?;
+
+         Ok(result)
+     }
 }
 
 #[derive(Debug, Deserialize)]
