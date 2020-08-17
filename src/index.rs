@@ -111,7 +111,7 @@ impl Index {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
     /// // Create a persistent index with unique values.
     /// let idx = Index::persistent(vec!["emailAddress".to_string()], true, false, false);
     ///
