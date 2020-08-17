@@ -21,10 +21,9 @@ struct User {
     email: String,
 }
 
-// See this example when you want an async code
-#[cfg(any(feature = "reqwest_async", feature = "surf_async"))]
 #[cfg_attr(feature = "reqwest_async", tokio::main)]
 #[cfg_attr(feature = "surf_async", async_std::main)]
+#[cfg_attr(feature = "reqwest_blocking", maybe_async::must_be_sync)]
 async fn main() {
     env_logger::init();
 
