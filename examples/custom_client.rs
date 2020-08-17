@@ -78,7 +78,8 @@ impl ClientExt for ReqwestClient {
     }
 }
 
-// This cfg is only to make rust compiler happy in Github Action, you can just ignore it
+// This cfg is only to make rust compiler happy in Github Action, you can just
+// ignore it
 #[cfg(feature = "reqwest_async")]
 #[tokio::main]
 async fn main() -> Result<(), Error> {

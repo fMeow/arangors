@@ -14,6 +14,20 @@ use serde_json::value::Value;
 use typed_builder::TypedBuilder;
 
 #[derive(Debug, Serialize, TypedBuilder)]
+#[builder(
+    doc,
+    builder_method_doc = r#"Create a builder for building `AqlQuery`.
+
+On the builder, call `.query(...)`, `.bind_vars(...)(optional)`, `.bind_var(...)(optional)`,
+`.try_bind(...)(optional)`, `.count(...)(optional)`, `.batch_size(...)(optional)`,
+`.cache(...)(optional)`, `.memory_limit(...)(optional)`, `.ttl(...)(optional)`,
+`.options(...)(optional)` to set the values of the fields (they accept Into values).
+
+Use `.try_bind(...)` to accept any serializable struct
+while `.bind_value(...)` accepts an `Into<serde_json::Value>`.
+
+Finally, call .build() to create the instance of AqlQuery."#
+)]
 #[serde(rename_all = "camelCase")]
 pub struct AqlQuery<'a> {
     /// query string to be executed
@@ -238,6 +252,7 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
 }
 
 #[derive(Debug, Serialize, TypedBuilder, PartialEq)]
+#[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct AqlOptions {
     /// When set to true, the query will throw an exception and abort instead of

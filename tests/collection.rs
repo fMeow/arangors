@@ -555,8 +555,9 @@ async fn test_put_rotate_journal() {
 
     let rotate = coll.rotate_journal().await;
 
-    // TODO got error in arangoDB 3.7.1: expecting one of the actions 'load', 'unload',
-    //   'truncate', 'properties', 'compact', 'rename', 'loadIndexesIntoMemory'
+    // TODO got error in arangoDB 3.7.1: expecting one of the actions 'load',
+    // 'unload',   'truncate', 'properties', 'compact', 'rename',
+    // 'loadIndexesIntoMemory'
 
     // assert_eq!(rotate.is_err(), true, "succeed rotating journal");
     // if let ClientError::Arango(error) = rotate.unwrap_err() {

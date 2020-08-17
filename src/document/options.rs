@@ -4,6 +4,7 @@ use typed_builder::TypedBuilder;
 
 /// Options for document insertion.
 #[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
+#[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct InsertOptions {
     /// Wait until document has been synced to disk.
@@ -48,6 +49,7 @@ impl Default for InsertOptions {
 
 /// Options for document update,
 #[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
+#[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateOptions {
     /// If the intention is to delete existing attributes with the patch
@@ -142,6 +144,7 @@ pub enum OverwriteMode {
 
 /// Options for document replace,
 #[derive(Serialize, Deserialize, TypedBuilder)]
+#[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplaceOptions {
     /// Wait until document has been synced to disk.
@@ -202,6 +205,7 @@ impl Default for ReadOptions {
 
 /// Options for document removes,
 #[derive(Serialize, Deserialize, TypedBuilder)]
+#[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct RemoveOptions {
     /// Wait until document has been synced to disk.

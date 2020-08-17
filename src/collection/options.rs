@@ -6,6 +6,7 @@ use crate::collection::CollectionType;
 
 /// Options for create a collection
 #[derive(Serialize, PartialEq, TypedBuilder)]
+#[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateParameters {
     /// Default is 1 which means the server will only report success back to the
@@ -41,6 +42,7 @@ where
 }
 /// Options for create a collection
 #[derive(Serialize, PartialEq, TypedBuilder)]
+#[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateOptions<'a> {
     name: &'a str,
@@ -222,6 +224,7 @@ fn is_true(x: &bool) -> bool {
 }
 
 #[derive(Debug, Deserialize, Serialize, TypedBuilder, PartialEq)]
+#[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct KeyOptions {
     /// if set to true, then it is allowed to supply own key values in the _key
@@ -263,6 +266,7 @@ impl Default for KeyOptions {
 
 /// Options for checksum
 #[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
+#[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct ChecksumOptions {
     /// By setting the optional query parameter withRevisions to true, then
@@ -289,6 +293,7 @@ impl Default for ChecksumOptions {
 }
 
 #[derive(Debug, Deserialize, Serialize, TypedBuilder)]
+#[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct PropertiesOptions {
     /// If true then creating or changing a document will wait until the data
