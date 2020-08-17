@@ -6,7 +6,7 @@ use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
 use crate::common::{collection, connection};
-use arangors::index::Index;
+use arangors::index::{BasicIndex, FulltextIndex, GeoIndex, Index, TtlIndex};
 use arangors::{
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
@@ -32,26 +32,32 @@ async fn test_persistent_index() {
 
     let mut database = conn.db("test_db").await.unwrap();
 
-    let index = Index::persistent(vec!["password".to_string()], true, false, false)
-        .with_name(index_name)
-        .create_in_background();
+    let index = BasicIndex::builder()
+        .name(index_name.to_string())
+        .fields(vec!["password".to_string()])
+        .unique(true)
+        .build();
+
+    let index = Index::Persistent(index);
 
     let result = database
         .create_index(collection_name, &index)
         .await
         .unwrap();
 
-    let id = result.id().as_ref().unwrap();
+    if let Index::Persistent(index) = result {
+        let id = index.id.as_ref().unwrap();
+        let delete_result = database.delete_index(&id).await.unwrap();
 
-    // Delete the previously created index
-    let delete_result = database.delete_index(&id).await.unwrap();
-
-    assert!(result.id().is_some());
-    assert_eq!(result.unique(), &Some(true));
-    assert_eq!(result.sparse(), &Some(false));
-    assert_eq!(result.deduplicate(), &Some(false));
-    assert_eq!(result.name(), &Some(index_name.to_string()));
-    assert_eq!(&delete_result.id, id);
+        assert!(index.id.is_some());
+        assert_eq!(index.unique, true);
+        assert_eq!(index.sparse, false);
+        assert_eq!(index.deduplicate, Some(false));
+        assert_eq!(index.name, Some(index_name.to_string()));
+        assert_eq!(&delete_result.id, id);
+    } else {
+        panic!("Wrong index type");
+    }
 }
 
 #[maybe_async::test(
@@ -67,26 +73,32 @@ async fn test_hash_index() {
 
     let mut database = conn.db("test_db").await.unwrap();
 
-    let index = Index::hash(vec!["password".to_string()], true, false, false)
-        .with_name(index_name)
-        .create_in_background();
+    let index = BasicIndex::builder()
+        .name(index_name.to_string())
+        .fields(vec!["password".to_string()])
+        .unique(true)
+        .build();
+
+    let index = Index::Hash(index);
 
     let result = database
         .create_index(collection_name, &index)
         .await
         .unwrap();
 
-    let id = result.id().as_ref().unwrap();
+    if let Index::Hash(index) = result {
+        let id = index.id.as_ref().unwrap();
+        let delete_result = database.delete_index(&id).await.unwrap();
 
-    // Delete the previously created index
-    let delete_result = database.delete_index(&id).await.unwrap();
-
-    assert!(result.id().is_some());
-    assert_eq!(result.unique(), &Some(true));
-    assert_eq!(result.sparse(), &Some(false));
-    assert_eq!(result.deduplicate(), &Some(false));
-    assert_eq!(result.name(), &Some(index_name.to_string()));
-    assert_eq!(&delete_result.id, id);
+        assert!(index.id.is_some());
+        assert_eq!(index.unique, true);
+        assert_eq!(index.sparse, false);
+        assert_eq!(index.deduplicate, Some(false));
+        assert_eq!(index.name, Some(index_name.to_string()));
+        assert_eq!(&delete_result.id, id);
+    } else {
+        panic!("Wrong index type");
+    }
 }
 
 #[maybe_async::test(
@@ -102,26 +114,69 @@ async fn test_skiplist_index() {
 
     let mut database = conn.db("test_db").await.unwrap();
 
-    let index = Index::skip_list(vec!["password".to_string()], true, false, false)
-        .with_name(index_name)
-        .create_in_background();
+    let index = BasicIndex::builder()
+        .name(index_name.to_string())
+        .fields(vec!["password".to_string()])
+        .unique(true)
+        .build();
+
+    let index = Index::Skiplist(index);
 
     let result = database
         .create_index(collection_name, &index)
         .await
         .unwrap();
 
-    let id = result.id().as_ref().unwrap();
+    if let Index::Skiplist(index) = result {
+        let id = index.id.as_ref().unwrap();
+        let delete_result = database.delete_index(&id).await.unwrap();
 
-    // Delete the previously created index
-    let delete_result = database.delete_index(&id).await.unwrap();
+        assert!(index.id.is_some());
+        assert_eq!(index.unique, true);
+        assert_eq!(index.sparse, false);
+        assert_eq!(index.deduplicate, Some(false));
+        assert_eq!(index.name, Some(index_name.to_string()));
+        assert_eq!(&delete_result.id, id);
+    } else {
+        panic!("Wrong index type");
+    }
+}
 
-    assert!(result.id().is_some());
-    assert_eq!(result.unique(), &Some(true));
-    assert_eq!(result.sparse(), &Some(false));
-    assert_eq!(result.deduplicate(), &Some(false));
-    assert_eq!(result.name(), &Some(index_name.to_string()));
-    assert_eq!(&delete_result.id, id);
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_geo_index() {
+    test_setup();
+    let collection_name = "test_collection";
+    let index_name = "idx_geo_test";
+    let conn = connection().await;
+
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let index = GeoIndex::builder()
+        .name(index_name.to_string())
+        .fields(vec!["password".to_string()])
+        .build();
+
+    let index = Index::Geo(index);
+
+    let result = database
+        .create_index(collection_name, &index)
+        .await
+        .unwrap();
+
+    if let Index::Geo(index) = result {
+        let id = index.id.as_ref().unwrap();
+        let delete_result = database.delete_index(&id).await.unwrap();
+
+        assert!(index.id.is_some());
+        assert_eq!(index.name, Some(index_name.to_string()));
+        assert_eq!(&delete_result.id, id);
+    } else {
+        panic!("Wrong index type");
+    }
 }
 
 #[maybe_async::test(
@@ -133,30 +188,83 @@ async fn test_ttl_index() {
     test_setup();
     let collection_name = "test_collection";
     let index_name = "idx_ttl_test";
-    let expire_after = 500;
     let conn = connection().await;
 
     let mut database = conn.db("test_db").await.unwrap();
 
-    let index = Index::ttl(vec!["password".to_string()], expire_after)
-        .with_name(index_name)
-        .create_in_background();
+    let index = TtlIndex::builder()
+        .name(index_name.to_string())
+        .fields(vec!["password".to_string()])
+        .build();
+
+    let index = Index::Ttl(index);
 
     let result = database
         .create_index(collection_name, &index)
         .await
         .unwrap();
 
-    let id = result.id().as_ref().unwrap();
+    if let Index::Ttl(index) = result {
+        let id = index.id.as_ref().unwrap();
+        let delete_result = database.delete_index(&id).await.unwrap();
 
-    // Delete the previously created index
-    let delete_result = database.delete_index(&id).await.unwrap();
+        assert!(index.id.is_some());
+        assert_eq!(index.name, Some(index_name.to_string()));
+        assert_eq!(&delete_result.id, id);
+    } else {
+        panic!("Wrong index type");
+    }
+}
 
-    assert!(result.id().is_some());
-    assert_eq!(result.unique(), &Some(false));
-    assert_eq!(result.sparse(), &Some(true));
-    assert!(result.deduplicate().is_none());
-    assert_eq!(result.expire_after(), &Some(expire_after));
-    assert_eq!(result.name(), &Some(index_name.to_string()));
-    assert_eq!(&delete_result.id, id);
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_fulltext_index() {
+    test_setup();
+    let collection_name = "test_collection";
+    let index_name = "idx_full_test";
+    let conn = connection().await;
+
+    let mut database = conn.db("test_db").await.unwrap();
+
+    let index = FulltextIndex::builder()
+        .name(index_name.to_string())
+        .fields(vec!["password".to_string()])
+        .build();
+
+    let index = Index::Fulltext(index);
+
+    let result = database
+        .create_index(collection_name, &index)
+        .await
+        .unwrap();
+
+    if let Index::Fulltext(index) = result {
+        let id = index.id.as_ref().unwrap();
+        let delete_result = database.delete_index(&id).await.unwrap();
+
+        assert!(index.id.is_some());
+        assert_eq!(index.name, Some(index_name.to_string()));
+        assert_eq!(&delete_result.id, id);
+    } else {
+        panic!("Wrong index type");
+    }
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_list_indexes() {
+    test_setup();
+    let collection_name = "test_collection";
+    let conn = connection().await;
+
+    let mut database = conn.db("test_db").await.unwrap();
+    let list = database.indexes(collection_name).await.unwrap();
+
+    assert!(list.indexes.len() > 0);
 }
