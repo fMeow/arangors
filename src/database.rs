@@ -327,7 +327,7 @@ impl<'a, C: ClientExt> Database<C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn get_index(&self, id: &str) -> Result<Index, ClientError> {
+    pub async fn index(&self, id: &str) -> Result<Index, ClientError> {
         let url = self.base_url.join(&format!("_api/index/{}", id)).unwrap();
 
         let resp = self.session.get(url, "").await?;
@@ -342,7 +342,7 @@ impl<'a, C: ClientExt> Database<C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn get_indexes(&self, collection: &str) -> Result<IndexCollection, ClientError> {
+    pub async fn indexes(&self, collection: &str) -> Result<IndexCollection, ClientError> {
         let mut url = self.base_url.join("_api/index").unwrap();
         url.set_query(Some(&format!("collection={}", collection)));
 
