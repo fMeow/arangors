@@ -48,6 +48,7 @@ async fn main() {
         last_name: "Doe".to_string(),
         email: "john.doe@who.com".to_string(),
     };
+    // use bind_var for any struct that can be converted into serde_json::Value
     let json = serde_json::to_value(&user).unwrap();
     let aql = AqlQuery::builder()
         .query("INSERT @user INTO @@collection LET result = NEW RETURN result")
@@ -63,6 +64,7 @@ async fn main() {
         last_name: "Doe".to_string(),
         email: "jane.done@who.com".to_string(),
     };
+    // use try_bind for any serializable struct
     let aql = AqlQuery::builder()
         .query("INSERT @user INTO @@collection LET result = NEW RETURN result")
         .bind_var("@collection", collection)
@@ -83,6 +85,7 @@ async fn main() {
     map.insert("@collection", Value::from(collection));
     map.insert("user", serde_json::to_value(homer_simpson).unwrap());
 
+    // use bind_vars to pass a HashMap of bind variables
     let aql = AqlQuery::builder()
         .query("INSERT @user INTO @@collection LET result = NEW RETURN result")
         .bind_vars(map)
@@ -90,24 +93,6 @@ async fn main() {
 
     let result: Vec<User> = database.aql_query(aql).await.unwrap();
     println!("{:?}", result);
-}
-
-// See this example when you want an blocking code
-#[cfg(feature = "reqwest_blocking")]
-fn main() {
-    env_logger::init();
-
-    let conn = Connection::establish_jwt(URL, "username", "password").unwrap();
-
-    let database = conn.db("test_db").unwrap();
-    let aql = AqlQuery::builder()
-        .query("FOR u IN test_collection LIMIT 3 RETURN u")
-        .build();
-    println!("{:?}", aql);
-    println!("{:?}", serde_json::to_string(&aql).unwrap());
-
-    let resp: Vec<Value> = database.aql_query(aql).unwrap();
-    println!("{:?}", resp);
 }
 
 #[cfg(not(any(
