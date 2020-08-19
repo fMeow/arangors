@@ -91,10 +91,6 @@ pub struct BasicIndex {
     #[builder(default)]
     pub selectivity_estimate: Option<u8>,
     #[builder(default)]
-    pub error: Option<bool>,
-    #[builder(default)]
-    pub code: Option<u16>,
-    #[builder(default)]
     pub in_background: Option<bool>,
 }
 
@@ -113,10 +109,6 @@ pub struct GeoIndex {
     pub is_newly_created: Option<bool>,
     #[builder(default)]
     pub selectivity_estimate: Option<u8>,
-    #[builder(default)]
-    pub error: Option<bool>,
-    #[builder(default)]
-    pub code: Option<u16>,
     #[builder(default)]
     pub in_background: Option<bool>,
 }
@@ -137,10 +129,6 @@ pub struct TtlIndex {
     #[builder(default)]
     pub selectivity_estimate: Option<u8>,
     #[builder(default)]
-    pub error: Option<bool>,
-    #[builder(default)]
-    pub code: Option<u16>,
-    #[builder(default)]
     pub in_background: Option<bool>,
 }
 
@@ -159,10 +147,6 @@ pub struct FulltextIndex {
     pub is_newly_created: Option<bool>,
     #[builder(default)]
     pub selectivity_estimate: Option<u8>,
-    #[builder(default)]
-    pub error: Option<bool>,
-    #[builder(default)]
-    pub code: Option<u16>,
     #[builder(default)]
     pub in_background: Option<bool>,
 }
