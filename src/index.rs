@@ -9,10 +9,6 @@
 //! * Skiplist
 //! * Ttl (Time to live)
 //!
-//! To create a new `persistent`, `hash` or `skiplist` index, use the [`BasicIndex`] struct
-//! wrapped inside the correct [`Index`] enum.
-//! [`GeoIndex`], [`TtlIndex`] and [`FulltextIndex`] are represented by dedicated structs.
-//!
 //! An index of type [`Primary`] cannot be created and is only available for
 //! the retrieval of existing indexes, as ArangoDB creates a primary index on every
 //! collection.
@@ -21,7 +17,7 @@
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
-/// Represents the type of an [`Index`] in ArangoDB. The following types are
+/// Represents an [`Index`] in ArangoDB. The following types are
 /// supported:
 /// * Fulltext
 /// * Geo
@@ -30,28 +26,26 @@ use typed_builder::TypedBuilder;
 /// * Skiplist
 /// * Ttl (Time to live)
 ///
-/// An index of type [`Primary`] cannot be created and is only available for
-/// the retrieval of existing indexes, as ArangoDB creates a primary index on every
-/// collection.
-/// For detailed information about ArangoDB indexes, please check out the official
-/// ArangoDB [documentation](https://www.arangodb.com/docs/stable/http/indexes.html).
+/// As different settings may be applied to different index types, use the [`settings`] field
+/// on the index to specify the exact `type` of the index including the required settings.
 ///
 /// # Example
 /// ```ignore
-///     let mut database = conn.db("test_db").await.unwrap();
+///     let database = conn.db("test_db").await.unwrap();
 ///
-///     let index = BasicIndex::builder()
-///         .name(index_name.to_string())
+///     let index = Index::builder()
+///         .name(index_name)
 ///         .fields(vec!["password".to_string()])
-///         .unique(true)
+///         .settings(IndexSettings::Persistent {
+///             unique: true,
+///             sparse: false,
+///             deduplicate: false,
+///         })
 ///         .build();
 ///
-///     let index = Index::Persistent(index);
-///
-///     let result = database
+///     let index = database
 ///         .create_index(collection_name, &index)
-///         .await
-///         .unwrap();
+///         .await?;
 /// ```
 #[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
@@ -72,6 +66,7 @@ pub struct Index {
     pub settings: IndexSettings,
 }
 
+/// Settings for the different index types. This `enum` also sets the index type.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum IndexSettings {
