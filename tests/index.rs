@@ -6,7 +6,7 @@ use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
 use crate::common::{collection, connection};
-use arangors::index::{BasicIndex, FulltextIndex, GeoIndex, Index, TtlIndex};
+use arangors::index::{Index, IndexSettings};
 use arangors::{
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
@@ -30,33 +30,38 @@ async fn test_persistent_index() {
     let index_name = "idx_persistent_test";
     let conn = connection().await;
 
-    let mut database = conn.db("test_db").await.unwrap();
+    let database = conn.db("test_db").await.unwrap();
 
-    let index = BasicIndex::builder()
-        .name(index_name.to_string())
+    let index = Index::builder()
+        .name(index_name)
         .fields(vec!["password".to_string()])
-        .unique(true)
+        .settings(IndexSettings::Persistent {
+            unique: true,
+            sparse: false,
+            deduplicate: false,
+        })
         .build();
 
-    let index = Index::Persistent(index);
-
-    let result = database
+    let index = database
         .create_index(collection_name, &index)
         .await
         .unwrap();
 
-    if let Index::Persistent(index) = result {
-        let id = index.id.as_ref().unwrap();
-        let delete_result = database.delete_index(&id).await.unwrap();
+    let delete_result = database.delete_index(&index.id).await.unwrap();
 
-        assert!(index.id.is_some());
-        assert_eq!(index.unique, true);
-        assert_eq!(index.sparse, false);
-        assert_eq!(index.deduplicate, Some(false));
-        assert_eq!(index.name, Some(index_name.to_string()));
-        assert_eq!(&delete_result.id, id);
-    } else {
-        panic!("Wrong index type");
+    assert!(index.id.len() > 0);
+    assert_eq!(index.name, index_name.to_string());
+    assert_eq!(delete_result.id, index.id);
+
+    if let IndexSettings::Persistent {
+        unique,
+        sparse,
+        deduplicate,
+    } = index.settings
+    {
+        assert_eq!(unique, true);
+        assert_eq!(sparse, false);
+        assert_eq!(deduplicate, false);
     }
 }
 
@@ -71,33 +76,38 @@ async fn test_hash_index() {
     let index_name = "idx_hash_test";
     let conn = connection().await;
 
-    let mut database = conn.db("test_db").await.unwrap();
+    let database = conn.db("test_db").await.unwrap();
 
-    let index = BasicIndex::builder()
-        .name(index_name.to_string())
+    let index = Index::builder()
+        .name(index_name)
         .fields(vec!["password".to_string()])
-        .unique(true)
+        .settings(IndexSettings::Hash {
+            unique: false,
+            sparse: true,
+            deduplicate: true,
+        })
         .build();
 
-    let index = Index::Hash(index);
-
-    let result = database
+    let index = database
         .create_index(collection_name, &index)
         .await
         .unwrap();
 
-    if let Index::Hash(index) = result {
-        let id = index.id.as_ref().unwrap();
-        let delete_result = database.delete_index(&id).await.unwrap();
+    let delete_result = database.delete_index(&index.id).await.unwrap();
 
-        assert!(index.id.is_some());
-        assert_eq!(index.unique, true);
-        assert_eq!(index.sparse, false);
-        assert_eq!(index.deduplicate, Some(false));
-        assert_eq!(index.name, Some(index_name.to_string()));
-        assert_eq!(&delete_result.id, id);
-    } else {
-        panic!("Wrong index type");
+    assert!(index.id.len() > 0);
+    assert_eq!(index.name, index_name.to_string());
+    assert_eq!(delete_result.id, index.id);
+
+    if let IndexSettings::Hash {
+        unique,
+        sparse,
+        deduplicate,
+    } = index.settings
+    {
+        assert_eq!(unique, false);
+        assert_eq!(sparse, true);
+        assert_eq!(deduplicate, true);
     }
 }
 
@@ -112,33 +122,38 @@ async fn test_skiplist_index() {
     let index_name = "idx_skiplist_test";
     let conn = connection().await;
 
-    let mut database = conn.db("test_db").await.unwrap();
+    let database = conn.db("test_db").await.unwrap();
 
-    let index = BasicIndex::builder()
-        .name(index_name.to_string())
+    let index = Index::builder()
+        .name(index_name)
         .fields(vec!["password".to_string()])
-        .unique(true)
+        .settings(IndexSettings::Skiplist {
+            unique: true,
+            sparse: false,
+            deduplicate: false,
+        })
         .build();
 
-    let index = Index::Skiplist(index);
-
-    let result = database
+    let index = database
         .create_index(collection_name, &index)
         .await
         .unwrap();
 
-    if let Index::Skiplist(index) = result {
-        let id = index.id.as_ref().unwrap();
-        let delete_result = database.delete_index(&id).await.unwrap();
+    let delete_result = database.delete_index(&index.id).await.unwrap();
 
-        assert!(index.id.is_some());
-        assert_eq!(index.unique, true);
-        assert_eq!(index.sparse, false);
-        assert_eq!(index.deduplicate, Some(false));
-        assert_eq!(index.name, Some(index_name.to_string()));
-        assert_eq!(&delete_result.id, id);
-    } else {
-        panic!("Wrong index type");
+    assert!(index.id.len() > 0);
+    assert_eq!(index.name, index_name.to_string());
+    assert_eq!(delete_result.id, index.id);
+
+    if let IndexSettings::Skiplist {
+        unique,
+        sparse,
+        deduplicate,
+    } = index.settings
+    {
+        assert_eq!(unique, true);
+        assert_eq!(sparse, false);
+        assert_eq!(deduplicate, false);
     }
 }
 
@@ -153,29 +168,27 @@ async fn test_geo_index() {
     let index_name = "idx_geo_test";
     let conn = connection().await;
 
-    let mut database = conn.db("test_db").await.unwrap();
+    let database = conn.db("test_db").await.unwrap();
 
-    let index = GeoIndex::builder()
-        .name(index_name.to_string())
+    let index = Index::builder()
+        .name(index_name)
         .fields(vec!["password".to_string()])
+        .settings(IndexSettings::Geo { geo_json: false })
         .build();
 
-    let index = Index::Geo(index);
-
-    let result = database
+    let index = database
         .create_index(collection_name, &index)
         .await
         .unwrap();
 
-    if let Index::Geo(index) = result {
-        let id = index.id.as_ref().unwrap();
-        let delete_result = database.delete_index(&id).await.unwrap();
+    let delete_result = database.delete_index(&index.id).await.unwrap();
 
-        assert!(index.id.is_some());
-        assert_eq!(index.name, Some(index_name.to_string()));
-        assert_eq!(&delete_result.id, id);
-    } else {
-        panic!("Wrong index type");
+    assert!(index.id.len() > 0);
+    assert_eq!(index.name, index_name.to_string());
+    assert_eq!(delete_result.id, index.id);
+
+    if let IndexSettings::Geo { geo_json } = index.settings {
+        assert_eq!(geo_json, false);
     }
 }
 
@@ -190,29 +203,27 @@ async fn test_ttl_index() {
     let index_name = "idx_ttl_test";
     let conn = connection().await;
 
-    let mut database = conn.db("test_db").await.unwrap();
+    let database = conn.db("test_db").await.unwrap();
 
-    let index = TtlIndex::builder()
-        .name(index_name.to_string())
+    let index = Index::builder()
+        .name(index_name)
         .fields(vec!["password".to_string()])
+        .settings(IndexSettings::Ttl { expire_after: 500 })
         .build();
 
-    let index = Index::Ttl(index);
-
-    let result = database
+    let index = database
         .create_index(collection_name, &index)
         .await
         .unwrap();
 
-    if let Index::Ttl(index) = result {
-        let id = index.id.as_ref().unwrap();
-        let delete_result = database.delete_index(&id).await.unwrap();
+    let delete_result = database.delete_index(&index.id).await.unwrap();
 
-        assert!(index.id.is_some());
-        assert_eq!(index.name, Some(index_name.to_string()));
-        assert_eq!(&delete_result.id, id);
-    } else {
-        panic!("Wrong index type");
+    assert!(index.id.len() > 0);
+    assert_eq!(index.name, index_name.to_string());
+    assert_eq!(delete_result.id, index.id);
+
+    if let IndexSettings::Ttl { expire_after } = index.settings {
+        assert_eq!(expire_after, 500);
     }
 }
 
@@ -227,29 +238,27 @@ async fn test_fulltext_index() {
     let index_name = "idx_full_test";
     let conn = connection().await;
 
-    let mut database = conn.db("test_db").await.unwrap();
+    let database = conn.db("test_db").await.unwrap();
 
-    let index = FulltextIndex::builder()
-        .name(index_name.to_string())
+    let index = Index::builder()
+        .name(index_name)
         .fields(vec!["password".to_string()])
+        .settings(IndexSettings::Fulltext { min_length: 100 })
         .build();
 
-    let index = Index::Fulltext(index);
-
-    let result = database
+    let index = database
         .create_index(collection_name, &index)
         .await
         .unwrap();
 
-    if let Index::Fulltext(index) = result {
-        let id = index.id.as_ref().unwrap();
-        let delete_result = database.delete_index(&id).await.unwrap();
+    let delete_result = database.delete_index(&index.id).await.unwrap();
 
-        assert!(index.id.is_some());
-        assert_eq!(index.name, Some(index_name.to_string()));
-        assert_eq!(&delete_result.id, id);
-    } else {
-        panic!("Wrong index type");
+    assert!(index.id.len() > 0);
+    assert_eq!(index.name, index_name.to_string());
+    assert_eq!(delete_result.id, index.id);
+
+    if let IndexSettings::Fulltext { min_length } = index.settings {
+        assert_eq!(min_length, 100);
     }
 }
 

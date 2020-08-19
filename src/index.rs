@@ -53,102 +53,69 @@ use typed_builder::TypedBuilder;
 ///         .await
 ///         .unwrap();
 /// ```
+#[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
+#[serde(rename_all = "camelCase")]
+pub struct Index {
+    pub fields: Vec<String>,
+    #[builder(default, setter(into))]
+    pub name: String,
+    #[builder(default)]
+    pub id: String,
+    #[builder(default)]
+    pub is_newly_created: Option<bool>,
+    #[builder(default)]
+    pub selectivity_estimate: Option<u8>,
+    #[builder(default)]
+    pub in_background: Option<bool>,
+    #[serde(flatten)]
+    #[builder(default)]
+    pub settings: IndexSettings,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", tag = "type")]
-pub enum Index {
-    Primary(BasicIndex),
-    Persistent(BasicIndex),
-    Hash(BasicIndex),
-    Skiplist(BasicIndex),
-    Geo(GeoIndex),
-    Ttl(TtlIndex),
-    Fulltext(FulltextIndex),
+pub enum IndexSettings {
+    Primary {
+        unique: bool,
+        sparse: bool,
+    },
+    Persistent {
+        unique: bool,
+        sparse: bool,
+        deduplicate: bool,
+    },
+    Hash {
+        unique: bool,
+        sparse: bool,
+        deduplicate: bool,
+    },
+    Skiplist {
+        unique: bool,
+        sparse: bool,
+        deduplicate: bool,
+    },
+    #[serde(rename_all = "camelCase")]
+    Ttl {
+        expire_after: u32,
+    },
+    #[serde(rename_all = "camelCase")]
+    Geo {
+        geo_json: bool,
+    },
+    #[serde(rename_all = "camelCase")]
+    Fulltext {
+        min_length: u32,
+    },
 }
 
-/// [`BaseIndex`] represents the base for:
-///
-/// * persistent
-/// * hash
-/// * skiplist
-/// indexes.
-#[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
-#[serde(rename_all = "camelCase")]
-pub struct BasicIndex {
-    pub fields: Vec<String>,
-    #[builder(default, setter(into))]
-    pub name: Option<String>,
-    #[builder(default)]
-    pub unique: bool,
-    #[builder(default)]
-    pub sparse: bool,
-    #[builder(default = Some(false))]
-    pub deduplicate: Option<bool>,
-
-    #[builder(default)]
-    pub id: Option<String>,
-    #[builder(default)]
-    pub is_newly_created: Option<bool>,
-    #[builder(default)]
-    pub selectivity_estimate: Option<u8>,
-    #[builder(default)]
-    pub in_background: Option<bool>,
-}
-
-/// Represents a persistent index on a collection in ArangoDB.
-#[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
-#[serde(rename_all = "camelCase")]
-pub struct GeoIndex {
-    pub fields: Vec<String>,
-    #[builder(default, setter(into))]
-    pub name: Option<String>,
-    #[builder(default)]
-    pub geo_json: bool,
-    #[builder(default)]
-    pub id: Option<String>,
-    #[builder(default)]
-    pub is_newly_created: Option<bool>,
-    #[builder(default)]
-    pub selectivity_estimate: Option<u8>,
-    #[builder(default)]
-    pub in_background: Option<bool>,
-}
-
-/// Represents a persistent index on a collection in ArangoDB.
-#[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
-#[serde(rename_all = "camelCase")]
-pub struct TtlIndex {
-    pub fields: Vec<String>,
-    #[builder(default, setter(into))]
-    pub name: Option<String>,
-    #[builder(default)]
-    pub expire_after: u32,
-    #[builder(default)]
-    pub id: Option<String>,
-    #[builder(default)]
-    pub is_newly_created: Option<bool>,
-    #[builder(default)]
-    pub selectivity_estimate: Option<u8>,
-    #[builder(default)]
-    pub in_background: Option<bool>,
-}
-
-/// Represents a persistent index on a collection in ArangoDB.
-#[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
-#[serde(rename_all = "camelCase")]
-pub struct FulltextIndex {
-    pub fields: Vec<String>,
-    #[builder(default, setter(into))]
-    pub name: Option<String>,
-    #[builder(default)]
-    pub min_length: u32,
-    #[builder(default)]
-    pub id: Option<String>,
-    #[builder(default)]
-    pub is_newly_created: Option<bool>,
-    #[builder(default)]
-    pub selectivity_estimate: Option<u8>,
-    #[builder(default)]
-    pub in_background: Option<bool>,
+impl Default for IndexSettings {
+    fn default() -> Self {
+        IndexSettings::Persistent {
+            unique: false,
+            sparse: false,
+            deduplicate: false,
+        }
+    }
 }
 
 /// Represents a collection of indexes on a collection in ArangoDB.
