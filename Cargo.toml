@@ -1,43 +1,34 @@
 [package]
 name = "arangors"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2018"
-authors = ["Guoli Lyu <guoli-lv@hotmail.com>"]
+authors = [ "Guoli Lyu <guoli-lv@hotmail.com>" ]
 readme = "README.md"
 license = "MIT"
 description = "Rust driver for ArangoDB"
 repository = "https://github.com/fMeow/arangors"
 documentation = "https://docs.rs/arangors"
-keywords = ["nosql", "database", "client", "driver", "arangoDB"]
-exclude = [
-    ".gitignore",
-    ".github",
-    "tests/**/*",
-]
+keywords = [ "nosql", "database", "client", "driver", "arangoDB" ]
+exclude = [ ".gitignore", ".github", "tests/**/*" ]
 
 [package.metadata.docs.rs]
 all-features = false
-features = [
-    "rocksdb",
-    "reqwest_async"
-]
+features = [ "rocksdb", "reqwest_async" ]
 
-[badges]
-maintenance = { status = "actively-developed" }
+[badges.maintenance]
+status = "actively-developed"
 
 [features]
-default = ["rocksdb", "reqwest_async"]
-blocking = ["maybe-async/is_sync"]
-reqwest_async = ["reqwest"]
-reqwest_blocking = ["reqwest/blocking", "blocking"]
-surf_async = ["surf"]
-
-cluster = []
-enterprise = []
-mmfiles = []
-rocksdb = []
-arango3_7 = []
-
+default = [ "rocksdb", "reqwest_async" ]
+blocking = [ "maybe-async/is_sync" ]
+reqwest_async = [ "reqwest" ]
+reqwest_blocking = [ "reqwest/blocking", "blocking" ]
+surf_async = [ "surf" ]
+cluster = [ ]
+enterprise = [ ]
+mmfiles = [ ]
+rocksdb = [ ]
+arango3_7 = [ ]
 
 [dependencies]
 async-trait = "0.1"
@@ -45,22 +36,36 @@ base64 = "0.12"
 http = "0.2"
 log = "0.4"
 maybe-async = "0.2"
-serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_qs = "0.6"
 thiserror = "1"
 typed-builder = "0.7"
 url = "2"
 
-reqwest  = { version = "0.10.4", features = ["gzip", "json"], optional = true }
-surf  = { version = "2.0.0-alpha.4", optional = true }
+  [dependencies.serde]
+  version = "1"
+  features = [ "derive" ]
 
+  [dependencies.reqwest]
+  version = "0.10.4"
+  features = [ "gzip", "json" ]
+  optional = true
+
+  [dependencies.surf]
+  version = "2.0.0-alpha.4"
+  optional = true
 
 [dev-dependencies]
 env_logger = "0.7.1"
 pretty_assertions = "0.6.1"
 dotenv = "0.15.0"
 regex = "1.3.7"
-tokio = { version = "0.2.18", features = ["macros", "rt-core"]}
-async-std = { version = "1", features = ["attributes"]}
 anyhow = "1"
+
+  [dev-dependencies.tokio]
+  version = "0.2.18"
+  features = [ "macros", "rt-core" ]
+
+  [dev-dependencies.async-std]
+  version = "1"
+  features = [ "attributes" ]
