@@ -50,6 +50,7 @@ use typed_builder::TypedBuilder;
 #[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct Index {
+    #[builder(default)]
     pub fields: Vec<String>,
     #[builder(default, setter(into))]
     pub name: String,
