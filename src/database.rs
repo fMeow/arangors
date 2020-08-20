@@ -9,7 +9,6 @@ use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::value::Value;
 use url::Url;
 
-use crate::index::{DeleteIndexResponse, Index, IndexCollection};
 use crate::{
     aql::{AqlQuery, Cursor},
     client::ClientExt,
@@ -19,6 +18,7 @@ use crate::{
         Collection, CollectionType,
     },
     connection::Version,
+    index::{DeleteIndexResponse, Index, IndexCollection},
     response::{deserialize_response, ArangoResult},
     ClientError,
 };

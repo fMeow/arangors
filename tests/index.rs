@@ -6,13 +6,13 @@ use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
 use crate::common::{collection, connection};
-use arangors::index::{Index, IndexSettings};
 use arangors::{
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
         response::Status,
         CollectionType,
     },
+    index::{Index, IndexSettings},
     ClientError, Connection, Document,
 };
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};

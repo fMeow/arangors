@@ -10,10 +10,10 @@
 //! * Ttl (Time to live)
 //!
 //! An index of type [`Primary`] cannot be created and is only available for
-//! the retrieval of existing indexes, as ArangoDB creates a primary index on every
-//! collection.
-//! For detailed information about ArangoDB indexes, please check out the official
-//! ArangoDB [documentation](https://www.arangodb.com/docs/stable/http/indexes.html).
+//! the retrieval of existing indexes, as ArangoDB creates a primary index on
+//! every collection.
+//! For detailed information about ArangoDB indexes, please check out the
+//! official ArangoDB [documentation](https://www.arangodb.com/docs/stable/http/indexes.html).
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
@@ -26,26 +26,36 @@ use typed_builder::TypedBuilder;
 /// * Skiplist
 /// * Ttl (Time to live)
 ///
-/// As different settings may be applied to different index types, use the [`settings`] field
-/// on the index to specify the exact `type` of the index including the required settings.
+/// As different settings may be applied to different index types, use the
+/// [`settings`] field on the index to specify the exact `type` of the index
+/// including the required settings.
 ///
 /// # Example
-/// ```ignore
-///     let database = conn.db("test_db").await.unwrap();
+/// ```
+/// # use arangors::Connection;
+/// # use arangors::index::IndexSettings;
 ///
-///     let index = Index::builder()
-///         .name(index_name)
-///         .fields(vec!["password".to_string()])
-///         .settings(IndexSettings::Persistent {
-///             unique: true,
-///             sparse: false,
-///             deduplicate: false,
-///         })
-///         .build();
+/// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+/// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+/// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
+/// # async fn main() {
+/// # let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+/// #     .await
+/// #     .unwrap();
+/// let database = conn.db("test_db").await.unwrap();
 ///
-///     let index = database
-///         .create_index(collection_name, &index)
-///         .await?;
+/// let index = Index::builder()
+///     .name(index_name)
+///     .fields(vec!["password".to_string()])
+///     .settings(IndexSettings::Persistent {
+///         unique: true,
+///         sparse: false,
+///         deduplicate: false,
+///     })
+///     .build();
+///
+/// let index = database.create_index(collection_name, &index).await?;
+/// # }
 /// ```
 #[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
@@ -67,7 +77,8 @@ pub struct Index {
     pub settings: IndexSettings,
 }
 
-/// Settings for the different index types. This `enum` also sets the index type.
+/// Settings for the different index types. This `enum` also sets the index
+/// type.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum IndexSettings {
