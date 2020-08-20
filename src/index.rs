@@ -118,8 +118,6 @@ impl Default for IndexSettings {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexCollection {
-    pub error: bool,
-    pub code: u16,
     pub indexes: Vec<Index>,
 }
 
@@ -128,6 +126,4 @@ pub struct IndexCollection {
 #[serde(rename_all = "camelCase")]
 pub struct DeleteIndexResponse {
     pub id: String,
-    pub error: bool,
-    pub code: u16,
 }
