@@ -9,6 +9,7 @@ use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::value::Value;
 use url::Url;
 
+use crate::index::{DeleteIndexResponse, Index, IndexCollection};
 use crate::{
     aql::{AqlQuery, Cursor},
     client::ClientExt,
@@ -296,6 +297,74 @@ impl<'a, C: ClientExt> Database<C> {
             .bind_vars(bind_vars)
             .build();
         self.aql_query(aql).await
+    }
+
+    /// Create a new index on a collection.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn create_index(
+        &self,
+        collection: &str,
+        index: &Index,
+    ) -> Result<Index, ClientError> {
+        let mut url = self.base_url.join("_api/index").unwrap();
+        url.set_query(Some(&format!("collection={}", collection)));
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&index)?)
+            .await?;
+
+        let result: Index = deserialize_response::<Index>(resp.body())?;
+
+        Ok(result)
+    }
+
+    /// Retrieve an index by id
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn index(&self, id: &str) -> Result<Index, ClientError> {
+        let url = self.base_url.join(&format!("_api/index/{}", id)).unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: Index = deserialize_response::<Index>(resp.body())?;
+
+        Ok(result)
+    }
+
+    /// Retrieve a list of indexes for a collection.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn indexes(&self, collection: &str) -> Result<IndexCollection, ClientError> {
+        let mut url = self.base_url.join("_api/index").unwrap();
+        url.set_query(Some(&format!("collection={}", collection)));
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: IndexCollection = deserialize_response::<IndexCollection>(resp.body())?;
+
+        Ok(result)
+    }
+
+    /// Delete an index by id.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn delete_index(&self, id: &str) -> Result<DeleteIndexResponse, ClientError> {
+        let url = self.base_url.join(&format!("_api/index/{}", id)).unwrap();
+        let resp = self.session.delete(url, "").await?;
+
+        let result: DeleteIndexResponse = deserialize_response::<DeleteIndexResponse>(resp.body())?;
+
+        Ok(result)
     }
 }
 
