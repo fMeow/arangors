@@ -553,7 +553,7 @@ async fn test_put_rotate_journal() {
     let conn = connection().await;
     let coll = collection(&conn, collection_name).await;
 
-    let rotate = coll.rotate_journal().await;
+    let _rotate = coll.rotate_journal().await;
 
     // TODO got error in arangoDB 3.7.1: expecting one of the actions 'load',
     // 'unload',   'truncate', 'properties', 'compact', 'rename',

@@ -33,19 +33,19 @@ use typed_builder::TypedBuilder;
 /// # Example
 /// ```
 /// # use arangors::Connection;
-/// # use arangors::index::IndexSettings;
+/// # use arangors::index::{IndexSettings, Index};
 ///
 /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
 /// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
 /// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
-/// # async fn main() {
+/// # async fn main() -> Result<(),anyhow::Error>{
 /// # let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
 /// #     .await
 /// #     .unwrap();
 /// let database = conn.db("test_db").await.unwrap();
 ///
 /// let index = Index::builder()
-///     .name(index_name)
+///     .name("doc_test_index_name")
 ///     .fields(vec!["password".to_string()])
 ///     .settings(IndexSettings::Persistent {
 ///         unique: true,
@@ -54,7 +54,9 @@ use typed_builder::TypedBuilder;
 ///     })
 ///     .build();
 ///
-/// let index = database.create_index(collection_name, &index).await?;
+/// let index = database.create_index("test_collection", &index).await?;
+/// let delete_result = database.delete_index(&index.id).await.unwrap();
+/// # Ok(())
 /// # }
 /// ```
 #[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]

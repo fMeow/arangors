@@ -272,7 +272,7 @@ async fn test_list_indexes() {
     let collection_name = "test_collection";
     let conn = connection().await;
 
-    let mut database = conn.db("test_db").await.unwrap();
+    let database = conn.db("test_db").await.unwrap();
     let list = database.indexes(collection_name).await.unwrap();
 
     assert!(list.indexes.len() > 0);
