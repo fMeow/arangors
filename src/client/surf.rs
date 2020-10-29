@@ -27,7 +27,6 @@ impl ClientExt for SurfClient {
     }
 
     fn copy_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
-        
         let mut headers = HeaderMap::new();
         for (name, value) in self.headers.iter() {
             headers.insert(name, value.clone());

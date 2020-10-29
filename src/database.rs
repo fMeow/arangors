@@ -431,6 +431,7 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result)
     }
 
+    #[maybe_async]
     pub async fn view(&self, view_name: &str) -> Result<ViewDescription, ClientError> {
         let url = self
             .base_url
@@ -460,7 +461,7 @@ impl<'a, C: ClientExt> Database<C> {
     }
 
     #[maybe_async]
-    pub async fn update_view_properties(
+    pub async fn replace_view_properties(
         &self,
         view_name: &str,
         properties: ArangoSearchViewPropertiesOptions,
@@ -473,6 +474,26 @@ impl<'a, C: ClientExt> Database<C> {
         let resp = self
             .session
             .put(url, &serde_json::to_string(&properties)?)
+            .await?;
+
+        let result: View = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    #[maybe_async]
+    pub async fn update_view_properties(
+        &self,
+        view_name: &str,
+        properties: ArangoSearchViewPropertiesOptions,
+    ) -> Result<View, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/view/{}/properties", view_name))
+            .unwrap();
+
+        let resp = self
+            .session
+            .patch(url, &serde_json::to_string(&properties)?)
             .await?;
 
         let result: View = deserialize_response(resp.body())?;

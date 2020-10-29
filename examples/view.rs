@@ -13,15 +13,15 @@ const URL: &str = "http://localhost:8529";
 #[cfg_attr(feature = "surf_async", async_std::main)]
 #[cfg_attr(feature = "reqwest_blocking", maybe_async::must_be_sync)]
 async fn main() -> Result<(), Error> {
-    let collection_name = "test_collection_create_and_drop";
+    let collection_name = "test_collection".to_string();
 
     let conn = Connection::establish_jwt(URL, "username", "password").await?;
-    let mut database = conn.db("test_db").await?;
+    let database = conn.db("test_db").await?;
 
     let mut links: HashMap<String, ArangoSearchViewLink> = HashMap::new();
 
     links.insert(
-        "test_collection".to_string(),
+        collection_name.clone(),
         ArangoSearchViewLink::builder()
             .include_all_fields(true)
             .build(),
@@ -30,7 +30,7 @@ async fn main() -> Result<(), Error> {
     let view = database
         .create_view(
             ViewOptions::builder()
-                .name("test_view_create_and_drop".to_string())
+                .name(format!("{}_view", collection_name))
                 .properties(
                     ArangoSearchViewPropertiesOptions::builder()
                         .links(links)
@@ -42,7 +42,9 @@ async fn main() -> Result<(), Error> {
 
     println!("{:?}", view);
 
-    database.drop_view("test_view_create_and_drop").await?;
+    database
+        .drop_view(&format!("{}_view", collection_name))
+        .await?;
 
     Ok(())
 }

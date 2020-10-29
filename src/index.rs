@@ -62,21 +62,21 @@ use typed_builder::TypedBuilder;
 #[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct Index {
-  #[builder(default)]
-  pub fields: Vec<String>,
-  #[builder(default, setter(into))]
-  pub name: String,
-  #[builder(default)]
-  pub id: String,
-  #[builder(default)]
-  pub is_newly_created: Option<bool>,
-  #[builder(default)]
-  pub selectivity_estimate: Option<u8>,
-  #[builder(default)]
-  pub in_background: Option<bool>,
-  #[serde(flatten)]
-  #[builder(default)]
-  pub settings: IndexSettings,
+    #[builder(default)]
+    pub fields: Vec<String>,
+    #[builder(default, setter(into))]
+    pub name: String,
+    #[builder(default)]
+    pub id: String,
+    #[builder(default)]
+    pub is_newly_created: Option<bool>,
+    #[builder(default)]
+    pub selectivity_estimate: Option<u8>,
+    #[builder(default)]
+    pub in_background: Option<bool>,
+    #[serde(flatten)]
+    #[builder(default)]
+    pub settings: IndexSettings,
 }
 
 /// Settings for the different index types. This `enum` also sets the index
@@ -84,63 +84,63 @@ pub struct Index {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum IndexSettings {
-  Primary {
-    unique: bool,
-    sparse: bool,
-  },
-  Persistent {
-    unique: bool,
-    sparse: bool,
-    deduplicate: bool,
-  },
-  Edge {
-    unique: bool,
-    sparse: bool,
-  },
-  Hash {
-    unique: bool,
-    sparse: bool,
-    deduplicate: bool,
-  },
-  Skiplist {
-    unique: bool,
-    sparse: bool,
-    deduplicate: bool,
-  },
-  #[serde(rename_all = "camelCase")]
-  Ttl {
-    expire_after: u32,
-  },
-  #[serde(rename_all = "camelCase")]
-  Geo {
-    geo_json: bool,
-  },
-  #[serde(rename_all = "camelCase")]
-  Fulltext {
-    min_length: u32,
-  },
+    Primary {
+        unique: bool,
+        sparse: bool,
+    },
+    Persistent {
+        unique: bool,
+        sparse: bool,
+        deduplicate: bool,
+    },
+    Edge {
+        unique: bool,
+        sparse: bool,
+    },
+    Hash {
+        unique: bool,
+        sparse: bool,
+        deduplicate: bool,
+    },
+    Skiplist {
+        unique: bool,
+        sparse: bool,
+        deduplicate: bool,
+    },
+    #[serde(rename_all = "camelCase")]
+    Ttl {
+        expire_after: u32,
+    },
+    #[serde(rename_all = "camelCase")]
+    Geo {
+        geo_json: bool,
+    },
+    #[serde(rename_all = "camelCase")]
+    Fulltext {
+        min_length: u32,
+    },
 }
 
 impl Default for IndexSettings {
-  fn default() -> Self {
-    IndexSettings::Persistent {
-      unique: false,
-      sparse: false,
-      deduplicate: false,
+    fn default() -> Self {
+        IndexSettings::Persistent {
+            unique: false,
+            sparse: false,
+            deduplicate: false,
+        }
     }
-  }
 }
 
 /// Represents a collection of indexes on a collection in ArangoDB.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexCollection {
-  pub indexes: Vec<Index>,
+    pub indexes: Vec<Index>,
 }
 
 /// Response from ArangoDB when deleting an index
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeleteIndexResponse {
-  pub id: String,
+    pub id: String,
 }

@@ -1,11 +1,6 @@
-use maybe_async::maybe_async;
-use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::collections::HashMap;
-use std::sync::Arc;
 use typed_builder::TypedBuilder;
-use url::Url;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum ViewType {
@@ -30,14 +25,14 @@ pub enum PrimarySortCompression {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewDescription {
-    globally_unique_id: String,
+    pub globally_unique_id: String,
 
-    id: String,
+    pub id: String,
 
-    name: String,
+    pub name: String,
 
     #[serde(rename = "type")]
-    typ: ViewType,
+    pub typ: ViewType,
 }
 
 #[derive(Debug, Serialize, Deserialize, TypedBuilder)]
@@ -46,23 +41,23 @@ pub struct ViewDescription {
 pub struct ArangoSearchViewLink {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
-    analyzers: Option<Vec<String>>,
+    pub analyzers: Option<Vec<String>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
-    fields: Option<HashMap<String, ArangoSearchViewLink>>,
+    pub fields: Option<HashMap<String, ArangoSearchViewLink>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
-    include_all_fields: Option<bool>,
+    pub include_all_fields: Option<bool>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
-    track_list_positions: Option<bool>,
+    pub track_list_positions: Option<bool>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
-    store_values: Option<StoreValues>,
+    pub store_values: Option<StoreValues>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -99,38 +94,38 @@ pub enum ConsolidationPolicy {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PrimarySort {
-    field: String,
-    direction: Option<SortDirection>,
+    pub field: String,
+    pub direction: Option<SortDirection>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StoredValues {
-    fields: Vec<String>,
+    pub fields: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ArangoSearchViewProperties {
-    cleanup_interval_step: u32,
+    pub cleanup_interval_step: u32,
 
-    consolidation_interval_msec: u32,
+    pub consolidation_interval_msec: u32,
 
-    writebuffer_idle: u32,
+    pub writebuffer_idle: u32,
 
-    writebuffer_active: u32,
+    pub writebuffer_active: u32,
 
-    writebuffer_size_max: u32,
+    pub writebuffer_size_max: u32,
 
-    consolidation_policy: ConsolidationPolicy,
+    pub consolidation_policy: ConsolidationPolicy,
 
-    primary_sort: Option<Vec<PrimarySort>>,
+    pub primary_sort: Option<Vec<PrimarySort>>,
 
-    primary_sort_compression: PrimarySortCompression,
+    pub primary_sort_compression: PrimarySortCompression,
 
-    stored_values: Vec<StoredValues>,
+    pub stored_values: Vec<StoredValues>,
 
-    links: HashMap<String, ArangoSearchViewLink>,
+    pub links: HashMap<String, ArangoSearchViewLink>,
 }
 
 #[derive(Debug, Serialize, Deserialize, TypedBuilder)]
@@ -196,8 +191,8 @@ pub struct ViewOptions {
 #[serde(rename_all = "camelCase")]
 pub struct View {
     #[serde(flatten)]
-    description: ViewDescription,
+    pub description: ViewDescription,
 
     #[serde(flatten)]
-    properties: ArangoSearchViewProperties,
+    pub properties: ArangoSearchViewProperties,
 }
