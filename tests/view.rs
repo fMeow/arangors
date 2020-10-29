@@ -58,7 +58,7 @@ async fn create_view<C: ClientExt>(
 async fn test_create_and_drop_view() {
     test_setup();
     let collection_name = "test_collection".to_string();
-    let view_name = format!("{}_view", collection_name);
+    let view_name = format!("{}_view_create", collection_name);
     let conn = connection().await;
     let database = conn.db("test_db").await.unwrap();
 
@@ -69,7 +69,7 @@ async fn test_create_and_drop_view() {
     assert_eq!(view.is_err(), false);
 
     let result = database
-        .drop_view(&format!("{}_view", collection_name))
+        .drop_view(&format!("{}_view_create", collection_name))
         .await;
 
     assert_eq!(result.is_err(), false);
@@ -83,7 +83,7 @@ async fn test_create_and_drop_view() {
 async fn test_list_view() {
     test_setup();
     let collection_name = "test_collection".to_string();
-    let view_name = format!("{}_view", collection_name);
+    let view_name = format!("{}_view_list", collection_name);
     let conn = connection().await;
     let database = conn.db("test_db").await.unwrap();
 
@@ -105,7 +105,7 @@ async fn test_list_view() {
     assert_eq!(view_found.is_some(), true);
 
     let result = database
-        .drop_view(&format!("{}_view", collection_name))
+        .drop_view(&format!("{}_view_list", collection_name))
         .await;
 
     assert_eq!(result.is_err(), false);
@@ -119,7 +119,7 @@ async fn test_list_view() {
 async fn update_properties() {
     test_setup();
     let collection_name = "test_collection".to_string();
-    let view_name = format!("{}_view", collection_name);
+    let view_name = format!("{}_view_update", collection_name);
     let conn = connection().await;
     let database = conn.db("test_db").await.unwrap();
 
@@ -143,7 +143,7 @@ async fn update_properties() {
     assert_eq!(updated_view.is_err(), false);
 
     let result = database
-        .drop_view(&format!("{}_view", collection_name))
+        .drop_view(&format!("{}_view_update", collection_name))
         .await;
 
     assert_eq!(result.is_err(), false);
