@@ -406,3 +406,5 @@ pub mod error;
 pub mod index;
 mod query;
 pub mod response;
+pub mod transaction;
+pub mod view;

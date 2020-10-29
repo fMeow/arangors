@@ -8,6 +8,7 @@ use http::{
 
 use super::*;
 use crate::client::ClientExt;
+use crate::transaction::TRANSACTION_HEADER;
 
 #[derive(Debug, Clone)]
 pub struct SurfClient {
@@ -25,11 +26,21 @@ impl ClientExt for SurfClient {
         Ok(SurfClient { headers })
     }
 
+    fn copy_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
+        
+        let mut headers = HeaderMap::new();
+        for (name, value) in self.headers.iter() {
+            headers.insert(name, value.clone());
+        }
+        headers.insert(TRANSACTION_HEADER, transaction_id.parse().unwrap());
+        SurfClient::new(headers)
+    }
+
     async fn request(
         &self,
         request: http::Request<String>,
     ) -> Result<http::Response<String>, ClientError> {
-        use ::surf::http_types::headers::HeaderName as SurfHeaderName;
+        use ::surf::http::headers::HeaderName as SurfHeaderName;
 
         let method = request.method().clone();
         let url = request.uri().to_owned().to_string();
@@ -50,20 +61,20 @@ impl ClientExt for SurfClient {
         };
 
         let req = self.headers.iter().fold(req, |req, (k, v)| {
-            req.set_header(
+            req.header(
                 SurfHeaderName::from_str(k.as_str()).unwrap(),
                 v.to_str().unwrap(),
             )
         });
         let req = request.headers().iter().fold(req, |req, (k, v)| {
-            req.set_header(
+            req.header(
                 SurfHeaderName::from_str(k.as_str()).unwrap(),
                 v.to_str().unwrap(),
             )
         });
 
         let mut resp = req
-            .body_string(text.to_owned())
+            .body(text.to_owned())
             .await
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
 
@@ -95,11 +106,11 @@ impl ClientExt for SurfClient {
         }
 
         let http_version = version.map(|v| match v {
-            ::surf::http_types::Version::Http0_9 => Version::HTTP_09,
-            ::surf::http_types::Version::Http1_0 => Version::HTTP_10,
-            ::surf::http_types::Version::Http1_1 => Version::HTTP_11,
-            ::surf::http_types::Version::Http2_0 => Version::HTTP_2,
-            ::surf::http_types::Version::Http3_0 => Version::HTTP_3,
+            ::surf::http::Version::Http0_9 => Version::HTTP_09,
+            ::surf::http::Version::Http1_0 => Version::HTTP_10,
+            ::surf::http::Version::Http1_1 => Version::HTTP_11,
+            ::surf::http::Version::Http2_0 => Version::HTTP_2,
+            ::surf::http::Version::Http3_0 => Version::HTTP_3,
             _ => unreachable!(),
         });
 
