@@ -32,9 +32,7 @@ fn bool2int<S>(v: &Option<bool>, ser: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    if v.is_none() {
-        ser.serialize_i8(1)
-    } else if *v.as_ref().unwrap() {
+    if v.is_none() || *v.as_ref().unwrap() {
         ser.serialize_i8(1)
     } else {
         ser.serialize_i8(0)

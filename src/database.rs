@@ -10,6 +10,7 @@ use serde_json::value::Value;
 use url::Url;
 
 use crate::{
+    analyzer::{AnalyzerDescription, AnalyzerInfo},
     aql::{AqlQuery, Cursor},
     client::ClientExt,
     collection::{
@@ -511,6 +512,61 @@ impl<'a, C: ClientExt> Database<C> {
 
         let result: ArangoResult<bool> = deserialize_response(resp.body())?;
         Ok(result.unwrap())
+    }
+
+    #[maybe_async]
+    pub async fn list_analyzers(&self) -> Result<Vec<AnalyzerInfo>, ClientError> {
+        let url = self.base_url.join("_api/analyzer").unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: ArangoResult<Vec<AnalyzerInfo>> = deserialize_response(resp.body())?;
+        Ok(result.unwrap())
+    }
+
+    #[maybe_async]
+    pub async fn create_analyzer(
+        &self,
+        analyzer: AnalyzerInfo,
+    ) -> Result<AnalyzerInfo, ClientError> {
+        let url = self.base_url.join("_api/analyzer").unwrap();
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&analyzer)?)
+            .await?;
+
+        let result: AnalyzerInfo = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    #[maybe_async]
+    pub async fn analyzer(&self, analyzer_name: &str) -> Result<AnalyzerInfo, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/analyzer/{}", analyzer_name))
+            .unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: AnalyzerInfo = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    #[maybe_async]
+    pub async fn drop_analyzer(
+        &self,
+        analyzer_name: &str,
+    ) -> Result<AnalyzerDescription, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/analyzer/{}", analyzer_name))
+            .unwrap();
+
+        let resp = self.session.delete(url, "").await?;
+
+        let result: AnalyzerDescription = deserialize_response(resp.body())?;
+        Ok(result)
     }
 }
 

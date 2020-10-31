@@ -71,7 +71,7 @@ pub struct Index {
     #[builder(default)]
     pub is_newly_created: Option<bool>,
     #[builder(default)]
-    pub selectivity_estimate: Option<u8>,
+    pub selectivity_estimate: Option<f32>,
     #[builder(default)]
     pub in_background: Option<bool>,
     #[serde(flatten)]
