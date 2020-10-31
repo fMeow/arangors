@@ -20,6 +20,8 @@ pub enum AnalyzerCase {
 #[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 pub struct DelimiterAnalyzerProperties {
+    //The value will be used as delimiter to split text into tokens as specified
+    //in RFC 4180, without starting new records on newlines.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     pub delimiter: Option<String>,
@@ -28,18 +30,22 @@ pub struct DelimiterAnalyzerProperties {
 #[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 pub struct StemAnalyzerProperties {
+    //Format: `language[_COUNTRY][.encoding][@variant]`
     pub locale: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 pub struct NormAnalyzerProperties {
+    //Format: `language[_COUNTRY][.encoding][@variant]`
     pub locale: String,
 
+    //Case conversion.  Default: `"lower"`
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     pub case: Option<AnalyzerCase>,
 
+    //Preserve accents in returned words.  Default: `false`
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     pub accent: Option<bool>,
@@ -49,10 +55,13 @@ pub struct NormAnalyzerProperties {
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct NgramAnalyzerProperties {
-    pub min: u32,
+    //Minimum n-gram length.
+    pub min: u16,
 
-    pub max: u32,
+    //Maximum n-gram length.
+    pub max: u16,
 
+    //Output the original value as well.
     pub preserve_riginal: bool,
 }
 
@@ -60,6 +69,7 @@ pub struct NgramAnalyzerProperties {
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct TextAnalyzerProperties {
+    //Format: `language[_COUNTRY][.encoding][@variant]`
     pub locale: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -70,14 +80,23 @@ pub struct TextAnalyzerProperties {
     #[builder(default, setter(strip_option))]
     pub accent: Option<bool>,
 
+    //Words to omit from result.
+    //Defaults to the words loaded from the file at `stopwordsPath`.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     pub stopwords: Option<Vec<String>>,
 
+    //Path with a `language` sub-directory containing files with words to omit.
+    //
+    //Defaults to the path specified in the server-side environment variable
+    //`IRESEARCH_TEXT_STOPWORD_PATH` or the current working directory of the
+    //ArangoDB process.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     pub stopwords_path: Option<Vec<String>>,
 
+    //Apply stemming on returned words.
+    //Default: `true`
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     pub stemming: Option<bool>,
@@ -86,6 +105,7 @@ pub struct TextAnalyzerProperties {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum AnalyzerInfo {
+    //The `identity` Analyzer does not take additional properties.
     Identity {
         name: String,
 
