@@ -146,7 +146,7 @@ impl<'a, C: ClientExt> Database<C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn drop_collection(&mut self, name: &str) -> Result<String, ClientError> {
+    pub async fn drop_collection(&self, name: &str) -> Result<String, ClientError> {
         let url_path = format!("_api/collection/{}", name);
         let url = self.base_url.join(&url_path).unwrap();
 
