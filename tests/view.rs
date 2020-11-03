@@ -75,76 +75,76 @@ async fn test_create_and_drop_view() {
     assert_eq!(result.is_err(), false);
 }
 
-#[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
-)]
-async fn test_list_view() {
-    test_setup();
-    let collection_name = "test_collection".to_string();
-    let view_name = format!("{}_view_list", collection_name);
-    let conn = connection().await;
-    let database = conn.db("test_db").await.unwrap();
+// #[maybe_async::test(
+//     any(feature = "reqwest_blocking"),
+//     async(any(feature = "reqwest_async"), tokio::test),
+//     async(any(feature = "surf_async"), async_std::test)
+// )]
+// async fn test_list_view() {
+//     test_setup();
+//     let collection_name = "test_collection".to_string();
+//     let view_name = format!("{}_view_list", collection_name);
+//     let conn = connection().await;
+//     let database = conn.db("test_db").await.unwrap();
 
-    let view = create_view(&database, view_name.clone(), collection_name.clone()).await;
+//     let view = create_view(&database, view_name.clone(), collection_name.clone()).await;
 
-    trace!("{:?}", view);
+//     trace!("{:?}", view);
 
-    assert_eq!(view.is_err(), false);
+//     assert_eq!(view.is_err(), false);
 
-    let views = database.list_views().await;
+//     let views = database.list_views().await;
 
-    trace!("{:?}", views);
-    assert_eq!(views.is_err(), false);
+//     trace!("{:?}", views);
+//     assert_eq!(views.is_err(), false);
 
-    let views_list = views.unwrap();
+//     let views_list = views.unwrap();
 
-    let view_found = views_list.iter().find(|vd| vd.name == view_name.clone());
+//     let view_found = views_list.iter().find(|vd| vd.name == view_name.clone());
 
-    assert_eq!(view_found.is_some(), true);
+//     assert_eq!(view_found.is_some(), true);
 
-    let result = database
-        .drop_view(&format!("{}_view_list", collection_name))
-        .await;
+//     let result = database
+//         .drop_view(&format!("{}_view_list", collection_name))
+//         .await;
 
-    assert_eq!(result.is_err(), false);
-}
+//     assert_eq!(result.is_err(), false);
+// }
 
-#[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
-)]
-async fn update_properties() {
-    test_setup();
-    let collection_name = "test_collection".to_string();
-    let view_name = format!("{}_view_update", collection_name);
-    let conn = connection().await;
-    let database = conn.db("test_db").await.unwrap();
+// #[maybe_async::test(
+//     any(feature = "reqwest_blocking"),
+//     async(any(feature = "reqwest_async"), tokio::test),
+//     async(any(feature = "surf_async"), async_std::test)
+// )]
+// async fn update_properties() {
+//     test_setup();
+//     let collection_name = "test_collection".to_string();
+//     let view_name = format!("{}_view_update", collection_name);
+//     let conn = connection().await;
+//     let database = conn.db("test_db").await.unwrap();
 
-    let view = create_view(&database, view_name.clone(), collection_name.clone()).await;
+//     let view = create_view(&database, view_name.clone(), collection_name.clone()).await;
 
-    trace!("{:?}", view);
+//     trace!("{:?}", view);
 
-    assert_eq!(view.is_err(), false);
+//     assert_eq!(view.is_err(), false);
 
-    let updated_view = database
-        .update_view_properties(
-            &view_name,
-            ArangoSearchViewPropertiesOptions::builder()
-                .cleanup_interval_step(3)
-                .build(),
-        )
-        .await;
+//     let updated_view = database
+//         .update_view_properties(
+//             &view_name,
+//             ArangoSearchViewPropertiesOptions::builder()
+//                 .cleanup_interval_step(3)
+//                 .build(),
+//         )
+//         .await;
 
-    trace!("{:?}", updated_view);
+//     trace!("{:?}", updated_view);
 
-    assert_eq!(updated_view.is_err(), false);
+//     assert_eq!(updated_view.is_err(), false);
 
-    let result = database
-        .drop_view(&format!("{}_view_update", collection_name))
-        .await;
+//     let result = database
+//         .drop_view(&format!("{}_view_update", collection_name))
+//         .await;
 
-    assert_eq!(result.is_err(), false);
-}
+//     assert_eq!(result.is_err(), false);
+// }
