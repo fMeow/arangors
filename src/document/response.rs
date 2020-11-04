@@ -88,14 +88,20 @@ where
 
         let json = obj
             .as_object_mut()
-            .ok_or_else(||DeError::custom("should be a json object"))?;
+            .ok_or_else(|| DeError::custom("should be a json object"))?;
 
         if json.is_empty() {
             Ok(DocumentResponse::Silent)
         } else {
-            let _id = json.remove("_id").ok_or_else(||DeError::missing_field("_id"))?;
-            let _key = json.remove("_key").ok_or_else(||DeError::missing_field("_key"))?;
-            let _rev = json.remove("_rev").ok_or_else(||DeError::missing_field("_rev"))?;
+            let _id = json
+                .remove("_id")
+                .ok_or_else(|| DeError::missing_field("_id"))?;
+            let _key = json
+                .remove("_key")
+                .ok_or_else(|| DeError::missing_field("_key"))?;
+            let _rev = json
+                .remove("_rev")
+                .ok_or_else(|| DeError::missing_field("_rev"))?;
             let header: Header = Header {
                 _id: serde_json::from_value(_id).map_err(DeError::custom)?,
                 _key: serde_json::from_value(_key).map_err(DeError::custom)?,

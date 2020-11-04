@@ -68,7 +68,8 @@ impl ClientExt for ReqwestClient {
             build = build.header(header.0, header.1);
         }
 
-        build.status(status_code)
+        build
+            .status(status_code)
             .version(version)
             .body(content)
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))

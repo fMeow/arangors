@@ -40,20 +40,20 @@ pub struct InsertOptions {
     #[builder(default, setter(strip_option))]
     overwrite_mode: Option<OverwriteMode>,
 
-    /// If the intention is to delete existing attributes with the update-insert command, 
-    /// the URL query parameter keepNull can be used with a value of false. 
-    /// This will modify the behavior of the patch command to remove any attributes 
-    /// from the existing document that are contained in the patch document with an 
+    /// If the intention is to delete existing attributes with the update-insert command,
+    /// the URL query parameter keepNull can be used with a value of false.
+    /// This will modify the behavior of the patch command to remove any attributes
+    /// from the existing document that are contained in the patch document with an
     /// attribute value of null. This option controls the update-insert behavior only.
     #[cfg(feature = "arango3_7")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     keep_null: Option<bool>,
 
-    /// Controls whether objects (not arrays) will be merged if present in both the existing 
-    /// and the update-insert document. 
-    /// If set to false, the value in the patch document will overwrite the existing document’s value. 
-    /// If set to true, objects will be merged. The default is true. 
+    /// Controls whether objects (not arrays) will be merged if present in both the existing
+    /// and the update-insert document.
+    /// If set to false, the value in the patch document will overwrite the existing document’s value.
+    /// If set to true, objects will be merged. The default is true.
     /// This option controls the update-insert behavior only.
     #[cfg(feature = "arango3_7")]
     #[serde(skip_serializing_if = "Option::is_none")]
