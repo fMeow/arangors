@@ -114,6 +114,7 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
         ),
     >
 {
+    #[allow(clippy::type_complexity)]
     pub fn bind_var<K, V>(
         self,
         key: K,
@@ -153,6 +154,7 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
         }
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn try_bind<K, V>(
         self,
         key: K,
@@ -198,6 +200,7 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
         ),
     >
 {
+    #[allow(clippy::type_complexity)]
     pub fn bind_var<K, V>(
         mut self,
         key: K,
@@ -223,6 +226,7 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
         self
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn try_bind<K, V>(
         self,
         key: K,
