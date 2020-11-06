@@ -60,8 +60,8 @@ pub struct ArangoSearchViewLink {
     pub store_values: Option<StoreValues>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase", tag = "type")]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
 pub enum SortDirection {
     Asc,
     Desc,
@@ -91,11 +91,35 @@ pub enum ConsolidationPolicy {
     },
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TypedBuilder, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PrimarySort {
     pub field: String,
-    pub direction: Option<SortDirection>,
+
+    #[builder(default, setter(strip_option))]
+    direction: Option<SortDirection>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default, setter(strip_option))]
+    asc: Option<bool>,
+}
+
+impl PrimarySort {
+    pub fn direction(&self) -> Option<SortDirection> {
+        if self.direction.is_none() {
+            if let Some(asc) = self.asc {
+                if asc {
+                    Some(SortDirection::Asc)
+                } else {
+                    Some(SortDirection::Desc)
+                }
+            } else {
+                None
+            }
+        } else {
+            self.direction.clone()
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
