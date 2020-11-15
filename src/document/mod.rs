@@ -3,6 +3,7 @@
 //! This mod contains document related types.
 //! Operations are conducted on collection level struct
 use serde::{Deserialize, Serialize};
+use std::ops::Deref;
 
 pub mod options;
 pub mod response;
@@ -27,8 +28,8 @@ pub struct Document<T> {
 }
 
 impl<'de, T> Document<T>
-where
-    T: Serialize + Deserialize<'de>,
+    where
+        T: Serialize + Deserialize<'de>,
 {
     pub fn new(data: T) -> Self {
         Document {
@@ -39,5 +40,19 @@ where
                 _rev: String::new(),
             },
         }
+    }
+}
+
+impl<T> AsRef<T> for Document<T> {
+    fn as_ref(&self) -> &T {
+        &self.document
+    }
+}
+
+impl<T> Deref for Document<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.document
     }
 }
