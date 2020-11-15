@@ -758,3 +758,61 @@ async fn test_delete_remove_document() {
     coll.drop().await.expect("Should drop the collection");
     // todo do more test
 }
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_document_deserialization() {
+    use serde::{Deserialize, Serialize};
+    #[derive(Debug, Default, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct ItemWithHeader {
+        #[serde(rename = "_id")]
+        id: String,
+        #[serde(rename = "_key")]
+        key: String,
+        #[serde(rename = "_rev")]
+        rev: String,
+        no: usize,
+    }
+    #[derive(Debug, Default, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Item {
+        no: usize,
+    }
+
+    test_setup();
+    let collection_name = "test_document_deserialization";
+    let conn = connection().await;
+    let coll = collection(&conn, collection_name).await;
+
+    let test_doc: Document<Value> = Document::new(json!({ "no":1 }));
+
+    // First test is to read a simple document without options
+    let create = coll.create_document(test_doc, Default::default()).await;
+    assert_eq!(create.is_ok(), true, "succeed creating a document");
+    let result = create.unwrap();
+    let header = result.header().unwrap();
+    let _key = &header._key;
+    let _rev = &header._rev;
+
+    let read = coll.document(_key.as_str()).await;
+    let result: Document<Item> = read.unwrap();
+    assert_eq!(result.document.no, 1);
+    assert_eq!(result.header._key, header._key);
+    assert_eq!(result.header._rev, header._rev);
+    assert_eq!(result.header._id, header._id);
+
+    let read = coll.document(_key.as_str()).await;
+    let result: Document<ItemWithHeader> = read.unwrap();
+    assert_eq!(result.document.no, 1);
+    assert_eq!(result.header._key, header._key);
+    assert_eq!(result.header._rev, header._rev);
+    assert_eq!(result.header._id, header._id);
+
+    assert_eq!(result.key, header._key);
+    assert_eq!(result.rev, header._rev);
+    assert_eq!(result.id, header._id);
+}

@@ -2,7 +2,7 @@
 //!
 //! This mod contains document related types.
 //! Operations are conducted on collection level struct
-use serde::{de::DeserializeOwned,de::Error as DeError, Deserialize, Deserializer, Serialize};
+use serde::{de::DeserializeOwned, de::Error as DeError, Deserialize, Deserializer, Serialize};
 use std::ops::Deref;
 
 pub mod options;
