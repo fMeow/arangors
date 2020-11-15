@@ -229,12 +229,11 @@ impl<'a, C: ClientExt> Database<C> {
         let mut response_cursor = response;
         let mut results: Vec<R> = Vec::new();
         loop {
+            results.extend(response_cursor.result.into_iter());
             if response_cursor.more {
                 let id = response_cursor.id.unwrap().clone();
-                results.extend(response_cursor.result.into_iter());
                 response_cursor = self.aql_next_batch(id.as_str()).await?;
             } else {
-                results.extend(response_cursor.result.into_iter());
                 break;
             }
         }
