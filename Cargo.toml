@@ -1,6 +1,6 @@
 [package]
 name = "arangors"
-version = "0.4.3"
+version = "0.4.4"
 edition = "2018"
 authors = [ "Guoli Lyu <guoli-lv@hotmail.com>" ]
 readme = "README.md"
