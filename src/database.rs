@@ -218,7 +218,6 @@ impl<'a, C: ClientExt> Database<C> {
             .join(&format!("_api/cursor/{}", cursor_id))
             .unwrap();
         let resp = self.session.put(url, "").await?;
-
         deserialize_response(resp.body())
     }
 
@@ -235,6 +234,7 @@ impl<'a, C: ClientExt> Database<C> {
                 results.extend(response_cursor.result.into_iter());
                 response_cursor = self.aql_next_batch(id.as_str()).await?;
             } else {
+                results.extend(response_cursor.result.into_iter());
                 break;
             }
         }
