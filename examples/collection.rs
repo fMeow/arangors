@@ -14,7 +14,7 @@ async fn main() -> Result<(), Error> {
     let collection_name = "test_collection_create_and_drop";
 
     let conn = Connection::establish_jwt(URL, "username", "password").await?;
-    let mut database = conn.db("test_db").await?;
+    let database = conn.db("test_db").await?;
     let coll = database.drop_collection(collection_name).await;
     println!("Should fail: {:?}", coll);
 
