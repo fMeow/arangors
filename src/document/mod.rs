@@ -2,7 +2,7 @@
 //!
 //! This mod contains document related types.
 //! Operations are conducted on collection level struct
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned,de::Error as DeError, Deserialize, Deserializer, Serialize};
 use std::ops::Deref;
 
 pub mod options;
@@ -19,7 +19,7 @@ pub struct Header {
 }
 
 /// Structure that represents a document within its content and header
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Debug)]
 pub struct Document<T> {
     #[serde(flatten)]
     pub header: Header,
@@ -27,9 +27,9 @@ pub struct Document<T> {
     pub document: T,
 }
 
-impl<'de, T> Document<T>
-    where
-        T: Serialize + Deserialize<'de>,
+impl<T> Document<T>
+where
+    T: Serialize + DeserializeOwned,
 {
     pub fn new(data: T) -> Self {
         Document {
@@ -54,5 +54,33 @@ impl<T> Deref for Document<T> {
 
     fn deref(&self) -> &Self::Target {
         &self.document
+    }
+}
+
+impl<'de, T> Deserialize<'de> for Document<T>
+where
+    T: DeserializeOwned,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let mut obj = serde_json::Value::deserialize(deserializer)?;
+
+        let json = obj
+            .as_object_mut()
+            .ok_or(DeError::custom("should be a json object"))?;
+
+        let _id = json.get("_id").ok_or(DeError::missing_field("_id"))?;
+        let _key = json.get("_key").ok_or(DeError::missing_field("_key"))?;
+        let _rev = json.get("_rev").ok_or(DeError::missing_field("_rev"))?;
+        let header: Header = Header {
+            _id: serde_json::from_value(_id.clone()).map_err(DeError::custom)?,
+            _key: serde_json::from_value(_key.clone()).map_err(DeError::custom)?,
+            _rev: serde_json::from_value(_rev.clone()).map_err(DeError::custom)?,
+        };
+        let document = serde_json::from_value(obj).unwrap();
+
+        Ok(Document { header, document })
     }
 }
