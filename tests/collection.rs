@@ -64,7 +64,7 @@ async fn test_create_and_drop_collection() {
     let collection_name = "test_collection_create_and_drop";
     let conn = connection().await;
 
-    let mut database = conn.db("test_db").await.unwrap();
+    let database = conn.db("test_db").await.unwrap();
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(
         coll.is_err(),
@@ -101,7 +101,7 @@ async fn test_create_and_drop_edge_collection() {
     let collection_name = "test_edge_collection_create_and_drop";
     let conn = connection().await;
 
-    let mut database = conn.db("test_db").await.unwrap();
+    let database = conn.db("test_db").await.unwrap();
     let coll = database.drop_collection(collection_name).await;
     assert_eq!(
         coll.is_err(),

@@ -37,7 +37,7 @@
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
 use http::header::{HeaderMap, AUTHORIZATION, SERVER};
-use log::{info, trace};
+use log::{debug, trace};
 use maybe_async::maybe_async;
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -216,7 +216,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
             headers.insert(AUTHORIZATION, value.parse().unwrap());
         }
 
-        info!("Established");
+        debug!("Established");
         Ok(GenericConnection {
             arango_url,
             username,

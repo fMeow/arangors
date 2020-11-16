@@ -156,7 +156,7 @@ impl<'a, C: ClientExt> Database<C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn drop_collection(&mut self, name: &str) -> Result<String, ClientError> {
+    pub async fn drop_collection(&self, name: &str) -> Result<String, ClientError> {
         let url_path = format!("_api/collection/{}", name);
         let url = self.base_url.join(&url_path).unwrap();
 
@@ -228,7 +228,6 @@ impl<'a, C: ClientExt> Database<C> {
             .join(&format!("_api/cursor/{}", cursor_id))
             .unwrap();
         let resp = self.session.put(url, "").await?;
-
         deserialize_response(resp.body())
     }
 
@@ -240,9 +239,9 @@ impl<'a, C: ClientExt> Database<C> {
         let mut response_cursor = response;
         let mut results: Vec<R> = Vec::new();
         loop {
+            results.extend(response_cursor.result.into_iter());
             if response_cursor.more {
                 let id = response_cursor.id.unwrap().clone();
-                results.extend(response_cursor.result.into_iter());
                 response_cursor = self.aql_next_batch(id.as_str()).await?;
             } else {
                 break;

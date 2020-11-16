@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.4](https://github.com/guoli-lyu/arangors/compare/v0.4.3...v0.4.4) (2020-11-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* use DeserializeOwned instead of Deserialize<'de> for Document. This should be alright.
+
+### Features
+
+* add AsRef and Deref for Document ([7f19ccf](https://github.com/guoli-lyu/arangors/commit/7f19ccff9779e77ed860b6a86b5a11a0b9812fa7))
+* custom deser for Document allow header in user struct ([fd2c47d](https://github.com/guoli-lyu/arangors/commit/fd2c47d6c8ded83bf58a318854c8083008297aa4))
+
+
+### Bug Fixes
+
+* breaking API in surf 2.0.0-alpha5 ([349cd16](https://github.com/guoli-lyu/arangors/commit/349cd1679a582796966bae5c9e9e46d4e57f9663))
+* change all info level log to debug ([#34](https://github.com/guoli-lyu/arangors/issues/34)) ([cff0653](https://github.com/guoli-lyu/arangors/commit/cff06530e0038010c07e03bff4a2d59b253a3cff))
+* Fix bug in fetch-all ([#42](https://github.com/guoli-lyu/arangors/issues/42)) ([cad3923](https://github.com/guoli-lyu/arangors/commit/cad392365b84d86dd7041f220284356f3679a3d2))
+* Remove unnecessary mutual borrow ([#39](https://github.com/guoli-lyu/arangors/issues/39)) ([148af62](https://github.com/guoli-lyu/arangors/commit/148af62e2952f5873f35428b065735b5ae41df63))
+
 ### [0.4.3](https://github.com/fMeow/arangors/compare/v0.4.2...v0.4.3) (2020-08-20)
 
 
