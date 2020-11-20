@@ -22,6 +22,7 @@ use crate::{
     index::{DeleteIndexResponse, Index, IndexCollection},
     response::{deserialize_response, ArangoResult},
     transaction::ArangoTransaction,
+    transaction::Status,
     transaction::Transaction,
     transaction::TransactionList,
     transaction::TransactionSettings,
@@ -376,6 +377,10 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result)
     }
 
+    /// Return the currently running server-side transactions
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn list_transactions(&self) -> Result<Vec<TransactionState>, ClientError> {
         let url = self.base_url.join("_api/transaction").unwrap();
@@ -386,6 +391,11 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result.transactions)
     }
 
+    /// Begin a server-side transaction, the transaction settings should specify
+    /// at least collections to be updated through the write list
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn begin_transaction(
         &self,
@@ -408,6 +418,10 @@ impl<'a, C: ClientExt> Database<C> {
         ))
     }
 
+    /// Returns an object containing a listing of all Views in a database, regardless of their typ
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn list_views(&self) -> Result<Vec<ViewDescription>, ClientError> {
         let url = self.base_url.join("_api/view").unwrap();
@@ -418,6 +432,10 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result.unwrap())
     }
 
+    /// Creates an ArangoSearch View
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn create_view(&self, view_options: ViewOptions) -> Result<View, ClientError> {
         let url = self.base_url.join("_api/view").unwrap();
@@ -431,6 +449,10 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result)
     }
 
+    /// Return information about a View
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn view(&self, view_name: &str) -> Result<ViewDescription, ClientError> {
         let url = self
@@ -444,6 +466,10 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result)
     }
 
+    /// Read properties of a View
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn view_properties(
         &self,
@@ -460,6 +486,10 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result)
     }
 
+    /// Changes all the properties of an ArangoSearch
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn replace_view_properties(
         &self,
@@ -480,6 +510,10 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result)
     }
 
+    /// Partially changes properties of an ArangoSearch View
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn update_view_properties(
         &self,
@@ -500,6 +534,10 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result)
     }
 
+    /// Drops the View identified by view-name.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn drop_view(&self, view_name: &str) -> Result<bool, ClientError> {
         let url = self
@@ -523,6 +561,10 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result.unwrap())
     }
 
+    /// Create an Analyzer with the supplied definition
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn create_analyzer(
         &self,
@@ -539,6 +581,10 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result)
     }
 
+    /// Return the Analyzer definition
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn analyzer(&self, analyzer_name: &str) -> Result<AnalyzerInfo, ClientError> {
         let url = self
@@ -552,6 +598,10 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result)
     }
 
+    ///Removes an Analyzer configuration identified by analyzer_name.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn drop_analyzer(
         &self,

@@ -74,6 +74,54 @@ pub struct TransactionList {
     pub transactions: Vec<TransactionState>,
 }
 
+/// Represents a [`Transaction`] in ArangoDB.
+/// allow you to perform a multi-document transaction with individual begin and commit / abort commands.
+/// This is similar to the way traditional RDBMS do it with BEGIN, COMMIT and ROLLBACK operations.
+/// # Example
+/// ```
+/// # use arangors::Connection;
+/// # use arangors::Document;
+/// # use arangors::transaction::{TransactionCollections, TransactionSettings};
+/// # use serde_json::{json, Value};
+///
+/// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
+/// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+/// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
+/// # async fn main() -> Result<(),anyhow::Error>{
+/// # let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
+/// #     .await
+/// #     .unwrap();
+/// let database = conn.db("test_db").await.unwrap();
+///
+/// let tx = database.begin_transaction(
+///  TransactionSettings::builder()
+///      .lock_timeout(60000)
+///      .wait_for_sync(true)
+///      .collections(
+///          TransactionCollections::builder()
+///              .write(vec!["test_collection".to_owned()])
+///              .build(),
+///      )
+///     .build(),
+///  ).await.unwrap();
+///
+/// let test_doc: Document<Value> = Document::new(json!({
+///   "user_name":"test21",
+///  "user_name":"test21_pwd",
+/// }));
+///
+/// let collection = tx.collection("test_collection").await.unwrap();
+/// let document = collection
+///   .create_document(test_doc, Default::default())
+///   .await?;
+/// let header = document.header().unwrap();
+/// let _key = &header._key;
+///
+/// tx.abort().await.unwrap();
+/// # Ok(())
+/// # }
+/// ```
+
 pub struct Transaction<C: ClientExt> {
     id: String,
     status: Status,
