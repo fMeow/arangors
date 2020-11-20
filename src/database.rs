@@ -22,7 +22,6 @@ use crate::{
     index::{DeleteIndexResponse, Index, IndexCollection},
     response::{deserialize_response, ArangoResult},
     transaction::ArangoTransaction,
-    transaction::Status,
     transaction::Transaction,
     transaction::TransactionList,
     transaction::TransactionSettings,
