@@ -79,7 +79,7 @@ where
             _key: serde_json::from_value(_key.clone()).map_err(DeError::custom)?,
             _rev: serde_json::from_value(_rev.clone()).map_err(DeError::custom)?,
         };
-        let document = serde_json::from_value(obj).unwrap();
+        let document = serde_json::from_value(obj).map_err(DeError::custom)?;
 
         Ok(Document { header, document })
     }
