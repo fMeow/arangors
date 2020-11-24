@@ -9,6 +9,8 @@ use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::value::Value;
 use url::Url;
 
+use crate::graph::{GraphCollection, GraphResponse, GHARIAL_API_PATH};
+use crate::index::INDEX_API_PATH;
 use crate::{
     aql::{AqlQuery, Cursor},
     client::ClientExt,
@@ -18,6 +20,7 @@ use crate::{
         Collection, CollectionType,
     },
     connection::Version,
+    graph::Graph,
     index::{DeleteIndexResponse, Index, IndexCollection},
     response::{deserialize_response, ArangoResult},
     ClientError,
@@ -308,7 +311,7 @@ impl<'a, C: ClientExt> Database<C> {
         collection: &str,
         index: &Index,
     ) -> Result<Index, ClientError> {
-        let mut url = self.base_url.join("_api/index").unwrap();
+        let mut url = self.base_url.join(INDEX_API_PATH).unwrap();
         url.set_query(Some(&format!("collection={}", collection)));
 
         let resp = self
@@ -327,7 +330,10 @@ impl<'a, C: ClientExt> Database<C> {
     /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn index(&self, id: &str) -> Result<Index, ClientError> {
-        let url = self.base_url.join(&format!("_api/index/{}", id)).unwrap();
+        let url = self
+            .base_url
+            .join(&format!("{}/{}", INDEX_API_PATH, id))
+            .unwrap();
 
         let resp = self.session.get(url, "").await?;
 
@@ -342,7 +348,7 @@ impl<'a, C: ClientExt> Database<C> {
     /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn indexes(&self, collection: &str) -> Result<IndexCollection, ClientError> {
-        let mut url = self.base_url.join("_api/index").unwrap();
+        let mut url = self.base_url.join(INDEX_API_PATH).unwrap();
         url.set_query(Some(&format!("collection={}", collection)));
 
         let resp = self.session.get(url, "").await?;
@@ -358,12 +364,98 @@ impl<'a, C: ClientExt> Database<C> {
     /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn delete_index(&self, id: &str) -> Result<DeleteIndexResponse, ClientError> {
-        let url = self.base_url.join(&format!("_api/index/{}", id)).unwrap();
+        let url = self
+            .base_url
+            .join(&format!("{}/{}", INDEX_API_PATH, id))
+            .unwrap();
         let resp = self.session.delete(url, "").await?;
 
         let result: DeleteIndexResponse = deserialize_response::<DeleteIndexResponse>(resp.body())?;
 
         Ok(result)
+    }
+
+    /// Create a new graph in the graph module.
+    ///
+    /// # Arguments
+    /// * `graph` - The graph object to create, its name must be unique.
+    /// * `wait_for_sync` - define if the request should wait until everything is synced to disc.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn create_graph(
+        &self,
+        graph: Graph,
+        wait_for_sync: bool,
+    ) -> Result<Graph, ClientError> {
+        let mut url = self.base_url.join(GHARIAL_API_PATH).unwrap();
+
+        url.set_query(Some(&format!("waitForSync={}", wait_for_sync)));
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&graph)?)
+            .await?;
+
+        let result: GraphResponse = deserialize_response::<GraphResponse>(resp.body())?;
+
+        Ok(result.graph)
+    }
+
+    /// Retrieve an graph by name
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn graph(&self, name: &str) -> Result<Graph, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("{}/{}", GHARIAL_API_PATH, name))
+            .unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: GraphResponse = deserialize_response::<GraphResponse>(resp.body())?;
+
+        Ok(result.graph)
+    }
+
+    /// Retrieve the list of created graphs.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn graphs(&self) -> Result<GraphCollection, ClientError> {
+        let url = self.base_url.join(GHARIAL_API_PATH).unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: GraphCollection = deserialize_response::<GraphCollection>(resp.body())?;
+
+        Ok(result)
+    }
+
+    /// Drops an existing graph object by name. Optionally all collections not used by other graphs can be dropped as well.
+    ///
+    /// # Arguments
+    /// * `name` - The name of the graph to drop
+    /// * `drop_collections`- if set to `true`, drops collections of this graph as well.
+    /// Collections will only be dropped if they are not used in other graphs.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn drop_graph(&self, name: &str, drop_collections: bool) -> Result<(), ClientError> {
+        let mut url = self
+            .base_url
+            .join(&format!("{}/{}", GHARIAL_API_PATH, name))
+            .unwrap();
+
+        url.set_query(Some(&format!("dropCollections={}", drop_collections)));
+        self.session.delete(url, "").await?;
+
+        Ok(())
     }
 }
 

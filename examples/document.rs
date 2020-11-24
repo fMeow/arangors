@@ -28,7 +28,7 @@ async fn main() -> Result<(), Error> {
     let collection_name = "test_collection_document_example";
 
     let conn = Connection::establish_jwt(URL, "username", "password").await?;
-    let mut database = conn.db("test_db").await?;
+    let database = conn.db("test_db").await?;
     database.create_collection(collection_name).await.unwrap();
     let collection = database.collection(collection_name).await?;
 
