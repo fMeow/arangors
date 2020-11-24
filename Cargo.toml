@@ -32,7 +32,7 @@ arango3_7 = [ ]
 
 [dependencies]
 async-trait = "0.1"
-base64 = "0.12"
+base64 = "0.13"
 http = "0.2"
 log = "0.4"
 maybe-async = "0.2"
