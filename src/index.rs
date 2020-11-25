@@ -17,7 +17,7 @@
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
-pub const INDEX_API_PATH: &str = "_api/index";
+pub(crate) const INDEX_API_PATH: &str = "_api/index";
 
 /// Represents an [`Index`] in ArangoDB. The following types are
 /// supported:

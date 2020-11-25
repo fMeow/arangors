@@ -9,7 +9,7 @@
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
-pub const GHARIAL_API_PATH: &str = "_api/gharial";
+pub(crate) const GHARIAL_API_PATH: &str = "_api/gharial";
 
 /// Represents a Named Graph in ArangoDB.
 #[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
