@@ -390,7 +390,6 @@ impl<'a, C: ClientExt> Database<C> {
         wait_for_sync: bool,
     ) -> Result<Graph, ClientError> {
         let mut url = self.base_url.join(GHARIAL_API_PATH).unwrap();
-
         url.set_query(Some(&format!("waitForSync={}", wait_for_sync)));
 
         let resp = self
@@ -451,8 +450,8 @@ impl<'a, C: ClientExt> Database<C> {
             .base_url
             .join(&format!("{}/{}", GHARIAL_API_PATH, name))
             .unwrap();
-
         url.set_query(Some(&format!("dropCollections={}", drop_collections)));
+
         self.session.delete(url, "").await?;
 
         Ok(())

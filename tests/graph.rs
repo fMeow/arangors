@@ -24,13 +24,11 @@ pub mod common;
 async fn clean_graphs<C: ClientExt>(db: &Database<C>) {
     let count = db.graphs().await.unwrap();
     log::trace!("{} graphs found, deleting...", count.graphs.len());
-    println!("{} graphs found, deleting...", count.graphs.len());
     for a in count.graphs.iter() {
         db.drop_graph(&a.name, false).await.unwrap();
     }
     let count = db.graphs().await.unwrap();
     log::trace!("{} graphs found after deletion", count.graphs.len());
-    println!("{} graphs found after deletion", count.graphs.len());
 }
 
 #[maybe_async::test(
