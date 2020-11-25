@@ -21,14 +21,18 @@ use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup
 pub mod common;
 
 #[maybe_async::maybe_async]
-async fn clean_graphs<C: ClientExt>(db: &Database<C>) {
-    let count = db.graphs().await.unwrap();
-    log::trace!("{} graphs found, deleting...", count.graphs.len());
-    for a in count.graphs.iter() {
-        db.drop_graph(&a.name, false).await.unwrap();
+async fn drop_all_graphs<C: ClientExt>(db: &Database<C>, names: Vec<&str>) {
+    for name in names.iter() {
+        drop_graph(db, name).await;
     }
-    let count = db.graphs().await.unwrap();
-    log::trace!("{} graphs found after deletion", count.graphs.len());
+}
+
+#[maybe_async::maybe_async]
+async fn drop_graph<C: ClientExt>(db: &Database<C>, name: &str) {
+    match db.drop_graph(name, false).await {
+        Ok(()) => (),
+        Err(err) => println!("Failed to drop graph: {:?}", err),
+    }
 }
 
 #[maybe_async::test(
@@ -42,7 +46,7 @@ async fn test_simple_graph() {
 
     let database = conn.db("test_db").await.unwrap();
     // Cleanup
-    clean_graphs(&database).await;
+    drop_graph(&database, "test_graph").await;
 
     let graph = Graph::builder()
         .name("test_graph".to_string())
@@ -71,7 +75,7 @@ async fn test_graph_retrieval() {
 
     let database = conn.db("test_db").await.unwrap();
     // Cleanup
-    clean_graphs(&database).await;
+    drop_all_graphs(&database, vec!["test_graph1", "test_graph2", "test_graph3"]).await;
 
     let graph1 = Graph::builder()
         .name("test_graph1".to_string())
