@@ -17,6 +17,8 @@
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
+pub(crate) const INDEX_API_PATH: &str = "_api/index";
+
 /// Represents an [`Index`] in ArangoDB. The following types are
 /// supported:
 /// * Fulltext
@@ -59,6 +61,8 @@ use typed_builder::TypedBuilder;
 /// # Ok(())
 /// # }
 /// ```
+/// [`Index`]: struct.Index.html
+/// [`settings`]: enum.IndexSettings.html
 #[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct Index {

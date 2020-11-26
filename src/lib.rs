@@ -403,6 +403,7 @@ pub mod connection;
 pub mod database;
 pub mod document;
 pub mod error;
+pub mod graph;
 pub mod index;
 mod query;
 pub mod response;
