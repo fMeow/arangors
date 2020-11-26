@@ -87,7 +87,7 @@ pub struct TextAnalyzerProperties {
     pub stopwords: Option<Vec<String>>,
 
     /// Path with a `language` sub-directory containing files with words to omit.
-    /// 
+    ///
     /// Defaults to the path specified in the server-side environment variable
     /// IRESEARCH_TEXT_STOPWORD_PATH` or the current working directory of the
     /// ArangoDB process.
