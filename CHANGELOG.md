@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.5](https://github.com/guoli-lyu/arangors/compare/v0.4.4...v0.4.5) (2020-11-26)
+
+
+### Features
+
+* Graph Management ([#47](https://github.com/guoli-lyu/arangors/issues/47)) ([c9b4a53](https://github.com/guoli-lyu/arangors/commit/c9b4a53f2f88fa8225b7c11d0e044deca798aeb0))
+
+
+### Bug Fixes
+
+* use Error type instead of unwrap for Doc deser ([4d41a71](https://github.com/guoli-lyu/arangors/commit/4d41a71050ced7747b2485661796f30c4132a37d))
+
 ### [0.4.4](https://github.com/guoli-lyu/arangors/compare/v0.4.3...v0.4.4) (2020-11-15)
 
 
