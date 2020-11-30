@@ -23,13 +23,15 @@ pub struct Graph {
     pub edge_definitions: Vec<EdgeDefinition>,
     /// An array of additional vertex collections. Documents within these collections do not have edges within this graph.
     #[builder(default)]
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Vec::is_empty", default = "Vec::new")]
     pub orphan_collections: Vec<String>,
     /// Define if the created graph should be smart (Enterprise Edition only).
     #[builder(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_smart: Option<bool>,
     /// Whether to create a Disjoint SmartGraph instead of a regular SmartGraph (Enterprise Edition only).
     #[builder(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_disjoint: Option<bool>,
     /// a JSON object to define options for creating collections within this graph.
     #[builder(default)]
