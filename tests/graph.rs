@@ -5,7 +5,6 @@ use log::trace;
 use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
 
-use crate::common::{collection, connection};
 use arangors::client::ClientExt;
 use arangors::{
     collection::{
@@ -17,6 +16,8 @@ use arangors::{
     ClientError, Connection, Database, Document,
 };
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
+
+use crate::common::{collection, connection};
 
 pub mod common;
 
@@ -111,4 +112,17 @@ async fn test_graph_retrieval() {
 
     let result = database.graph("test_graph2").await.unwrap();
     assert_eq!(result.name, "test_graph2");
+}
+
+// This tests the default value of `orphanCollections` which can't be optional but can be empty
+#[test]
+fn minimal_serialization_works() {
+    let json = json!(
+     {
+         "name": "GraphName",
+         "edgeDefinitions": []
+     }
+    );
+    let graph: Graph = serde_json::from_value(json).unwrap();
+    assert!(graph.orphan_collections.is_empty());
 }
