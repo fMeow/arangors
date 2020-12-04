@@ -12,7 +12,7 @@ use typed_builder::TypedBuilder;
 pub(crate) const GHARIAL_API_PATH: &str = "_api/gharial";
 
 /// Represents a Named Graph in ArangoDB.
-#[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct Graph {
     /// Name of the graph
@@ -42,7 +42,7 @@ pub struct Graph {
 /// Represents the available options for a [`Graph`] Creation
 ///
 /// [`Graph`]: struct.Graph.html
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphOptions {
     /// Only has effect in Enterprise Edition and it is required if isSmart is true.
@@ -70,7 +70,7 @@ pub struct GraphOptions {
 /// Represents one Edge definition for a [`Graph`] Creation.
 ///
 /// [`Graph`]: struct.Graph.html
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EdgeDefinition {
     /// Name of the edge collection
@@ -84,7 +84,7 @@ pub struct EdgeDefinition {
 /// Represents a collection of [`Graphs`] on a database in ArangoDB.
 ///
 /// [`Graphs`]: struct.Graph.html
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphCollection {
     pub graphs: Vec<Graph>,
@@ -93,7 +93,7 @@ pub struct GraphCollection {
 /// Represents a [`Graph`] as returned by ArangoDB after a HTTP retrieval
 ///
 /// [`Graph`]: struct.Graph.html
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GraphResponse {
     pub graph: Graph,

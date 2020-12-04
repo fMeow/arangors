@@ -63,7 +63,7 @@ pub(crate) const INDEX_API_PATH: &str = "_api/index";
 /// ```
 /// [`Index`]: struct.Index.html
 /// [`settings`]: enum.IndexSettings.html
-#[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct Index {
     #[builder(default)]
@@ -85,7 +85,7 @@ pub struct Index {
 
 /// Settings for the different index types. This `enum` also sets the index
 /// type.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum IndexSettings {
     Primary {
