@@ -65,9 +65,9 @@
 //! - (WIP) Milestone 1.0.x
 //!
 //!     Provides the API related to:
-//!     - [X] Graph Management
-//!     - [X] Index Management
-//!     - [ ] User Management
+//!     - (X) Graph Management
+//!     - (X) Index Management
+//!     - ( ) User Management
 //!
 //!     In this stage, all operations available for database, collection and
 //!     document should be implemented.

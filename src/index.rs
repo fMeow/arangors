@@ -9,11 +9,13 @@
 //! * Skiplist
 //! * Ttl (Time to live)
 //!
-//! An index of type [`Primary`] cannot be created and is only available for
+//! An index of type [Primary] cannot be created and is only available for
 //! the retrieval of existing indexes, as ArangoDB creates a primary index on
 //! every collection.
 //! For detailed information about ArangoDB indexes, please check out the
 //! official ArangoDB [documentation](https://www.arangodb.com/docs/stable/http/indexes.html).
+//!
+//! [Primary]: https://www.arangodb.com/docs/stable/http/indexes.html#primary-index
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 

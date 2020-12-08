@@ -49,10 +49,10 @@ pub struct GraphOptions {
     /// The attribute name that is used to smartly shard the vertices of a graph.
     /// Every vertex in this SmartGraph has to have this attribute. Cannot be modified later.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub smart_graph_attribute: Option<bool>,
+    pub smart_graph_attribute: Option<String>,
     /// The number of shards that is used for every collection within this graph. Cannot be modified later.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub number_of_shards: Option<bool>,
+    pub number_of_shards: Option<u32>,
     /// The replication factor used when initially creating collections for this graph.
     /// Can be set to "satellite" to create a SatelliteGraph, which will ignore numberOfShards,
     /// minReplicationFactor and writeConcern (Enterprise Edition only).
