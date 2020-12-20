@@ -9,11 +9,13 @@
 //! * Skiplist
 //! * Ttl (Time to live)
 //!
-//! An index of type [`Primary`] cannot be created and is only available for
+//! An index of type [Primary] cannot be created and is only available for
 //! the retrieval of existing indexes, as ArangoDB creates a primary index on
 //! every collection.
 //! For detailed information about ArangoDB indexes, please check out the
 //! official ArangoDB [documentation](https://www.arangodb.com/docs/stable/http/indexes.html).
+//!
+//! [Primary]: https://www.arangodb.com/docs/stable/http/indexes.html#primary-index
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
@@ -63,7 +65,7 @@ pub(crate) const INDEX_API_PATH: &str = "_api/index";
 /// ```
 /// [`Index`]: struct.Index.html
 /// [`settings`]: enum.IndexSettings.html
-#[derive(Debug, Serialize, Deserialize, Default, TypedBuilder)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, TypedBuilder)]
 #[serde(rename_all = "camelCase")]
 pub struct Index {
     #[builder(default)]
@@ -85,7 +87,7 @@ pub struct Index {
 
 /// Settings for the different index types. This `enum` also sets the index
 /// type.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum IndexSettings {
     Primary {

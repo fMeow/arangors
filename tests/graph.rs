@@ -70,6 +70,51 @@ async fn test_simple_graph() {
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
+async fn test_complex_graph() {
+    test_setup();
+    let conn = connection().await;
+
+    let database = conn.db("test_db").await.unwrap();
+    // Cleanup
+    drop_graph(&database, "test_complex_graph").await;
+
+    let graph = Graph::builder()
+        .name("test_complex_graph".to_string())
+        .edge_definitions(vec![EdgeDefinition {
+            collection: "some_edge".to_string(),
+            from: vec!["from_collection".to_string()],
+            to: vec!["to_collection".to_string()],
+        }])
+        .orphan_collections(vec!["some_collection".to_string()])
+        .is_smart(Some(true))
+        .is_disjoint(Some(false))
+        .options(Some(GraphOptions {
+            smart_graph_attribute: Some("region".to_string()),
+            number_of_shards: Some(2),
+            replication_factor: Some(10),
+            write_concern: Some(8),
+        }))
+        .build();
+    let result = database.create_graph(graph, true).await.unwrap();
+    assert_eq!(result.name, "test_complex_graph".to_string());
+    assert_eq!(result.orphan_collections.len(), 1);
+    // Would work only with Enterprise Edition
+    //
+    // assert_eq!(result.is_disjoint.unwrap(), false);
+    // assert_eq!(result.is_smart.unwrap(), true);
+    // assert!(result.options.is_some());
+    // let options = result.options.unwrap();
+    // assert_eq!(options.number_of_shards.unwrap(), 2);
+    // assert_eq!(options.replication_factor.unwrap(),10);
+    // assert_eq!(options.write_concern.unwrap(), 8);
+    // assert_eq!(options.smart_graph_attribute.unwrap(), "region".to_string());
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
 async fn test_graph_retrieval() {
     test_setup();
     let conn = connection().await;
