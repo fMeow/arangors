@@ -40,11 +40,15 @@ use http::header::{HeaderMap, AUTHORIZATION, SERVER};
 use log::{debug, trace};
 use maybe_async::maybe_async;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use url::Url;
 
 use crate::{client::ClientExt, response::ArangoResult, ClientError};
 
 use super::{database::Database, response::deserialize_response};
+
+#[cfg(feature = "cluster")]
+use self::options::{ClusterHealth, CreateDatabase, CreateDatabaseOptions};
 
 use self::{
     auth::Auth,
@@ -52,6 +56,7 @@ use self::{
 };
 
 mod auth;
+pub mod options;
 
 pub mod role {
     #[derive(Debug)]
@@ -164,6 +169,41 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
         let resp = self.session.get(url, "").await?;
         let result: ArangoResult<HashMap<String, Permission>> = deserialize_response(resp.body())?;
         Ok(result.unwrap())
+    }
+
+    // Returns the role of a server in a cluster. The role is returned in the role attribute of the result
+    ///
+    /// Possible return values for role are:
+    /// SINGLE: the server is a standalone server without clustering
+    /// COORDINATOR: the server is a Coordinator in a cluster
+    /// PRIMARY: the server is a DB-Server in a cluster
+    /// SECONDARY: this role is not used anymore
+    /// AGENT: the server is an Agency node in a cluster
+    /// UNDEFINED: in a cluster, UNDEFINED is returned if the server role cannot be determined.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn server_role(&self) -> Result<String, ClientError> {
+        let url = self.arango_url.join("/_admin/server/role").unwrap();
+        let resp = self.session.get(url, "").await?;
+        let result: HashMap<String, Value> = deserialize_response(resp.body())?;
+
+        Ok(result.get("role").unwrap().as_str().unwrap().to_owned())
+    }
+
+    /// Returns the health of the cluster as assessed by the supervision (Agency)
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    #[cfg(feature = "cluster")]
+    pub async fn cluster_health(&self) -> Result<ClusterHealth, ClientError> {
+        let url = self.arango_url.join("/_admin/cluster/health").unwrap();
+        let resp = self.session.get(url, "").await?;
+        let result: ClusterHealth = deserialize_response(resp.body())?;
+
+        Ok(result)
     }
 }
 
@@ -362,6 +402,28 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         let resp = self
             .session
             .post(url, &serde_json::to_string(&map)?)
+            .await?;
+
+        deserialize_response::<ArangoResult<bool>>(resp.body())?;
+        self.db(name).await
+    }
+
+    #[maybe_async]
+    #[cfg(feature = "cluster")]
+    pub async fn create_database_with_options(
+        &self,
+        name: &str,
+        options: CreateDatabaseOptions,
+    ) -> Result<Database<C>, ClientError> {
+        let url = self.arango_url.join("/_api/database").unwrap();
+        let final_options = CreateDatabase::builder()
+            .name(name)
+            .options(options)
+            .build();
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&final_options)?)
             .await?;
 
         deserialize_response::<ArangoResult<bool>>(resp.body())?;

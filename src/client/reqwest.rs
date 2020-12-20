@@ -9,21 +9,38 @@ use http::header::HeaderMap;
 
 use super::*;
 use crate::client::ClientExt;
+use crate::transaction::TRANSACTION_HEADER;
 
 #[derive(Debug, Clone)]
-pub struct ReqwestClient(pub Client);
+pub struct ReqwestClient {
+    pub client: Client,
+    pub headers: HeaderMap,
+}
 
 #[maybe_async::maybe_async]
 impl ClientExt for ReqwestClient {
     fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
         let client = Client::builder().gzip(true);
-        match headers.into() {
-            Some(h) => client.default_headers(h),
-            None => client,
+        let headers = match headers.into() {
+            Some(h) => h,
+            None => HeaderMap::new(),
+        };
+
+        client
+            .default_headers(headers.clone())
+            .build()
+            .map(|c| ReqwestClient { client: c, headers })
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
+    }
+
+    fn copy_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
+        let mut headers = HeaderMap::new();
+        for (name, value) in self.headers.iter() {
+            headers.insert(name, value.clone());
         }
-        .build()
-        .map(|c| ReqwestClient(c))
-        .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
+
+        headers.insert(TRANSACTION_HEADER, transaction_id.parse().unwrap());
+        ReqwestClient::new(headers)
     }
 
     async fn request(
@@ -33,7 +50,7 @@ impl ClientExt for ReqwestClient {
         let req = request.try_into().unwrap();
 
         let resp = self
-            .0
+            .client
             .execute(req)
             .await
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))?;
@@ -51,7 +68,7 @@ impl ClientExt for ReqwestClient {
             build = build.header(header.0, header.1);
         }
 
-        http::response::Builder::from(build)
+        build
             .status(status_code)
             .version(version)
             .body(content)

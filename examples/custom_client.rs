@@ -46,6 +46,17 @@ impl ClientExt for ReqwestClient {
         .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 
+    fn copy_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
+        let request = self.0.get("/").build().unwrap();
+        let original_headers = request.headers();
+        let mut headers = HeaderMap::new();
+        for (name, value) in original_headers.iter() {
+            headers.insert(name, value.clone());
+        }
+        headers.insert("x-arango-trx-id", transaction_id.parse().unwrap());
+        ReqwestClient::new(headers)
+    }
+
     async fn request(
         &self,
         request: http::Request<String>,

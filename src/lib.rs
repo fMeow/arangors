@@ -399,6 +399,7 @@ pub use crate::{
     error::{ArangoError, ClientError},
 };
 
+pub mod analyzer;
 pub mod aql;
 pub mod client;
 pub mod collection;
@@ -410,3 +411,5 @@ pub mod graph;
 pub mod index;
 mod query;
 mod response;
+pub mod transaction;
+pub mod view;

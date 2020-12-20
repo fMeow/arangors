@@ -12,6 +12,7 @@ use url::Url;
 use crate::graph::{GraphCollection, GraphResponse, GHARIAL_API_PATH};
 use crate::index::INDEX_API_PATH;
 use crate::{
+    analyzer::{AnalyzerDescription, AnalyzerInfo},
     aql::{AqlQuery, Cursor},
     client::ClientExt,
     collection::{
@@ -23,6 +24,15 @@ use crate::{
     graph::Graph,
     index::{DeleteIndexResponse, Index, IndexCollection},
     response::{deserialize_response, ArangoResult},
+    transaction::ArangoTransaction,
+    transaction::Transaction,
+    transaction::TransactionList,
+    transaction::TransactionSettings,
+    transaction::TransactionState,
+    view::ArangoSearchViewProperties,
+    view::ArangoSearchViewPropertiesOptions,
+    view::ViewDescription,
+    view::{View, ViewOptions},
     ClientError,
 };
 
@@ -455,6 +465,247 @@ impl<'a, C: ClientExt> Database<C> {
         self.session.delete(url, "").await?;
 
         Ok(())
+    }
+
+    /// Return the currently running server-side transactions
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn list_transactions(&self) -> Result<Vec<TransactionState>, ClientError> {
+        let url = self.base_url.join("_api/transaction").unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: TransactionList = deserialize_response(resp.body())?;
+        Ok(result.transactions)
+    }
+
+    /// Begin a server-side transaction, the transaction settings should specify
+    /// at least collections to be updated through the write list
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn begin_transaction(
+        &self,
+        transaction_settings: TransactionSettings,
+    ) -> Result<Transaction<C>, ClientError> {
+        let url = self.base_url.join("_api/transaction/begin").unwrap();
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&transaction_settings)?)
+            .await?;
+
+        let result: ArangoResult<ArangoTransaction> = deserialize_response(resp.body())?;
+        let transaction = result.unwrap();
+        let tx_id = transaction.id.clone();
+        Ok(Transaction::<C>::new(
+            transaction,
+            Arc::new(self.session.copy_with_transaction(tx_id)?),
+            self.base_url.clone(),
+        ))
+    }
+
+    /// Returns an object containing a listing of all Views in a database, regardless of their typ
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn list_views(&self) -> Result<Vec<ViewDescription>, ClientError> {
+        let url = self.base_url.join("_api/view").unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: ArangoResult<Vec<ViewDescription>> = deserialize_response(resp.body())?;
+        Ok(result.unwrap())
+    }
+
+    /// Creates an ArangoSearch View
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn create_view(&self, view_options: ViewOptions) -> Result<View, ClientError> {
+        let url = self.base_url.join("_api/view").unwrap();
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&view_options)?)
+            .await?;
+
+        let result: View = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Return information about a View
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn view(&self, view_name: &str) -> Result<ViewDescription, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/view/{}", view_name))
+            .unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: ViewDescription = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Read properties of a View
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn view_properties(
+        &self,
+        view_name: &str,
+    ) -> Result<ArangoSearchViewProperties, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/view/{}/properties", view_name))
+            .unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: ArangoSearchViewProperties = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Changes all the properties of an ArangoSearch
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn replace_view_properties(
+        &self,
+        view_name: &str,
+        properties: ArangoSearchViewPropertiesOptions,
+    ) -> Result<View, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/view/{}/properties", view_name))
+            .unwrap();
+
+        let resp = self
+            .session
+            .put(url, &serde_json::to_string(&properties)?)
+            .await?;
+
+        let result: View = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Partially changes properties of an ArangoSearch View
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn update_view_properties(
+        &self,
+        view_name: &str,
+        properties: ArangoSearchViewPropertiesOptions,
+    ) -> Result<View, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/view/{}/properties", view_name))
+            .unwrap();
+
+        let resp = self
+            .session
+            .patch(url, &serde_json::to_string(&properties)?)
+            .await?;
+
+        let result: View = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Drops the View identified by view-name.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn drop_view(&self, view_name: &str) -> Result<bool, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/view/{}", view_name))
+            .unwrap();
+
+        let resp = self.session.delete(url, "").await?;
+
+        let result: ArangoResult<bool> = deserialize_response(resp.body())?;
+        Ok(result.unwrap())
+    }
+
+    #[maybe_async]
+    pub async fn list_analyzers(&self) -> Result<Vec<AnalyzerInfo>, ClientError> {
+        let url = self.base_url.join("_api/analyzer").unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: ArangoResult<Vec<AnalyzerInfo>> = deserialize_response(resp.body())?;
+        Ok(result.unwrap())
+    }
+
+    /// Create an Analyzer with the supplied definition
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn create_analyzer(
+        &self,
+        analyzer: AnalyzerInfo,
+    ) -> Result<AnalyzerInfo, ClientError> {
+        let url = self.base_url.join("_api/analyzer").unwrap();
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&analyzer)?)
+            .await?;
+
+        let result: AnalyzerInfo = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Return the Analyzer definition
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn analyzer(&self, analyzer_name: &str) -> Result<AnalyzerInfo, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/analyzer/{}", analyzer_name))
+            .unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: AnalyzerInfo = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    ///Removes an Analyzer configuration identified by analyzer_name.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn drop_analyzer(
+        &self,
+        analyzer_name: &str,
+    ) -> Result<AnalyzerDescription, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/analyzer/{}", analyzer_name))
+            .unwrap();
+
+        let resp = self.session.delete(url, "").await?;
+
+        let result: AnalyzerDescription = deserialize_response(resp.body())?;
+        Ok(result)
     }
 }
 

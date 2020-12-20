@@ -32,9 +32,7 @@ fn bool2int<S>(v: &Option<bool>, ser: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    if v.is_none() {
-        ser.serialize_i8(1)
-    } else if *v.as_ref().unwrap() {
+    if v.is_none() || *v.as_ref().unwrap() {
         ser.serialize_i8(1)
     } else {
         ser.serialize_i8(0)
@@ -110,7 +108,7 @@ pub struct CreateOptions<'a> {
 
     /// whether or not the collection will be compacted (default is true) This
     /// option is meaningful for the MMFiles storage engine only.
-    #[cfg(mmfiles)]
+    #[cfg(feature = "mmfiles")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     do_compat: Option<bool>,
@@ -118,7 +116,7 @@ pub struct CreateOptions<'a> {
     /// The maximal size of a journal or datafile in bytes. The value must be at
     /// least 1048576 (1 MiB). (The default is a configuration parameter) This
     /// option is meaningful for the MMFiles storage engine only.
-    #[cfg(mmfiles)]
+    #[cfg(feature = "mmfiles")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     journal_size: Option<usize>,
@@ -132,7 +130,7 @@ pub struct CreateOptions<'a> {
     /// This option should therefore be used for cache-type collections only,
     /// and not for data that cannot be re-created otherwise. (The default is
     /// false) This option is meaningful for the MMFiles storage engine only.
-    #[cfg(mmfiles)]
+    #[cfg(feature = "mmfiles")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     is_volatile: Option<bool>,
@@ -140,7 +138,7 @@ pub struct CreateOptions<'a> {
     /// (The default is 1): in a cluster, this value determines the number of
     /// shards to create for the collection. In a single server setup, this
     /// option is meaningless.
-    #[cfg(cluster)]
+    #[cfg(feature = "cluster")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     number_of_shards: Option<usize>,
@@ -151,10 +149,10 @@ pub struct CreateOptions<'a> {
     /// document are hashed, and the hash value is used to determine the target
     /// shard. Note: Values of shard key attributes cannot be changed once set.
     /// This option is meaningless in a single server setup.
-    #[cfg(cluster)]
+    #[cfg(feature = "cluster")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
-    shard_keys: Option<String>,
+    shard_keys: Option<Vec<String>>,
 
     /// (The default is 1): in a cluster, this attribute determines how many
     /// copies of each shard are kept on different DB-Servers. The value 1 means
@@ -170,7 +168,7 @@ pub struct CreateOptions<'a> {
     ///
     /// If a server fails, this is detected automatically and one of the servers
     /// holding copies take over, usually without an error being reported.
-    #[cfg(cluster)]
+    #[cfg(feature = "cluster")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     replication_factor: Option<usize>,
@@ -182,7 +180,7 @@ pub struct CreateOptions<'a> {
     /// the cluster a shard will refuse to write. Writes to shards with enough
     /// up-to-date copies will succeed at the same time however. The value of
     /// writeConcern can not be larger than replicationFactor. (cluster only)
-    #[cfg(cluster)]
+    #[cfg(feature = "cluster")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     write_concern: Option<usize>,
@@ -195,7 +193,7 @@ pub struct CreateOptions<'a> {
     /// dropped. Equally, backups and restores of imitating collections alone
     /// will generate warnings (which can be overridden) about missing sharding
     /// prototype.
-    #[cfg(enterprise)]
+    #[cfg(feature = "enterprise")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     distribute_shards_like: Option<String>,
@@ -213,7 +211,7 @@ pub struct CreateOptions<'a> {
     /// ‘:’ at the end. A further restriction is that whenever documents are
     /// stored or updated in the collection, the value stored in the
     /// smartJoinAttribute must be a string.
-    #[cfg(enterprise)]
+    #[cfg(feature = "enterprise")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     smart_join_attribute: Option<String>,

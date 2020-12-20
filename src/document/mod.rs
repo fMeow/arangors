@@ -69,11 +69,17 @@ where
 
         let json = obj
             .as_object_mut()
-            .ok_or(DeError::custom("should be a json object"))?;
+            .ok_or_else(|| DeError::custom("should be a json object"))?;
 
-        let _id = json.get("_id").ok_or(DeError::missing_field("_id"))?;
-        let _key = json.get("_key").ok_or(DeError::missing_field("_key"))?;
-        let _rev = json.get("_rev").ok_or(DeError::missing_field("_rev"))?;
+        let _id = json
+            .get("_id")
+            .ok_or_else(|| DeError::missing_field("_id"))?;
+        let _key = json
+            .get("_key")
+            .ok_or_else(|| DeError::missing_field("_key"))?;
+        let _rev = json
+            .get("_rev")
+            .ok_or_else(|| DeError::missing_field("_rev"))?;
         let header: Header = Header {
             _id: serde_json::from_value(_id.clone()).map_err(DeError::custom)?,
             _key: serde_json::from_value(_key.clone()).map_err(DeError::custom)?,

@@ -21,6 +21,7 @@ use crate::{
         Header,
     },
     response::{deserialize_response, ArangoResult},
+    transaction::Transaction,
     ClientError,
 };
 
@@ -83,6 +84,19 @@ impl<'a, C: ClientExt> Collection<C> {
             collection.collection_type,
             database.url(),
             database.session(),
+        )
+    }
+
+    pub(crate) fn from_transaction_response(
+        transaction: &Transaction<C>,
+        collection: &Info,
+    ) -> Collection<C> {
+        Self::new(
+            &collection.name,
+            &collection.id,
+            collection.collection_type,
+            transaction.url(),
+            transaction.session(),
         )
     }
 
