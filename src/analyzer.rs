@@ -17,6 +17,13 @@ pub enum AnalyzerCase {
     Upper,
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum NgramStreamType {
+    Binary,
+    Utf8,
+}
+
 #[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 pub struct DelimiterAnalyzerProperties {
@@ -63,6 +70,11 @@ pub struct NgramAnalyzerProperties {
 
     /// Output the original value as well.
     pub preserve_original: bool,
+
+    /// Type of the input stream.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default, setter(strip_option))]
+    pub stream_type: Option<NgramStreamType>,
 }
 
 #[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
