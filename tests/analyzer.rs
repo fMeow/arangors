@@ -3,7 +3,8 @@
 use crate::common::{collection, connection};
 
 use arangors::analyzer::{
-    AnalyzerCase, AnalyzerFeature, AnalyzerInfo, NgramAnalyzerProperties, NormAnalyzerProperties,
+    AnalyzerCase, AnalyzerFeature, AnalyzerInfo, NgramAnalyzerProperties, NgramStreamType,
+    NormAnalyzerProperties,
 };
 use arangors::{
     client::ClientExt,
@@ -55,6 +56,7 @@ async fn create_ngram_analyzer<C: ClientExt>(
                 .min(2)
                 .max(2)
                 .preserve_original(false)
+                .stream_type(NgramStreamType::Utf8)
                 .build(),
         ),
     };
