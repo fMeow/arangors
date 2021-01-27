@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.6](https://github.com/fMeow/arangors/compare/v0.4.5...v0.4.6) (2021-01-27)
+
+
+### Features
+
+* Graph Options correction, Clone Implementation on public structs ([#51](https://github.com/fMeow/arangors/issues/51)) ([a669281](https://github.com/fMeow/arangors/commit/a66928112d8c022a7fb5f68aec872db4edcd8f7a))
+* Support for transactions, analyzers and views ([#38](https://github.com/fMeow/arangors/issues/38)) ([1be43eb](https://github.com/fMeow/arangors/commit/1be43ebef82a66ff1f203845b279a1ac8907da67))
+
 ### [0.4.5](https://github.com/guoli-lyu/arangors/compare/v0.4.4...v0.4.5) (2020-11-26)
 
 
