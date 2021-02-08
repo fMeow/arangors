@@ -766,6 +766,14 @@ impl<'a, C: ClientExt> Collection<C> {
             deserialize_response(self.session.request(req).await?.body())?;
         Ok(resp)
     }
+
+    /// Returns a new Collection with its `session` updated with the transaction id
+    pub fn copy_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
+        Ok(Self {
+            session: Arc::new(self.session.copy_with_transaction(transaction_id)?),
+            ..self.clone()
+        })
+    }
 }
 
 /// Create header name and header value from read_options
