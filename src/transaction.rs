@@ -142,10 +142,12 @@ where
         }
     }
 
+    /// Returns the current transaction status (running, aborted or comitted)
     pub fn status(&self) -> &Status {
         &self.status
     }
 
+    /// Returns the transaction id
     pub fn id(&self) -> &String {
         &self.id
     }
@@ -154,10 +156,17 @@ where
         &self.base_url
     }
 
+    /// The transaction session, contains the streaming transaction header value
     pub fn session(&self) -> Arc<C> {
         Arc::clone(&self.session)
     }
 
+    /// Tries to commit the transaction, consuming the current object.
+    ///
+    /// On success all submitted operations will be written in the database and can no longer be aborted.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn commit_transaction(self) -> Result<Status, ClientError> {
         let url = self
@@ -172,6 +181,13 @@ where
         Ok(result.unwrap().status)
     }
 
+    /// Tries to commit the transaction.
+    ///
+    /// On success all submitted operations will be written in the database and can no longer be aborted.
+    /// A transaction can be committed multiple times.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn commit(&self) -> Result<Status, ClientError> {
         let url = self
@@ -186,6 +202,18 @@ where
         Ok(result.unwrap().status)
     }
 
+    /// Tries to abort the transaction.
+    ///
+    /// On success all submitted operations will be cancelled and can no longer be committed.
+    /// A ransaction can be aborted multiple times without error.
+    ///
+    /// # Warning
+    ///
+    /// If the transaction is aborted, then it means deletion on the server side. The current object
+    /// can no longer be used for operations or commit.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn abort(&self) -> Result<Status, ClientError> {
         let url = self
@@ -200,6 +228,14 @@ where
         Ok(result.unwrap().status)
     }
 
+    /// Get collection object with name.
+    ///
+    /// The returned collection object will share its session with the transaction, meaning all
+    /// operations using the colleciton will be transactional and require a transaction commit to be writen
+    /// in ArangoDB.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
     #[maybe_async]
     pub async fn collection(&self, name: &str) -> Result<Collection<C>, ClientError> {
         let url = self
