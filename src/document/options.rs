@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
 /// Options for document insertion.
-#[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, TypedBuilder)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct InsertOptions {
@@ -68,7 +68,7 @@ impl Default for InsertOptions {
 }
 
 /// Options for document update,
-#[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, TypedBuilder)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateOptions {
@@ -122,7 +122,7 @@ impl Default for UpdateOptions {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum OverwriteMode {
     /// If a document with the specified _key value exists already,
@@ -164,7 +164,7 @@ pub enum OverwriteMode {
 }
 
 /// Options for document replace,
-#[derive(Serialize, Deserialize, TypedBuilder)]
+#[derive(Debug, Serialize, Deserialize, TypedBuilder)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplaceOptions {
@@ -204,7 +204,7 @@ impl Default for ReplaceOptions {
 }
 
 /// Options for document reading.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ReadOptions {
     /// If the “If-None-Match” header is given, then it must contain exactly one
@@ -225,7 +225,7 @@ impl Default for ReadOptions {
 }
 
 /// Options for document removes,
-#[derive(Serialize, Deserialize, TypedBuilder)]
+#[derive(Debug, Serialize, Deserialize, TypedBuilder)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct RemoveOptions {
