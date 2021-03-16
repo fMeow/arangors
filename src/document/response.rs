@@ -39,7 +39,7 @@ impl<T> DocumentResponse<T> {
     }
     /// Should be true if there is a response from the server
     pub fn has_response(&self) -> bool {
-        matches!(self,  DocumentResponse::Response { .. })
+        matches!(self, DocumentResponse::Response { .. })
     }
 
     /// Return the document header contained inside the response
