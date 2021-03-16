@@ -121,7 +121,7 @@ pub struct TransactionList {
 /// # Ok(())
 /// # }
 /// ```
-
+#[derive(Debug)]
 pub struct Transaction<C: ClientExt> {
     id: String,
     status: Status,
