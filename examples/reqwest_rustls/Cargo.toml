@@ -11,10 +11,10 @@ edition = "2018"
 # but DO NOT add `reqwest_async`, `reqwest_blocking` or `surf_async`.
 arangors = { path = "../../", default-features = false }
 anyhow = "1"
-tokio = {version = "1", features = ["macros", "rt-multi-thread"]}
+tokio = { version = "1", features = [ "macros", "rt-multi-thread" ] }
 
 # required dependencies for ReqwestClient
-reqwest = {version = "0.11", features = [ "gzip", "json", "rustls-tls" ]}
+reqwest = { version = "0.11", features = [ "gzip", "json", "rustls-tls" ], default-features = false }
 async-trait = "0.1"
 http = "0.2"
 
