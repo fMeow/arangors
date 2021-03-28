@@ -357,13 +357,12 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         map.insert("username", username.into());
         map.insert("password", password.into());
 
-        let jwt: JWT = serde_json::from_str(
+        let jwt: JWT = deserialize_response(
             C::new(None)?
                 .post(url, &serde_json::to_string(&map)?)
                 .await?
                 .body(),
-        )
-        .unwrap();
+        )?;
         Ok(jwt.jwt)
     }
 
