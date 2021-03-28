@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.7](https://github.com/fMeow/arangors/compare/v0.4.6...v0.4.7) (2021-03-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* **client:** rename copy_with_transaction to clone_with_transaction
+* NgramAnalyzerProperties.preserve_riginal is renamed to preserve_original
+
+### Features
+
+* **client:** rename copy_with_transaction ([2c81c78](https://github.com/fMeow/arangors/commit/2c81c78f935f605df33792bce2f6455117290686))
+* Add Debug derive on same options structs ([10c5265](https://github.com/fMeow/arangors/commit/10c526528c4e9a31ba1879eaf14db6b7c9d35bfb))
+* **collection:** clone_with_transaction ([79379f5](https://github.com/fMeow/arangors/commit/79379f5f432366e98469534201d0a0afd9c428ba))
+
+
+### Bug Fixes
+
+* catch error for wrong credentials for connection([#69](https://github.com/fMeow/arangors/issues/69)) ([f8c3303](https://github.com/fMeow/arangors/commit/f8c3303b8dfed894ab1939ac5eab8a4c3cbf2780))
+* disable openssl in example reqwest_rustls ([375ecf4](https://github.com/fMeow/arangors/commit/375ecf48418d648ecbfd855f0acda6d36022f205))
+* enable multi-thread feature on tokio ([56e17d5](https://github.com/fMeow/arangors/commit/56e17d52b1f6e46641fefc2cf04c5a4fcaa792b9))
+* fix typo in 'NgramAnalyzerProperties' ([#61](https://github.com/fMeow/arangors/issues/61)) ([361f31b](https://github.com/fMeow/arangors/commit/361f31ba9912dda7a82d3832d6709b4e42a6c8a7))
+* rename copy_with_transaction to clone_with_transaction ([bda9457](https://github.com/fMeow/arangors/commit/bda9457d156b0e9dd394adcb1633e75c9469f3f2))
+
 ### [0.4.6](https://github.com/fMeow/arangors/compare/v0.4.5...v0.4.6) (2021-01-27)
 
 
