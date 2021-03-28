@@ -43,7 +43,7 @@ pub trait ClientExt: Sync + Clone {
     where
         Self: Sized;
 
-    fn copy_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError>
+    fn clone_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError>
     where
         Self: Sized;
 
