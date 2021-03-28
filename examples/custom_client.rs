@@ -46,7 +46,7 @@ impl ClientExt for ReqwestClient {
         .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 
-    fn copy_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
+    fn clone_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
         let request = self.0.get("/").build().unwrap();
         let original_headers = request.headers();
         let mut headers = HeaderMap::new();

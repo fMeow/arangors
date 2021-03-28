@@ -503,7 +503,7 @@ impl<'a, C: ClientExt> Database<C> {
         let tx_id = transaction.id.clone();
         Ok(Transaction::<C>::new(
             transaction,
-            Arc::new(self.session.copy_with_transaction(tx_id)?),
+            Arc::new(self.session.clone_with_transaction(tx_id)?),
             self.base_url.clone(),
         ))
     }

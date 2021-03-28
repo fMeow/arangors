@@ -770,7 +770,7 @@ impl<'a, C: ClientExt> Collection<C> {
     /// Returns a new Collection with its `session` updated with the transaction id
     pub fn clone_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
         Ok(Self {
-            session: Arc::new(self.session.copy_with_transaction(transaction_id)?),
+            session: Arc::new(self.session.clone_with_transaction(transaction_id)?),
             ..self.clone()
         })
     }
