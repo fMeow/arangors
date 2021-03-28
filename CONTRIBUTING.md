@@ -65,6 +65,44 @@ feat: allow provided config object to extend other configs
 BREAKING CHANGE: `extends` key in config file is now used for extending other config files
 ```
 
+## Add New API
+
+### Make Request to Server
+A typical http response from arango database server is like the following:
+```json
+{"result":[], "error":false,"code":201}
+```
+
+For an API that make http requests to arango database server, please use 
+[`deserialize_response`](https://github.com/fMeow/arangors/blob/6162a6a966ce42f063452303671ae8e577190a4a/src/response.rs#L28)
+to deserialize http response. With `deserialize_response`, we can focus on 
+deserializing data in "result".
+Additionally, this handy function automatically convert a server error to `ClientError`.
+
+### Options and Responses
+
+Please use `TypedBuilder` on server API request options. Here is an example:
+
+```rust
+/// Documentation on the options
+#[derive(Serialize, PartialEq, TypedBuilder)]
+#[builder(doc)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateDatabaseOptions {
+    /// what does this option do. It's ok to copy from arangodb documentation.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default, setter(strip_option))]
+    option1: Option<bool>,
+}
+```
+
+It's recommend to wrap all option in `Option`, and use `#[serde(skip_serializing_if = "Option::is_none")]` 
+to skip serializing this field if not set. In addition, with `#[builder(default, setter(strip_option))]`, 
+we can set field without wrap the data in `Option`.
+
+See [`collection::options`](https://github.com/fMeow/arangors/blob/6162a6a966ce42f063452303671ae8e577190a4a/src/collection/options.rs)
+and [`collection::response`](https://github.com/fMeow/arangors/blob/6162a6a966ce42f063452303671ae8e577190a4a/src/collection/response.rs) for more example.
+
 ## E2E Test Guide 
 
 To run e2e test, we recommend you use docker to get a fresh and isolated installation of
