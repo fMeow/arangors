@@ -62,7 +62,7 @@ pub struct NgramAnalyzerProperties {
     pub max: u16,
 
     /// Output the original value as well.
-    pub preserve_riginal: bool,
+    pub preserve_original: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]

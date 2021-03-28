@@ -2,7 +2,9 @@
 #![allow(unused_parens)]
 use crate::common::{collection, connection};
 
-use arangors::analyzer::{AnalyzerCase, AnalyzerFeature, AnalyzerInfo, NormAnalyzerProperties};
+use arangors::analyzer::{
+    AnalyzerCase, AnalyzerFeature, AnalyzerInfo, NgramAnalyzerProperties, NormAnalyzerProperties,
+};
 use arangors::{
     client::ClientExt,
     collection::{
@@ -22,7 +24,7 @@ use std::collections::HashMap;
 pub mod common;
 
 #[maybe_async]
-async fn create_analyzer<C: ClientExt>(
+async fn create_norm_analyzer<C: ClientExt>(
     database: &Database<C>,
     analyzer_name: String,
 ) -> Result<AnalyzerInfo, ClientError> {
@@ -40,18 +42,60 @@ async fn create_analyzer<C: ClientExt>(
     database.create_analyzer(info).await
 }
 
+#[maybe_async]
+async fn create_ngram_analyzer<C: ClientExt>(
+    database: &Database<C>,
+    analyzer_name: String,
+) -> Result<AnalyzerInfo, ClientError> {
+    let info = AnalyzerInfo::Ngram {
+        name: analyzer_name,
+        features: Some(vec![AnalyzerFeature::Frequency, AnalyzerFeature::Norm]),
+        properties: Some(
+            NgramAnalyzerProperties::builder()
+                .min(2)
+                .max(2)
+                .preserve_original(false)
+                .build(),
+        ),
+    };
+
+    database.create_analyzer(info).await
+}
+
 #[maybe_async::test(
     any(feature = "reqwest_blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
-async fn test_create_and_drop_analyzer() {
+async fn test_create_and_drop_norm_analyzer() {
     test_setup();
-    let analyzer_name = "test_analyzer_create".to_string();
+    let analyzer_name = "test_analyzer_norm_create".to_string();
     let conn = connection().await;
     let database = conn.db("test_db").await.unwrap();
 
-    let analyzer = create_analyzer(&database, analyzer_name.clone()).await;
+    let analyzer = create_norm_analyzer(&database, analyzer_name.clone()).await;
+
+    trace!("{:?}", analyzer);
+
+    assert_eq!(analyzer.is_err(), false);
+
+    let result = database.drop_analyzer(&analyzer_name).await;
+
+    assert_eq!(result.is_err(), false);
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_create_and_drop_ngram_analyzer() {
+    test_setup();
+    let analyzer_name = "test_analyzer_ngram_create".to_string();
+    let conn = connection().await;
+    let database = conn.db("test_db").await.unwrap();
+
+    let analyzer = create_ngram_analyzer(&database, analyzer_name.clone()).await;
 
     trace!("{:?}", analyzer);
 
@@ -73,7 +117,7 @@ async fn test_list_analyzer() {
     let conn = connection().await;
     let database = conn.db("test_db").await.unwrap();
 
-    let analyzer = create_analyzer(&database, analyzer_name.clone()).await;
+    let analyzer = create_norm_analyzer(&database, analyzer_name.clone()).await;
 
     trace!("{:?}", analyzer);
 
@@ -104,7 +148,7 @@ async fn test_create_and_exists() {
     let conn = connection().await;
     let database = conn.db("test_db").await.unwrap();
 
-    let analyzer = create_analyzer(&database, analyzer_name.clone()).await;
+    let analyzer = create_norm_analyzer(&database, analyzer_name.clone()).await;
 
     trace!("{:?}", analyzer);
 
