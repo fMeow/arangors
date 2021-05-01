@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.0](https://github.com/fMeow/arangors/compare/v0.4.8...v0.5.0) (2021-05-01)
+
+
+### Features
+
+* **deps:** add rustls features for reqwest ([90efc95](https://github.com/fMeow/arangors/commit/90efc95e3a73928652504bea85cfd3fa638995a0))
+* **deps:** update reqwest to 0.11, tokio to 1 ([a4c3c95](https://github.com/fMeow/arangors/commit/a4c3c950d991055f4c40d7a7960eb2ec0d867eca))
+* use uclient for http request ([b03312b](https://github.com/fMeow/arangors/commit/b03312b68ef5899665f67825da1cb5e519d4a7f3))
+
+
+### Bug Fixes
+
+* use uclient instead of arangors::client ([823e6e1](https://github.com/fMeow/arangors/commit/823e6e1b10797a09ef36a85ca25e7d5c18169ac9))
+
 ### [0.4.8](https://github.com/fMeow/arangors/compare/v0.4.7...v0.4.8) (2021-05-01)
 
 
