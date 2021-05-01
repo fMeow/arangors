@@ -41,9 +41,10 @@ use log::{debug, trace};
 use maybe_async::maybe_async;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use uclient::ClientExt;
 use url::Url;
 
-use crate::{client::ClientExt, response::ArangoResult, ClientError};
+use crate::{response::ArangoResult, ClientError};
 
 use super::{database::Database, response::deserialize_response};
 
@@ -84,10 +85,10 @@ pub struct Version {
 }
 
 #[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
-pub type Connection = GenericConnection<crate::client::reqwest::ReqwestClient>;
+pub type Connection = GenericConnection<uclient::reqwest::ReqwestClient>;
 
 #[cfg(feature = "surf_async")]
-pub type Connection = GenericConnection<crate::client::surf::SurfClient>;
+pub type Connection = GenericConnection<uclient::surf::SurfClient>;
 
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about authentication, arangodb url.

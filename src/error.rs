@@ -19,7 +19,7 @@ pub enum ClientError {
     #[error("Error from serde: {0}")]
     Serde(#[from] serde_json::error::Error),
     #[error("HTTP client error: {0}")]
-    HttpClient(String),
+    HttpClient(#[from] uclient::ClientError),
 }
 
 #[derive(Deserialize, Debug, Error)]

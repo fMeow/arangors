@@ -2,6 +2,7 @@
 //!
 //! AQL query are all executed in database level, so Database offers AQL query.
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
+use uclient::ClientExt;
 
 use log::trace;
 use maybe_async::maybe_async;
@@ -11,10 +12,10 @@ use url::Url;
 
 use crate::graph::{GraphCollection, GraphResponse, GHARIAL_API_PATH};
 use crate::index::INDEX_API_PATH;
+use crate::transaction::TRANSACTION_HEADER;
 use crate::{
     analyzer::{AnalyzerDescription, AnalyzerInfo},
     aql::{AqlQuery, Cursor},
-    client::ClientExt,
     collection::{
         options::{CreateOptions, CreateParameters},
         response::{Info, Properties},
@@ -501,9 +502,15 @@ impl<'a, C: ClientExt> Database<C> {
         let result: ArangoResult<ArangoTransaction> = deserialize_response(resp.body())?;
         let transaction = result.unwrap();
         let tx_id = transaction.id.clone();
+
+        let mut session = (*self.session).clone();
+        session
+            .headers()
+            .insert(TRANSACTION_HEADER, tx_id.parse().unwrap());
+
         Ok(Transaction::<C>::new(
             transaction,
-            Arc::new(self.session.clone_with_transaction(tx_id)?),
+            Arc::new(session),
             self.base_url.clone(),
         ))
     }

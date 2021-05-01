@@ -5,11 +5,11 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 use typed_builder::TypedBuilder;
+use uclient::ClientExt;
 use url::Url;
 
 use crate::{
     aql::Cursor,
-    client::ClientExt,
     collection::response::Info,
     response::{deserialize_response, ArangoResult},
     AqlQuery, ClientError, Collection,

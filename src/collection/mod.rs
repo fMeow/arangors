@@ -8,13 +8,13 @@ use http::Request;
 use maybe_async::maybe_async;
 use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
 use serde_json::json;
+use uclient::ClientExt;
 use url::Url;
 
 use options::*;
 use response::*;
 
 use crate::{
-    client::ClientExt,
     document::{
         options::{InsertOptions, ReadOptions, RemoveOptions, ReplaceOptions, UpdateOptions},
         response::DocumentResponse,
@@ -26,6 +26,7 @@ use crate::{
 };
 
 use super::{Database, Document};
+use crate::transaction::TRANSACTION_HEADER;
 
 pub mod options;
 pub mod response;
@@ -769,8 +770,12 @@ impl<'a, C: ClientExt> Collection<C> {
 
     /// Returns a new Collection with its `session` updated with the transaction id
     pub fn clone_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
+        let mut session = (*self.session).clone();
+        session
+            .headers()
+            .insert(TRANSACTION_HEADER, transaction_id.parse().unwrap());
         Ok(Self {
-            session: Arc::new(self.session.clone_with_transaction(transaction_id)?),
+            session: Arc::new(session),
             ..self.clone()
         })
     }
