@@ -2,12 +2,17 @@
 #![allow(unused_parens)]
 use crate::common::{collection, connection};
 
+use log::{info, trace};
+use maybe_async::maybe_async;
+use pretty_assertions::assert_eq;
+use std::collections::HashMap;
+use uclient::ClientExt;
+
 use arangors::analyzer::{
     AnalyzerCase, AnalyzerFeature, AnalyzerInfo, NgramAnalyzerProperties, NgramStreamType,
     NormAnalyzerProperties,
 };
 use arangors::{
-    client::ClientExt,
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
         response::Status,
@@ -17,10 +22,6 @@ use arangors::{
     ClientError, Connection, Database, Document,
 };
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
-use log::{info, trace};
-use maybe_async::maybe_async;
-use pretty_assertions::assert_eq;
-use std::collections::HashMap;
 
 pub mod common;
 

@@ -59,7 +59,7 @@ pub async fn connection() -> arangors::Connection {
 pub async fn collection<'a>(
     conn: &'a arangors::Connection,
     name: &str,
-) -> Collection<arangors::client::reqwest::ReqwestClient> {
+) -> Collection<uclient::reqwest::ReqwestClient> {
     let database = conn.db("test_db").await.unwrap();
 
     match database.drop_collection(name).await {
@@ -77,7 +77,7 @@ pub async fn collection<'a>(
 pub async fn collection<'a>(
     conn: &'a arangors::Connection,
     name: &str,
-) -> Collection<arangors::client::surf::SurfClient> {
+) -> Collection<uclient::surf::SurfClient> {
     let database = conn.db("test_db").await.unwrap();
 
     match database.drop_collection(name).await {

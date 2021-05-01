@@ -1,8 +1,9 @@
 #![allow(unused_imports)]
 #![allow(unused_parens)]
 use pretty_assertions::assert_eq;
+use uclient::ClientExt;
 
-use arangors::{client::ClientExt, connection::Permission, Connection};
+use arangors::{connection::Permission, Connection};
 use common::{
     connection, get_arangodb_host, get_normal_password, get_normal_user, test_root_and_normal,
     test_setup,

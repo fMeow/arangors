@@ -3,9 +3,9 @@ use std::convert::TryInto;
 
 use ::reqwest::Client;
 use http::header::HeaderMap;
+use uclient::ClientExt;
 
 use arangors::ClientError;
-use arangors::client::ClientExt;
 use arangors::transaction::TRANSACTION_HEADER;
 
 #[derive(Debug, Clone)]
@@ -16,6 +16,11 @@ pub struct ReqwestClient {
 
 #[async_trait::async_trait]
 impl ClientExt for ReqwestClient {
+
+    fn headers(&mut self) -> &mut HeaderMap<HeaderValue> {
+        &mut self.headers
+    }
+
     fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
         let client = Client::builder().gzip(true);
         let headers = match headers.into() {

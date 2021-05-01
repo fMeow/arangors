@@ -420,7 +420,6 @@ pub use crate::{
 
 pub mod analyzer;
 pub mod aql;
-// pub mod client;
 pub mod collection;
 pub mod connection;
 pub mod database;

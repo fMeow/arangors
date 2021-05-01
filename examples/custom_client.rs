@@ -12,55 +12,58 @@
 //! Several implementations are provided: async `reqwest`, blocking `reqwest`,
 //! `surf`(async-std) and later `awc`.
 use anyhow::Error;
-use http::{HeaderMap, Method};
+use http::{HeaderMap, HeaderValue, Method};
 #[cfg(feature = "reqwest_async")]
 use reqwest::Client;
+use uclient::{ClientError, ClientExt};
 use url::Url;
 
-use arangors::{client::ClientExt, ClientError, GenericConnection};
+use arangors::GenericConnection;
 use std::convert::TryInto;
 
 /// when use async http client, `blocking` feature MUST be disabled
 // This cfg is only to make rust compiler happy in Github Action, you can just ignore it
 #[cfg(feature = "reqwest_async")]
 #[derive(Debug, Clone)]
-pub struct ReqwestClient(pub Client);
+pub struct ReqwestClient(pub Client, HeaderMap);
 
 /// you can also use macro: maybe_async::async_impl, with which the whole code
 /// block will just vanish when you enabled `blocking` feature.
 /// Also, the API of reqwest is almost the same for async and sync. You can also
 /// use maybe_async::maybe_async to remove async/await keyword in need, and just
 /// import reqwesat::Client and rewest::blocking::Client respectively in async
-/// and sync implementation. See `arangors::client::reqwest` source code.
+/// and sync implementation. See `uclient::reqwest` source code.
 // This cfg is only to make rust compiler happy in Github Action, you can just ignore it
 #[cfg(feature = "reqwest_async")]
 #[async_trait::async_trait]
 impl ClientExt for ReqwestClient {
     fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
-        match headers.into() {
-            Some(h) => Client::builder().default_headers(h),
-            None => Client::builder(),
-        }
-        .build()
-        .map(|c| ReqwestClient(c))
-        .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
+        let client = Client::builder().gzip(true);
+        let headers = match headers.into() {
+            Some(h) => h,
+            None => HeaderMap::new(),
+        };
+
+        client
+            .build()
+            .map(|c| ReqwestClient(c, headers))
+            .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 
-    fn clone_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
-        let request = self.0.get("/").build().unwrap();
-        let original_headers = request.headers();
-        let mut headers = HeaderMap::new();
-        for (name, value) in original_headers.iter() {
-            headers.insert(name, value.clone());
-        }
-        headers.insert("x-arango-trx-id", transaction_id.parse().unwrap());
-        ReqwestClient::new(headers)
+    fn headers(&mut self) -> &mut HeaderMap<HeaderValue> {
+        &mut self.1
     }
 
     async fn request(
         &self,
-        request: http::Request<String>,
+        mut request: http::Request<String>,
     ) -> Result<http::Response<String>, ClientError> {
+        let headers = request.headers_mut();
+        for (header, value) in self.1.iter() {
+            if !headers.contains_key(header) {
+                headers.insert(header, value.clone());
+            }
+        }
         let req = request.try_into().unwrap();
 
         let resp = self

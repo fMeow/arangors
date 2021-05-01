@@ -76,3 +76,6 @@ anyhow = "1"
   [dev-dependencies.async-std]
   version = "1.9"
   features = [ "attributes" ]
+
+  [dev-dependencies.reqwest]
+  version = "0.11"
