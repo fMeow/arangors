@@ -65,7 +65,6 @@ url = "2"
 [dev-dependencies]
 env_logger = "0.8"
 pretty_assertions = "0.7"
-dotenv = "0.15.0"
 regex = "1"
 anyhow = "1"
 
