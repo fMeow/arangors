@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.8](https://github.com/fMeow/arangors/compare/v0.4.7...v0.4.8) (2021-05-01)
+
+
+### Bug Fixes
+
+* **deps:** revert reqwest to 0.10 and tokio to 0.2 ([fea6a81](https://github.com/fMeow/arangors/commit/fea6a81745cc2b2ddd895e2a0cf01627c0e01c58))
+
 ### [0.4.7](https://github.com/fMeow/arangors/compare/v0.4.6...v0.4.7) (2021-03-28)
 
 
