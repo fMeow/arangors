@@ -417,6 +417,7 @@ pub use crate::{
     document::Document,
     error::{ArangoError, ClientError},
 };
+pub use uclient;
 
 pub mod analyzer;
 pub mod aql;
