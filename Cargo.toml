@@ -43,7 +43,7 @@ serde_qs = "0.8"
 thiserror = "1"
 typed-builder = "0.9"
 url = "2"
-uclient = "0.1"
+uclient = "0.2"
 
   [dependencies.serde]
   version = "1"
