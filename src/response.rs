@@ -49,9 +49,9 @@ pub(crate) enum Response<T> {
     Err(ArangoError),
 }
 
-impl<T> Into<Result<T, ArangoError>> for Response<T> {
-    fn into(self) -> Result<T, ArangoError> {
-        match self {
+impl<T> From<Response<T>> for Result<T, ArangoError> {
+    fn from(resp: Response<T>) -> Self {
+        match resp {
             Response::Ok(success) => Ok(success),
             Response::Err(err) => Err(err),
         }

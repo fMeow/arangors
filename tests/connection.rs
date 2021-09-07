@@ -45,7 +45,7 @@ async fn test_get_url() {
     let conn = Connection::establish_jwt(&host, &user, &password)
         .await
         .unwrap();
-    let url = conn.url().clone().into_string();
+    let url: String = conn.url().clone().into();
     assert_eq!(url, host)
 }
 

@@ -349,7 +349,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         password: T,
     ) -> Result<String, ClientError> {
         #[derive(Deserialize)]
-        struct JWT {
+        struct Jwt {
             pub jwt: String,
         }
         let url = arango_url.join("/_open/auth").unwrap();
@@ -358,7 +358,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         map.insert("username", username.into());
         map.insert("password", password.into());
 
-        let jwt: JWT = deserialize_response(
+        let jwt: Jwt = deserialize_response(
             C::new(None)?
                 .post(url, &serde_json::to_string(&map)?)
                 .await?
