@@ -134,7 +134,7 @@ impl<'a, C: ClientExt> Collection<C> {
     /// characters only. Please refer to Naming Conventions in ArangoDB for more
     /// information on valid collection names.
     pub fn name(&self) -> &str {
-        &self.name.as_str()
+        self.name.as_str()
     }
 
     /// Collection url: http://server:port/_db/mydb/_api/collection/{collection-name}

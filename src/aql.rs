@@ -150,7 +150,7 @@ impl<'a, __query, __count, __batch_size, __cache, __memory_limit, __ttl, __optio
                 ttl,
                 options,
             ),
-            _phantom: self._phantom,
+            phantom: self.phantom,
         }
     }
 
