@@ -61,6 +61,23 @@ jobs:
           command: test
           args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_blocking" --all
 
+      - name: check build (reqwest_blocking_rustls)
+        uses: actions-rs/cargo@v1
+        env:
+          RUST_LOG: arangors=trace
+        with:
+          command: check
+          args: --no-default-features --features "rocksdb cluster enterprise reqwest_blocking_rustls" --all
+
+      - name: test (reqwest_blocking_rustls)
+        uses: actions-rs/cargo@v1
+        env:
+          RUST_LOG: arangors=trace
+        timeout-minutes: 40
+        with:
+          command: test
+          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_blocking_rustls" --all
+
       - name: check build (default features)
         uses: actions-rs/cargo@v1
         env:
@@ -104,6 +121,23 @@ jobs:
           args: --no-default-features --features "rocksdb cluster enterprise reqwest_async" --all
 
       - name: test (reqwest_async)
+        uses: actions-rs/cargo@v1
+        env:
+          RUST_LOG: arangors=trace
+        timeout-minutes: 40
+        with:
+          command: test
+          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_async" --all
+
+      - name: check build (reqwest_async_rustls)
+        uses: actions-rs/cargo@v1
+        env:
+          RUST_LOG: arangors=trace
+        with:
+          command: check
+          args: --no-default-features --features "rocksdb cluster enterprise reqwest_async_rustls" --all
+
+      - name: test (reqwest_async_rustls)
         uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
