@@ -58,7 +58,7 @@ async fn create_document<C: ClientExt>(tx: &Transaction<C>) -> Result<String, Cl
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -80,7 +80,7 @@ async fn test_start_transaction() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -113,7 +113,7 @@ async fn test_abort_transaction() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]

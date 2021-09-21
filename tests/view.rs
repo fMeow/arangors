@@ -52,7 +52,7 @@ async fn create_view<C: ClientExt>(
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -77,7 +77,7 @@ async fn test_create_and_drop_view() {
 }
 
 // #[maybe_async::test(
-//     any(feature = "reqwest_blocking"),
+//     any(feature = "blocking"),
 //     async(any(feature = "reqwest_async"), tokio::test),
 //     async(any(feature = "surf_async"), async_std::test)
 // )]
@@ -113,7 +113,7 @@ async fn test_create_and_drop_view() {
 // }
 
 // #[maybe_async::test(
-//     any(feature = "reqwest_blocking"),
+//     any(feature = "blocking"),
 //     async(any(feature = "reqwest_async"), tokio::test),
 //     async(any(feature = "surf_async"), async_std::test)
 // )]

@@ -12,7 +12,7 @@ use common::{
 pub mod common;
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -32,7 +32,7 @@ async fn test_list_databases() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -50,7 +50,7 @@ async fn test_get_url() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -64,7 +64,7 @@ async fn test_get_database() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -84,7 +84,7 @@ async fn test_basic_auth() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]

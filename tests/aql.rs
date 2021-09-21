@@ -18,7 +18,7 @@ struct User {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -35,7 +35,7 @@ async fn test_aql_str() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -52,7 +52,7 @@ async fn test_aql() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -71,7 +71,7 @@ async fn test_aql_bind_vars() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]

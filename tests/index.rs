@@ -20,7 +20,7 @@ use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup
 pub mod common;
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -66,7 +66,7 @@ async fn test_persistent_index() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -112,7 +112,7 @@ async fn test_hash_index() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -158,7 +158,7 @@ async fn test_skiplist_index() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -193,7 +193,7 @@ async fn test_geo_index() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -228,7 +228,7 @@ async fn test_ttl_index() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
@@ -263,7 +263,7 @@ async fn test_fulltext_index() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
+    any(feature = "blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
     async(any(feature = "surf_async"), async_std::test)
 )]
