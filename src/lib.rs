@@ -406,6 +406,8 @@ compile_error!(
 #[cfg(any(
     feature = "reqwest_async",
     feature = "reqwest_blocking",
+    feature = "reqwest_async_rustls",
+    feature = "reqwest_blocking_rustls",
     feature = "surf_async"
 ))]
 pub use crate::connection::Connection;

@@ -54,7 +54,12 @@ pub async fn connection() -> arangors::Connection {
         .unwrap()
 }
 
-#[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
+#[cfg(any(
+    feature = "reqwest_async",
+    feature = "reqwest_blocking",
+    feature = "reqwest_async_rustls",
+    feature = "reqwest_blocking_rustls"
+))]
 #[maybe_async::maybe_async]
 pub async fn collection<'a>(
     conn: &'a arangors::Connection,
