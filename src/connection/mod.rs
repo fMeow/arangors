@@ -84,7 +84,12 @@ pub struct Version {
     pub license: String,
 }
 
-#[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
+#[cfg(any(
+    feature = "reqwest_async",
+    feature = "reqwest_blocking",
+    feature = "reqwest_async_rustls",
+    feature = "reqwest_blocking_rustls"
+))]
 pub type Connection = GenericConnection<uclient::reqwest::ReqwestClient>;
 
 #[cfg(feature = "surf_async")]
