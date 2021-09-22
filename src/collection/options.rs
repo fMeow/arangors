@@ -72,7 +72,7 @@ pub struct CreateOptions<'a> {
 
     /// Optional object that specifies the collection level schema for
     /// documents. The attribute keys rule, level and message must follow the
-    /// rules documented in Document Schema Validation https://www.arangodb.com/docs/devel/document-schema-validation.html
+    /// rules documented in Document Schema Validation <https://www.arangodb.com/docs/devel/document-schema-validation.html>
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     schema: Option<serde_json::Value>,
