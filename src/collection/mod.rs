@@ -51,7 +51,7 @@ pub struct Collection {
     session: Arc<ReqwestClient>,
 }
 
-impl<'a> Collection {
+impl Collection {
     /// Construct Collection given collection info from server
     ///
     /// Base url should be like `http://server:port/_db/mydb/_api/collection/{collection-name}`

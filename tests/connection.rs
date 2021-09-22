@@ -1,7 +1,6 @@
 #![allow(unused_imports)]
 #![allow(unused_parens)]
 use pretty_assertions::assert_eq;
-use uclient::ClientExt;
 
 use arangors::{connection::Permission, Connection};
 use common::{
@@ -12,9 +11,8 @@ use common::{
 pub mod common;
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_list_databases() {
     test_setup();
@@ -32,9 +30,8 @@ async fn test_list_databases() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_get_url() {
     test_setup();
@@ -50,9 +47,8 @@ async fn test_get_url() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_get_database() {
     test_setup();
@@ -64,9 +60,8 @@ async fn test_get_database() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_basic_auth() {
     test_setup();
@@ -84,9 +79,8 @@ async fn test_basic_auth() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_jwt() {
     test_setup();

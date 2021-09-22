@@ -54,36 +54,16 @@ pub async fn connection() -> arangors::Connection {
         .unwrap()
 }
 
-#[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
 #[maybe_async::maybe_async]
 pub async fn collection<'a>(
     conn: &'a arangors::Connection,
     name: &str,
-) -> Collection<uclient::reqwest::ReqwestClient> {
+) -> Collection {
     let database = conn.db("test_db").await.unwrap();
 
     match database.drop_collection(name).await {
         _ => {}
     };
-    database
-        .create_collection(name)
-        .await
-        .expect("Fail to create the collection");
-    database.collection(name).await.unwrap()
-}
-
-#[cfg(feature = "surf_async")]
-#[maybe_async::maybe_async]
-pub async fn collection<'a>(
-    conn: &'a arangors::Connection,
-    name: &str,
-) -> Collection<uclient::surf::SurfClient> {
-    let database = conn.db("test_db").await.unwrap();
-
-    match database.drop_collection(name).await {
-        _ => {}
-    };
-
     database
         .create_collection(name)
         .await

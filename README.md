@@ -84,30 +84,30 @@ the Client yourself (see examples).
 Currently out-of-box supported ecosystem are:
 - `reqwest_async`
 - `reqwest_blocking`
-- `surf_async`
 
 By default, `arangors` use `reqwest_async` as underling HTTP Client to
-connect with ArangoDB. You can switch other ecosystem in feature gate:
-
-```toml
-[dependencies]
-arangors = { version = "0.4", features = ["surf_async"], default-features = false }
-```
-
-Or if you want to stick with other ecosystem that are not listed in the
-feature gate, you can get vanilla `arangors` without any HTTP client
-dependency:
+connect with ArangoDB.
 
 ```toml
 [dependencies]
 ## This one is async
-arangors = { version = "0.4", default-features = false }
+arangors = { version = "0.4" }
 ## This one is synchronous
-arangors = { version = "0.4", features = ["blocking"], default-features = false }
+arangors = { version = "0.4", features = ["blocking"] }
 ```
 
 Thanks to `maybe_async`, `arangors` can unify sync and async API and toggle
 with a feature gate. Arangors adopts async first policy.
+
+By default `reqwest` uses OpenSSL. To use `rustls` you may disable default features and use the `rustls` feature:
+
+```toml
+[dependencies]
+## This one uses openssl
+arangors = { version = "0.4" }
+## This one rustls
+arangors = { version = "0.4", features = ["rustls"], default-features = false }
+```
 
 ### Connection
 

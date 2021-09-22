@@ -6,7 +6,6 @@ use crate::common::{collection, connection};
 use log::{info, trace};
 use maybe_async::maybe_async;
 use pretty_assertions::assert_eq;
-use uclient::ClientExt;
 
 use arangors::view::{ArangoSearchViewLink, ArangoSearchViewPropertiesOptions, ViewOptions};
 use arangors::{
@@ -23,8 +22,8 @@ use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup
 pub mod common;
 
 #[maybe_async]
-async fn create_view<C: ClientExt>(
-    database: &Database<C>,
+async fn create_view(
+    database: &Database,
     view_name: String,
     collection_name: String,
 ) -> Result<View, ClientError> {
@@ -52,9 +51,8 @@ async fn create_view<C: ClientExt>(
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_create_and_drop_view() {
     test_setup();
@@ -77,9 +75,8 @@ async fn test_create_and_drop_view() {
 }
 
 // #[maybe_async::test(
-//     any(feature = "reqwest_blocking"),
-//     async(any(feature = "reqwest_async"), tokio::test),
-//     async(any(feature = "surf_async"), async_std::test)
+//     feature = "blocking",
+//     async(not(feature = "blocking"), tokio::test),
 // )]
 // async fn test_list_view() {
 //     test_setup();
@@ -113,9 +110,8 @@ async fn test_create_and_drop_view() {
 // }
 
 // #[maybe_async::test(
-//     any(feature = "reqwest_blocking"),
-//     async(any(feature = "reqwest_async"), tokio::test),
-//     async(any(feature = "surf_async"), async_std::test)
+//     feature = "blocking",
+//     async(not(feature = "blocking"), tokio::test),
 // )]
 // async fn update_properties() {
 //     test_setup();

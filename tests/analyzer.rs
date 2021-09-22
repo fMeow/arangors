@@ -6,7 +6,6 @@ use log::{info, trace};
 use maybe_async::maybe_async;
 use pretty_assertions::assert_eq;
 use std::collections::HashMap;
-use uclient::ClientExt;
 
 use arangors::analyzer::{
     AnalyzerCase, AnalyzerFeature, AnalyzerInfo, NgramAnalyzerProperties, NgramStreamType,
@@ -26,8 +25,8 @@ use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup
 pub mod common;
 
 #[maybe_async]
-async fn create_norm_analyzer<C: ClientExt>(
-    database: &Database<C>,
+async fn create_norm_analyzer(
+    database: &Database,
     analyzer_name: String,
 ) -> Result<AnalyzerInfo, ClientError> {
     let info = AnalyzerInfo::Norm {
@@ -45,8 +44,8 @@ async fn create_norm_analyzer<C: ClientExt>(
 }
 
 #[maybe_async]
-async fn create_ngram_analyzer<C: ClientExt>(
-    database: &Database<C>,
+async fn create_ngram_analyzer(
+    database: &Database,
     analyzer_name: String,
 ) -> Result<AnalyzerInfo, ClientError> {
     let info = AnalyzerInfo::Ngram {
@@ -66,9 +65,8 @@ async fn create_ngram_analyzer<C: ClientExt>(
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_create_and_drop_norm_analyzer() {
     test_setup();
@@ -88,9 +86,8 @@ async fn test_create_and_drop_norm_analyzer() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_create_and_drop_ngram_analyzer() {
     test_setup();
@@ -110,9 +107,8 @@ async fn test_create_and_drop_ngram_analyzer() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_list_analyzer() {
     test_setup();
@@ -141,9 +137,8 @@ async fn test_list_analyzer() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_create_and_exists() {
     test_setup();

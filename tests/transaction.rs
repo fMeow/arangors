@@ -4,7 +4,6 @@ use log::trace;
 use maybe_async::maybe_async;
 use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
-use uclient::ClientExt;
 
 use crate::common::{collection, connection};
 use arangors::{
@@ -23,10 +22,10 @@ use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup
 pub mod common;
 
 #[maybe_async]
-async fn create_transaction<C: ClientExt>(
-    database: &Database<C>,
+async fn create_transaction(
+    database: &Database,
     collection_name: String,
-) -> Result<Transaction<C>, ClientError> {
+) -> Result<Transaction, ClientError> {
     database
         .begin_transaction(
             TransactionSettings::builder()
@@ -42,7 +41,7 @@ async fn create_transaction<C: ClientExt>(
 }
 
 #[maybe_async]
-async fn create_document<C: ClientExt>(tx: &Transaction<C>) -> Result<String, ClientError> {
+async fn create_document(tx: &Transaction) -> Result<String, ClientError> {
     let test_doc: Document<Value> = Document::new(json!({
         "user_name":"test21",
         "user_name":"test21_pwd",
@@ -58,9 +57,8 @@ async fn create_document<C: ClientExt>(tx: &Transaction<C>) -> Result<String, Cl
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_start_transaction() {
     test_setup();
@@ -80,9 +78,8 @@ async fn test_start_transaction() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_abort_transaction() {
     test_setup();
@@ -113,9 +110,8 @@ async fn test_abort_transaction() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_commit_transaction() {
     test_setup();

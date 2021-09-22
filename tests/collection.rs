@@ -19,9 +19,8 @@ use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup
 pub mod common;
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_get_collection() {
     test_setup();
@@ -37,9 +36,8 @@ async fn test_get_collection() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_get_db_from_collection() {
     test_setup();
@@ -55,9 +53,8 @@ async fn test_get_db_from_collection() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_create_and_drop_collection() {
     test_setup();
@@ -92,9 +89,8 @@ async fn test_create_and_drop_collection() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_create_and_drop_edge_collection() {
     test_setup();
@@ -128,9 +124,8 @@ async fn test_create_and_drop_edge_collection() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_truncate_collection() {
     test_setup();
@@ -149,9 +144,8 @@ async fn test_truncate_collection() {
     coll.drop().await.expect("Fail to drop the collection");
 }
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_get_properties() {
     test_setup();
@@ -189,9 +183,8 @@ async fn test_get_properties() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_get_document_count() {
     test_setup();
@@ -231,9 +224,8 @@ async fn test_get_document_count() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_get_statistics() {
     test_setup();
@@ -270,9 +262,8 @@ async fn test_get_statistics() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_get_revision_id() {
     test_setup();
@@ -302,9 +293,8 @@ async fn test_get_revision_id() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_get_checksum() {
     test_setup();
@@ -370,9 +360,8 @@ async fn test_get_checksum() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_put_load() {
     test_setup();
@@ -418,9 +407,8 @@ async fn test_put_load() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_put_unload() {
     test_setup();
@@ -447,9 +435,8 @@ async fn test_put_unload() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_put_load_indexes_into_memory() {
     test_setup();
@@ -466,9 +453,8 @@ async fn test_put_load_indexes_into_memory() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_put_changes_properties() {
     test_setup();
@@ -498,9 +484,8 @@ async fn test_put_changes_properties() {
 }
 
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_put_rename() {
     test_setup();
@@ -523,9 +508,8 @@ async fn test_put_rename() {
 
 #[cfg(feature = "rocksdb")]
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_put_recalculate() {
     test_setup();
@@ -543,9 +527,8 @@ async fn test_put_recalculate() {
 
 #[cfg(any(feature = "mmfiles"))]
 #[maybe_async::test(
-    any(feature = "reqwest_blocking"),
-    async(any(feature = "reqwest_async"), tokio::test),
-    async(any(feature = "surf_async"), async_std::test)
+    feature = "blocking",
+    async(not(feature = "blocking"), tokio::test),
 )]
 async fn test_put_rotate_journal() {
     test_setup();
