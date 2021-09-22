@@ -123,8 +123,7 @@
 //! ```rust
 //! use arangors::Connection;
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-//! # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+//! # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! // (Recommended) Handy functions
@@ -149,8 +148,7 @@
 //! ```rust
 //! use arangors::Connection;
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-//! # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+//! # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! # let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -197,8 +195,7 @@
 //!     pub password: String,
 //! }
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-//! # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+//! # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! # let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -228,8 +225,7 @@
 //! ```rust
 //! # use arangors::{ClientError,Connection, AqlQuery};
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-//! # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+//! # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! # let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -289,8 +285,7 @@
 //!     pub password: String,
 //! }
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-//! # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+//! # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! # let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -319,8 +314,7 @@
 //!     pub password: String,
 //! }
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-//! # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+//! # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! # let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -353,8 +347,7 @@
 //! use arangors::{AqlQuery, Connection, Cursor, Database};
 //! use serde_json::value::Value;
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-//! # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+//! # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! # let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -383,42 +376,14 @@
 //! `arangors` is provided under the MIT license. See [LICENSE](./LICENSE).
 //! An ergonomic [ArangoDB](https://www.arangodb.com/) client for rust.
 
-#[cfg(all(feature = "reqwest_async", feature = "reqwest_blocking"))]
-compile_error!(
-    r#"feature "reqwest_async" and "reqwest_blocking" cannot be set at the same time.
-If what you want is "reqwest_blocking", please turn off default features by adding "default-features=false" in your Cargo.toml"#
-);
-
-#[cfg(all(feature = "reqwest_async", feature = "surf_async"))]
-compile_error!(
-    r#"feature "reqwest_async" and "surf_async" cannot be set at the same time.
-If what you want is "surf_async", please turn off default features by adding "default-features=false" in your Cargo.toml"#
-);
-
-#[cfg(all(
-    feature = "reqwest_async",
-    feature = "reqwest_blocking",
-    feature = "surf_async"
-))]
-compile_error!(
-    r#"only one of features "reqwest_async", "reqwest_blocking" and "surf_async" can be"#
-);
-#[cfg(any(
-    feature = "reqwest_async",
-    feature = "reqwest_blocking",
-    feature = "surf_async"
-))]
 pub use crate::connection::Connection;
 pub use crate::{
     aql::{AqlOptions, AqlQuery, Cursor},
     collection::Collection,
-    connection::GenericConnection,
     database::Database,
     document::Document,
     error::{ArangoError, ClientError},
 };
-pub use uclient;
-
 pub mod analyzer;
 pub mod aql;
 pub mod collection;

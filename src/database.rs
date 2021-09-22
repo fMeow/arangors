@@ -2,7 +2,6 @@
 //!
 //! AQL query are all executed in database level, so Database offers AQL query.
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
-use uclient::ClientExt;
 
 use log::trace;
 use maybe_async::maybe_async;
@@ -10,6 +9,7 @@ use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::value::Value;
 use url::Url;
 
+use crate::connection::client::ReqwestClient;
 use crate::graph::{GraphCollection, GraphResponse, GHARIAL_API_PATH};
 use crate::index::INDEX_API_PATH;
 use crate::transaction::TRANSACTION_HEADER;
@@ -38,14 +38,18 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct Database<C: ClientExt> {
+pub struct Database {
     name: String,
     base_url: Url,
-    session: Arc<C>,
+    session: Arc<ReqwestClient>,
 }
 
-impl<'a, C: ClientExt> Database<C> {
-    pub(crate) fn new<T: Into<String>>(name: T, arango_url: &Url, session: Arc<C>) -> Database<C> {
+impl Database {
+    pub(crate) fn new<T: Into<String>>(
+        name: T,
+        arango_url: &Url,
+        session: Arc<ReqwestClient>,
+    ) -> Database {
         let name = name.into();
         let path = format!("/_db/{}/", name.as_str());
         let url = arango_url.join(path.as_str()).unwrap();
@@ -72,7 +76,7 @@ impl<'a, C: ClientExt> Database<C> {
             self.name,
             url.as_str()
         );
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
         let result: ArangoResult<Vec<Info>> = deserialize_response(resp.body())?;
         trace!("Collections retrieved");
         Ok(result.unwrap())
@@ -86,7 +90,7 @@ impl<'a, C: ClientExt> Database<C> {
         &self.name
     }
 
-    pub fn session(&self) -> Arc<C> {
+    pub fn session(&self) -> Arc<ReqwestClient> {
         Arc::clone(&self.session)
     }
 
@@ -95,12 +99,12 @@ impl<'a, C: ClientExt> Database<C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn collection(&self, name: &str) -> Result<Collection<C>, ClientError> {
+    pub async fn collection(&self, name: &str) -> Result<Collection, ClientError> {
         let url = self
             .base_url
             .join(&format!("_api/collection/{}", name))
             .unwrap();
-        let resp: Info = deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Info = deserialize_response(self.session.get(url.to_string(), "").await?.body())?;
         Ok(Collection::from_response(self, &resp))
     }
 
@@ -111,18 +115,18 @@ impl<'a, C: ClientExt> Database<C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn create_collection_with_options<'f>(
+    pub async fn create_collection_with_options(
         &self,
-        options: CreateOptions<'f>,
+        options: CreateOptions<'_>,
         parameters: CreateParameters,
-    ) -> Result<Collection<C>, ClientError> {
+    ) -> Result<Collection, ClientError> {
         let mut url = self.base_url.join("_api/collection").unwrap();
         let query = serde_qs::to_string(&parameters).unwrap();
         url.set_query(Some(query.as_str()));
 
         let resp = self
             .session
-            .post(url, &serde_json::to_string(&options)?)
+            .post(url.to_string(), &serde_json::to_string(&options)?)
             .await?;
         let result: Properties = deserialize_response(resp.body())?;
         self.collection(&result.info.name).await
@@ -135,7 +139,7 @@ impl<'a, C: ClientExt> Database<C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn create_collection(&self, name: &str) -> Result<Collection<C>, ClientError> {
+    pub async fn create_collection(&self, name: &str) -> Result<Collection, ClientError> {
         self.create_collection_with_options(
             CreateOptions::builder().name(name).build(),
             Default::default(),
@@ -144,7 +148,7 @@ impl<'a, C: ClientExt> Database<C> {
     }
 
     #[maybe_async]
-    pub async fn create_edge_collection(&self, name: &str) -> Result<Collection<C>, ClientError> {
+    pub async fn create_edge_collection(&self, name: &str) -> Result<Collection, ClientError> {
         self.create_collection_with_options(
             CreateOptions::builder()
                 .name(name)
@@ -170,7 +174,7 @@ impl<'a, C: ClientExt> Database<C> {
         }
 
         let resp: DropCollectionResponse =
-            deserialize_response(self.session.delete(url, "").await?.body())?;
+            deserialize_response(self.session.delete(url.to_string(), "").await?.body())?;
         Ok(resp.id)
     }
 
@@ -181,7 +185,7 @@ impl<'a, C: ClientExt> Database<C> {
     #[maybe_async]
     pub async fn arango_version(&self) -> Result<Version, ClientError> {
         let url = self.base_url.join("_api/version").unwrap();
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
         let version: Version = serde_json::from_str(resp.body())?;
         Ok(version)
     }
@@ -193,7 +197,7 @@ impl<'a, C: ClientExt> Database<C> {
     #[maybe_async]
     pub async fn info(&self) -> Result<DatabaseDetails, ClientError> {
         let url = self.base_url.join("_api/database/current").unwrap();
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
         let res: ArangoResult<DatabaseDetails> = deserialize_response(resp.body())?;
         Ok(res.unwrap())
     }
@@ -213,7 +217,7 @@ impl<'a, C: ClientExt> Database<C> {
         let url = self.base_url.join("_api/cursor").unwrap();
         let resp = self
             .session
-            .post(url, &serde_json::to_string(&aql)?)
+            .post(url.to_string(), &serde_json::to_string(&aql)?)
             .await?;
         deserialize_response(resp.body())
     }
@@ -231,7 +235,7 @@ impl<'a, C: ClientExt> Database<C> {
             .base_url
             .join(&format!("_api/cursor/{}", cursor_id))
             .unwrap();
-        let resp = self.session.put(url, "").await?;
+        let resp = self.session.put(url.to_string(), "").await?;
         deserialize_response(resp.body())
     }
 
@@ -327,7 +331,7 @@ impl<'a, C: ClientExt> Database<C> {
 
         let resp = self
             .session
-            .post(url, &serde_json::to_string(&index)?)
+            .post(url.to_string(), &serde_json::to_string(&index)?)
             .await?;
 
         let result: Index = deserialize_response::<Index>(resp.body())?;
@@ -346,7 +350,7 @@ impl<'a, C: ClientExt> Database<C> {
             .join(&format!("{}/{}", INDEX_API_PATH, id))
             .unwrap();
 
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
 
         let result: Index = deserialize_response::<Index>(resp.body())?;
 
@@ -362,7 +366,7 @@ impl<'a, C: ClientExt> Database<C> {
         let mut url = self.base_url.join(INDEX_API_PATH).unwrap();
         url.set_query(Some(&format!("collection={}", collection)));
 
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
 
         let result: IndexCollection = deserialize_response::<IndexCollection>(resp.body())?;
 
@@ -379,7 +383,7 @@ impl<'a, C: ClientExt> Database<C> {
             .base_url
             .join(&format!("{}/{}", INDEX_API_PATH, id))
             .unwrap();
-        let resp = self.session.delete(url, "").await?;
+        let resp = self.session.delete(url.to_string(), "").await?;
 
         let result: DeleteIndexResponse = deserialize_response::<DeleteIndexResponse>(resp.body())?;
 
@@ -405,7 +409,7 @@ impl<'a, C: ClientExt> Database<C> {
 
         let resp = self
             .session
-            .post(url, &serde_json::to_string(&graph)?)
+            .post(url.to_string(), &serde_json::to_string(&graph)?)
             .await?;
 
         let result: GraphResponse = deserialize_response::<GraphResponse>(resp.body())?;
@@ -424,7 +428,7 @@ impl<'a, C: ClientExt> Database<C> {
             .join(&format!("{}/{}", GHARIAL_API_PATH, name))
             .unwrap();
 
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
 
         let result: GraphResponse = deserialize_response::<GraphResponse>(resp.body())?;
 
@@ -439,7 +443,7 @@ impl<'a, C: ClientExt> Database<C> {
     pub async fn graphs(&self) -> Result<GraphCollection, ClientError> {
         let url = self.base_url.join(GHARIAL_API_PATH).unwrap();
 
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
 
         let result: GraphCollection = deserialize_response::<GraphCollection>(resp.body())?;
 
@@ -463,7 +467,7 @@ impl<'a, C: ClientExt> Database<C> {
             .unwrap();
         url.set_query(Some(&format!("dropCollections={}", drop_collections)));
 
-        self.session.delete(url, "").await?;
+        self.session.delete(url.to_string(), "").await?;
 
         Ok(())
     }
@@ -476,7 +480,7 @@ impl<'a, C: ClientExt> Database<C> {
     pub async fn list_transactions(&self) -> Result<Vec<TransactionState>, ClientError> {
         let url = self.base_url.join("_api/transaction").unwrap();
 
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
 
         let result: TransactionList = deserialize_response(resp.body())?;
         Ok(result.transactions)
@@ -491,12 +495,15 @@ impl<'a, C: ClientExt> Database<C> {
     pub async fn begin_transaction(
         &self,
         transaction_settings: TransactionSettings,
-    ) -> Result<Transaction<C>, ClientError> {
+    ) -> Result<Transaction, ClientError> {
         let url = self.base_url.join("_api/transaction/begin").unwrap();
 
         let resp = self
             .session
-            .post(url, &serde_json::to_string(&transaction_settings)?)
+            .post(
+                url.to_string(),
+                &serde_json::to_string(&transaction_settings)?,
+            )
             .await?;
 
         let result: ArangoResult<ArangoTransaction> = deserialize_response(resp.body())?;
@@ -508,7 +515,7 @@ impl<'a, C: ClientExt> Database<C> {
             .headers()
             .insert(TRANSACTION_HEADER, tx_id.parse().unwrap());
 
-        Ok(Transaction::<C>::new(
+        Ok(Transaction::new(
             transaction,
             Arc::new(session),
             self.base_url.clone(),
@@ -523,7 +530,7 @@ impl<'a, C: ClientExt> Database<C> {
     pub async fn list_views(&self) -> Result<Vec<ViewDescription>, ClientError> {
         let url = self.base_url.join("_api/view").unwrap();
 
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
 
         let result: ArangoResult<Vec<ViewDescription>> = deserialize_response(resp.body())?;
         Ok(result.unwrap())
@@ -539,7 +546,7 @@ impl<'a, C: ClientExt> Database<C> {
 
         let resp = self
             .session
-            .post(url, &serde_json::to_string(&view_options)?)
+            .post(url.to_string(), &serde_json::to_string(&view_options)?)
             .await?;
 
         let result: View = deserialize_response(resp.body())?;
@@ -557,7 +564,7 @@ impl<'a, C: ClientExt> Database<C> {
             .join(&format!("_api/view/{}", view_name))
             .unwrap();
 
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
 
         let result: ViewDescription = deserialize_response(resp.body())?;
         Ok(result)
@@ -577,7 +584,7 @@ impl<'a, C: ClientExt> Database<C> {
             .join(&format!("_api/view/{}/properties", view_name))
             .unwrap();
 
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
 
         let result: ArangoSearchViewProperties = deserialize_response(resp.body())?;
         Ok(result)
@@ -600,7 +607,7 @@ impl<'a, C: ClientExt> Database<C> {
 
         let resp = self
             .session
-            .put(url, &serde_json::to_string(&properties)?)
+            .put(url.to_string(), &serde_json::to_string(&properties)?)
             .await?;
 
         let result: View = deserialize_response(resp.body())?;
@@ -624,7 +631,7 @@ impl<'a, C: ClientExt> Database<C> {
 
         let resp = self
             .session
-            .patch(url, &serde_json::to_string(&properties)?)
+            .patch(url.to_string(), &serde_json::to_string(&properties)?)
             .await?;
 
         let result: View = deserialize_response(resp.body())?;
@@ -642,7 +649,7 @@ impl<'a, C: ClientExt> Database<C> {
             .join(&format!("_api/view/{}", view_name))
             .unwrap();
 
-        let resp = self.session.delete(url, "").await?;
+        let resp = self.session.delete(url.to_string(), "").await?;
 
         let result: ArangoResult<bool> = deserialize_response(resp.body())?;
         Ok(result.unwrap())
@@ -652,7 +659,7 @@ impl<'a, C: ClientExt> Database<C> {
     pub async fn list_analyzers(&self) -> Result<Vec<AnalyzerInfo>, ClientError> {
         let url = self.base_url.join("_api/analyzer").unwrap();
 
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
 
         let result: ArangoResult<Vec<AnalyzerInfo>> = deserialize_response(resp.body())?;
         Ok(result.unwrap())
@@ -671,7 +678,7 @@ impl<'a, C: ClientExt> Database<C> {
 
         let resp = self
             .session
-            .post(url, &serde_json::to_string(&analyzer)?)
+            .post(url.to_string(), &serde_json::to_string(&analyzer)?)
             .await?;
 
         let result: AnalyzerInfo = deserialize_response(resp.body())?;
@@ -689,7 +696,7 @@ impl<'a, C: ClientExt> Database<C> {
             .join(&format!("_api/analyzer/{}", analyzer_name))
             .unwrap();
 
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
 
         let result: AnalyzerInfo = deserialize_response(resp.body())?;
         Ok(result)
@@ -709,7 +716,7 @@ impl<'a, C: ClientExt> Database<C> {
             .join(&format!("_api/analyzer/{}", analyzer_name))
             .unwrap();
 
-        let resp = self.session.delete(url, "").await?;
+        let resp = self.session.delete(url.to_string(), "").await?;
 
         let result: AnalyzerDescription = deserialize_response(resp.body())?;
         Ok(result)

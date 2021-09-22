@@ -8,7 +8,6 @@ use http::Request;
 use maybe_async::maybe_async;
 use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
 use serde_json::json;
-use uclient::ClientExt;
 use url::Url;
 
 use options::*;
@@ -26,6 +25,7 @@ use crate::{
 };
 
 use super::{Database, Document};
+use crate::connection::client::ReqwestClient;
 use crate::transaction::TRANSACTION_HEADER;
 
 pub mod options;
@@ -42,16 +42,16 @@ pub mod response;
 /// that is specified by the user when the collection is created. There are
 /// currently two types: document and edge. The default type is document.
 #[derive(Debug, Clone)]
-pub struct Collection<C: ClientExt> {
+pub struct Collection {
     id: String,
     name: String,
     collection_type: CollectionType,
     base_url: Url,
     document_base_url: Url,
-    session: Arc<C>,
+    session: Arc<ReqwestClient>,
 }
 
-impl<'a, C: ClientExt> Collection<C> {
+impl<'a> Collection {
     /// Construct Collection given collection info from server
     ///
     /// Base url should be like `http://server:port/_db/mydb/_api/collection/{collection-name}`
@@ -61,14 +61,14 @@ impl<'a, C: ClientExt> Collection<C> {
         id: S,
         collection_type: CollectionType,
         db_url: &Url,
-        session: Arc<C>,
-    ) -> Collection<C> {
+        session: Arc<ReqwestClient>,
+    ) -> Self {
         let name = name.into();
         let path = format!("_api/collection/{}/", &name);
         let url = db_url.join(&path).unwrap();
         let document_path = format!("_api/document/{}/", &name);
         let document_base_url = db_url.join(&document_path).unwrap();
-        Collection {
+        Self {
             name,
             id: id.into(),
             session,
@@ -78,7 +78,7 @@ impl<'a, C: ClientExt> Collection<C> {
         }
     }
 
-    pub(crate) fn from_response(database: &Database<C>, collection: &Info) -> Collection<C> {
+    pub(crate) fn from_response(database: &Database, collection: &Info) -> Self {
         Self::new(
             &collection.name,
             &collection.id,
@@ -88,10 +88,7 @@ impl<'a, C: ClientExt> Collection<C> {
         )
     }
 
-    pub(crate) fn from_transaction_response(
-        transaction: &Transaction<C>,
-        collection: &Info,
-    ) -> Collection<C> {
+    pub(crate) fn from_transaction_response(transaction: &Transaction, collection: &Info) -> Self {
         Self::new(
             &collection.name,
             &collection.id,
@@ -151,12 +148,12 @@ impl<'a, C: ClientExt> Collection<C> {
     }
 
     /// HTTP Client used to query the server
-    pub fn session(&self) -> Arc<C> {
+    pub fn session(&self) -> Arc<ReqwestClient> {
         Arc::clone(&self.session)
     }
 
     /// Get the db of current collection
-    pub fn db(&self) -> Database<C> {
+    pub fn db(&self) -> Database {
         // Base url should be like `http://server:port/_db/mydb/_api/collection/{collection-name}`
         let mut paths = self.base_url.path_segments().unwrap();
         // must be `_db`
@@ -180,7 +177,7 @@ impl<'a, C: ClientExt> Collection<C> {
         }
 
         let resp: DropCollectionResponse =
-            deserialize_response(self.session.delete(url, "").await?.body())?;
+            deserialize_response(self.session.delete(url.to_string(), "").await?.body())?;
         Ok(resp.id)
     }
 
@@ -191,7 +188,7 @@ impl<'a, C: ClientExt> Collection<C> {
     #[maybe_async]
     pub async fn truncate(&self) -> Result<Info, ClientError> {
         let url = self.base_url.join("truncate").unwrap();
-        let resp: Info = deserialize_response(self.session.put(url, "").await?.body())?;
+        let resp: Info = deserialize_response(self.session.put(url.to_string(), "").await?.body())?;
         Ok(resp)
     }
 
@@ -202,7 +199,8 @@ impl<'a, C: ClientExt> Collection<C> {
     #[maybe_async]
     pub async fn properties(&self) -> Result<Properties, ClientError> {
         let url = self.base_url.join("properties").unwrap();
-        let resp: Properties = deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Properties =
+            deserialize_response(self.session.get(url.to_string(), "").await?.body())?;
         Ok(resp)
     }
 
@@ -213,7 +211,8 @@ impl<'a, C: ClientExt> Collection<C> {
     #[maybe_async]
     pub async fn document_count(&self) -> Result<Properties, ClientError> {
         let url = self.base_url.join("count").unwrap();
-        let resp: Properties = deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Properties =
+            deserialize_response(self.session.get(url.to_string(), "").await?.body())?;
         Ok(resp)
     }
     /// Fetch the statistics of a collection
@@ -247,7 +246,8 @@ impl<'a, C: ClientExt> Collection<C> {
     #[maybe_async]
     pub async fn statistics(&self) -> Result<Statistics, ClientError> {
         let url = self.base_url.join("figures").unwrap();
-        let resp: Statistics = deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Statistics =
+            deserialize_response(self.session.get(url.to_string(), "").await?.body())?;
         Ok(resp)
     }
 
@@ -262,7 +262,8 @@ impl<'a, C: ClientExt> Collection<C> {
     #[maybe_async]
     pub async fn revision_id(&self) -> Result<Revision, ClientError> {
         let url = self.base_url.join("revision").unwrap();
-        let resp: Revision = deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Revision =
+            deserialize_response(self.session.get(url.to_string(), "").await?.body())?;
         Ok(resp)
     }
     /// Fetch a checksum for the specified collection
@@ -323,7 +324,8 @@ impl<'a, C: ClientExt> Collection<C> {
         let query = serde_qs::to_string(&options).unwrap();
         url.set_query(Some(query.as_str()));
 
-        let resp: Checksum = deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Checksum =
+            deserialize_response(self.session.get(url.to_string(), "").await?.body())?;
         Ok(resp)
     }
 
@@ -346,8 +348,12 @@ impl<'a, C: ClientExt> Collection<C> {
     pub async fn load(&self, count: bool) -> Result<Info, ClientError> {
         let url = self.base_url.join("load").unwrap();
         let body = json!({ "count": count });
-        let resp: Info =
-            deserialize_response(self.session.put(url, body.to_string()).await?.body())?;
+        let resp: Info = deserialize_response(
+            self.session
+                .put(url.to_string(), body.to_string())
+                .await?
+                .body(),
+        )?;
         Ok(resp)
     }
 
@@ -361,7 +367,7 @@ impl<'a, C: ClientExt> Collection<C> {
     #[maybe_async]
     pub async fn unload(&self) -> Result<Info, ClientError> {
         let url = self.base_url.join("unload").unwrap();
-        let resp: Info = deserialize_response(self.session.put(url, "").await?.body())?;
+        let resp: Info = deserialize_response(self.session.put(url.to_string(), "").await?.body())?;
         Ok(resp)
     }
 
@@ -393,7 +399,7 @@ impl<'a, C: ClientExt> Collection<C> {
     pub async fn load_indexes(&self) -> Result<bool, ClientError> {
         let url = self.base_url.join("loadIndexesIntoMemory").unwrap();
         let resp: ArangoResult<bool> =
-            deserialize_response(self.session.put(url, "").await?.body())?;
+            deserialize_response(self.session.put(url.to_string(), "").await?.body())?;
         Ok(resp.unwrap())
     }
 
@@ -409,7 +415,8 @@ impl<'a, C: ClientExt> Collection<C> {
         let url = self.base_url.join("properties").unwrap();
 
         let body = serde_json::to_string(&properties).unwrap();
-        let resp: Properties = deserialize_response(self.session.put(url, body).await?.body())?;
+        let resp: Properties =
+            deserialize_response(self.session.put(url.to_string(), body).await?.body())?;
         Ok(resp)
     }
 
@@ -421,8 +428,12 @@ impl<'a, C: ClientExt> Collection<C> {
     pub async fn rename(&mut self, name: &str) -> Result<Info, ClientError> {
         let url = self.base_url.join("rename").unwrap();
         let body = json!({ "name": name });
-        let resp: Info =
-            deserialize_response(self.session.put(url, body.to_string()).await?.body())?;
+        let resp: Info = deserialize_response(
+            self.session
+                .put(url.to_string(), body.to_string())
+                .await?
+                .body(),
+        )?;
         self.name = name.to_string();
         self.base_url = self.base_url.join(&format!("../{}/", name)).unwrap();
         Ok(resp)
@@ -439,7 +450,7 @@ impl<'a, C: ClientExt> Collection<C> {
     pub async fn recalculate_count(&self) -> Result<bool, ClientError> {
         let url = self.base_url.join("recalculateCount").unwrap();
         let resp: ArangoResult<bool> =
-            deserialize_response(self.session.put(url, "").await?.body())?;
+            deserialize_response(self.session.put(url.to_string(), "").await?.body())?;
         Ok(resp.unwrap())
     }
     /// Rotate the journal of a collection
@@ -464,7 +475,7 @@ impl<'a, C: ClientExt> Collection<C> {
     pub async fn rotate_journal(&self) -> Result<bool, ClientError> {
         let url = self.base_url.join("rotate").unwrap();
         let resp: ArangoResult<bool> =
-            deserialize_response(self.session.put(url, "").await?.body())?;
+            deserialize_response(self.session.put(url.to_string(), "").await?.body())?;
         Ok(resp.unwrap())
     }
 
@@ -522,7 +533,7 @@ impl<'a, C: ClientExt> Collection<C> {
         let query = serde_qs::to_string(&insert_options).unwrap();
         url.set_query(Some(query.as_str()));
         let resp: DocumentResponse<T> =
-            deserialize_response(self.session.post(url, body).await?.body())?;
+            deserialize_response(self.session.post(url.to_string(), body).await?.body())?;
         Ok(resp)
     }
 
@@ -632,7 +643,7 @@ impl<'a, C: ClientExt> Collection<C> {
         url.set_query(Some(query.as_str()));
 
         let resp: DocumentResponse<T> =
-            deserialize_response(self.session.patch(url, body).await?.body())?;
+            deserialize_response(self.session.patch(url.to_string(), body).await?.body())?;
         Ok(resp)
     }
 

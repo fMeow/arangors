@@ -5,9 +5,9 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 use typed_builder::TypedBuilder;
-use uclient::ClientExt;
 use url::Url;
 
+use crate::connection::client::ReqwestClient;
 use crate::{
     aql::Cursor,
     collection::response::Info,
@@ -84,8 +84,7 @@ pub struct TransactionList {
 /// # use arangors::transaction::{TransactionCollections, TransactionSettings};
 /// # use serde_json::{json, Value};
 ///
-/// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-/// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+/// # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
 /// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 /// # async fn main() -> Result<(),anyhow::Error>{
 /// # let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -122,18 +121,15 @@ pub struct TransactionList {
 /// # }
 /// ```
 #[derive(Debug)]
-pub struct Transaction<C: ClientExt> {
+pub struct Transaction {
     id: String,
     status: Status,
-    session: Arc<C>,
+    session: Arc<ReqwestClient>,
     base_url: Url,
 }
 
-impl<C> Transaction<C>
-where
-    C: ClientExt,
-{
-    pub(crate) fn new(tx: ArangoTransaction, session: Arc<C>, base_url: Url) -> Self {
+impl Transaction {
+    pub(crate) fn new(tx: ArangoTransaction, session: Arc<ReqwestClient>, base_url: Url) -> Self {
         Transaction {
             id: tx.id,
             status: tx.status,
@@ -157,7 +153,7 @@ where
     }
 
     /// The transaction session, contains the streaming transaction header value
-    pub fn session(&self) -> Arc<C> {
+    pub fn session(&self) -> Arc<ReqwestClient> {
         Arc::clone(&self.session)
     }
 
@@ -174,7 +170,7 @@ where
             .join(&format!("_api/transaction/{}", self.id))
             .unwrap();
 
-        let resp = self.session.put(url, "").await?;
+        let resp = self.session.put(url.to_string(), "").await?;
 
         let result: ArangoResult<ArangoTransaction> = deserialize_response(resp.body())?;
 
@@ -195,7 +191,7 @@ where
             .join(&format!("_api/transaction/{}", self.id))
             .unwrap();
 
-        let resp = self.session.put(url, "").await?;
+        let resp = self.session.put(url.to_string(), "").await?;
 
         let result: ArangoResult<ArangoTransaction> = deserialize_response(resp.body())?;
 
@@ -221,7 +217,7 @@ where
             .join(&format!("_api/transaction/{}", self.id))
             .unwrap();
 
-        let resp = self.session.delete(url, "").await?;
+        let resp = self.session.delete(url.to_string(), "").await?;
 
         let result: ArangoResult<ArangoTransaction> = deserialize_response(resp.body())?;
 
@@ -237,12 +233,12 @@ where
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn collection(&self, name: &str) -> Result<Collection<C>, ClientError> {
+    pub async fn collection(&self, name: &str) -> Result<Collection, ClientError> {
         let url = self
             .base_url
             .join(&format!("_api/collection/{}", name))
             .unwrap();
-        let resp: Info = deserialize_response(self.session.get(url, "").await?.body())?;
+        let resp: Info = deserialize_response(self.session.get(url.to_string(), "").await?.body())?;
         Ok(Collection::from_transaction_response(self, &resp))
     }
 
@@ -254,7 +250,7 @@ where
         let url = self.base_url.join("_api/cursor").unwrap();
         let resp = self
             .session
-            .post(url, &serde_json::to_string(&aql)?)
+            .post(url.to_string(), &serde_json::to_string(&aql)?)
             .await?;
         deserialize_response(resp.body())
     }
@@ -268,7 +264,7 @@ where
             .base_url
             .join(&format!("_api/cursor/{}", cursor_id))
             .unwrap();
-        let resp = self.session.put(url, "").await?;
+        let resp = self.session.put(url.to_string(), "").await?;
 
         deserialize_response(resp.body())
     }

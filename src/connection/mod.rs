@@ -15,8 +15,7 @@
 //! ```rust
 //! use arangors::Connection;
 //!
-//! # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-//! # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+//! # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
 //! # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
 //! # async fn main() {
 //! let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -41,7 +40,6 @@ use log::{debug, trace};
 use maybe_async::maybe_async;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use uclient::ClientExt;
 use url::Url;
 
 use crate::{response::ArangoResult, ClientError};
@@ -55,8 +53,10 @@ use self::{
     auth::Auth,
     role::{Admin, Normal},
 };
+use crate::connection::client::ReqwestClient;
 
 mod auth;
+pub mod client;
 pub mod options;
 
 pub mod role {
@@ -84,23 +84,17 @@ pub struct Version {
     pub license: String,
 }
 
-#[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
-pub type Connection = GenericConnection<uclient::reqwest::ReqwestClient>;
-
-#[cfg(feature = "surf_async")]
-pub type Connection = GenericConnection<uclient::surf::SurfClient>;
-
 /// Connection is the top level API for this crate.
 /// It contains a http client, information about authentication, arangodb url.
 #[derive(Debug, Clone)]
-pub struct GenericConnection<C: ClientExt, S = Normal> {
-    session: Arc<C>,
+pub struct Connection<S = Normal> {
+    session: Arc<ReqwestClient>,
     arango_url: Url,
     username: String,
     state: S,
 }
 
-impl<S, C: ClientExt> GenericConnection<C, S> {
+impl<S> Connection<S> {
     /// Validate the server at given arango url
     ///
     /// Cast `ClientError` if
@@ -109,15 +103,15 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     /// - SERVER header in response header is not `ArangoDB` or empty
     #[maybe_async]
     pub async fn validate_server(arango_url: &str) -> Result<(), ClientError> {
-        let client = C::new(None)?;
-        let resp = client.get(arango_url.parse().unwrap(), "").await?;
+        let client = ReqwestClient::new(None)?;
+        let resp = client.get(arango_url.to_string(), "").await?;
         // have `Server` in header
         match resp.headers().get(SERVER) {
             Some(server) => {
                 // value of `Server` is `ArangoDB`
                 let server_value = server.to_str().unwrap();
                 if server_value.eq_ignore_ascii_case("ArangoDB") {
-                    trace!("Validate arangoDB server done.");
+                    trace!("Validate ArangoDB server done.");
                     Ok(())
                 } else {
                     Err(ClientError::InvalidServer(server_value.to_owned()))
@@ -139,7 +133,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     ///
     /// TODO This method should only be public in this crate when all features
     ///     are implemented.
-    pub fn session(&self) -> Arc<C> {
+    pub fn session(&self) -> Arc<ReqwestClient> {
         Arc::clone(&self.session)
     }
 
@@ -148,7 +142,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn db(&self, name: &str) -> Result<Database<C>, ClientError> {
+    pub async fn db(&self, name: &str) -> Result<Database, ClientError> {
         let db = Database::new(name, self.url(), self.session());
         db.info().await?;
         Ok(db)
@@ -167,7 +161,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
             .arango_url
             .join(&format!("/_api/user/{}/database", &self.username))
             .unwrap();
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
         let result: ArangoResult<HashMap<String, Permission>> = deserialize_response(resp.body())?;
         Ok(result.unwrap())
     }
@@ -187,7 +181,7 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     #[maybe_async]
     pub async fn server_role(&self) -> Result<String, ClientError> {
         let url = self.arango_url.join("/_admin/server/role").unwrap();
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
         let result: HashMap<String, Value> = deserialize_response(resp.body())?;
 
         Ok(result.get("role").unwrap().as_str().unwrap().to_owned())
@@ -201,14 +195,14 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     #[cfg(feature = "cluster")]
     pub async fn cluster_health(&self) -> Result<ClusterHealth, ClientError> {
         let url = self.arango_url.join("/_admin/cluster/health").unwrap();
-        let resp = self.session.get(url, "").await?;
+        let resp = self.session.get(url.to_string(), "").await?;
         let result: ClusterHealth = deserialize_response(resp.body())?;
 
         Ok(result)
     }
 }
 
-impl<C: ClientExt> GenericConnection<C, Normal> {
+impl Connection<Normal> {
     /// Establish connection to ArangoDB sever with Auth.
     ///
     /// The connection is establish in the following steps:
@@ -223,7 +217,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     async fn establish<T: Into<String>>(
         arango_url: T,
         auth: Auth<'_>,
-    ) -> Result<GenericConnection<C, Normal>, ClientError> {
+    ) -> Result<Connection<Normal>, ClientError> {
         let url_str = arango_url.into();
         let arango_url = Url::parse(&url_str)
             .map_err(|_| ClientError::InvalidServer(format!("invalid url: {}", url_str)))?
@@ -258,10 +252,10 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         }
 
         debug!("Established");
-        Ok(GenericConnection {
+        Ok(Self {
             arango_url,
             username,
-            session: Arc::new(C::new(headers)?),
+            session: Arc::new(ReqwestClient::new(headers)?),
             state: Normal,
         })
     }
@@ -282,9 +276,9 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     #[maybe_async]
     pub async fn establish_without_auth<T: Into<String>>(
         arango_url: T,
-    ) -> Result<GenericConnection<C, Normal>, ClientError> {
+    ) -> Result<Connection<Normal>, ClientError> {
         trace!("Establish without auth");
-        GenericConnection::establish(arango_url.into(), Auth::None).await
+        Self::establish(arango_url.into(), Auth::None).await
     }
 
     /// Establish connection to ArangoDB sever with basic auth.
@@ -293,8 +287,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// ```rust
     /// use arangors::Connection;
     ///
-    /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-    /// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+    /// # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
     /// # #[cfg_attr(feature="blocking", maybe_async::must_be_sync)]
     /// # async fn main() {
     /// let conn = Connection::establish_basic_auth("http://localhost:8529", "username", "password")
@@ -307,9 +300,9 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         arango_url: &str,
         username: &str,
         password: &str,
-    ) -> Result<GenericConnection<C, Normal>, ClientError> {
+    ) -> Result<Connection<Normal>, ClientError> {
         trace!("Establish with basic auth");
-        GenericConnection::establish(arango_url, Auth::basic(username, password)).await
+        Self::establish(arango_url, Auth::basic(username, password)).await
     }
 
     /// Establish connection to ArangoDB sever with jwt authentication.
@@ -323,8 +316,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// ```rust
     /// use arangors::Connection;
     ///
-    /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-    /// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+    /// # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
     /// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
     /// # async fn main() {
     /// let conn = Connection::establish_jwt("http://localhost:8529", "username", "password")
@@ -337,9 +329,9 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         arango_url: &str,
         username: &str,
         password: &str,
-    ) -> Result<GenericConnection<C, Normal>, ClientError> {
+    ) -> Result<Connection<Normal>, ClientError> {
         trace!("Establish with jwt");
-        GenericConnection::establish(arango_url, Auth::jwt(username, password)).await
+        Self::establish(arango_url, Auth::jwt(username, password)).await
     }
 
     #[maybe_async]
@@ -359,8 +351,8 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         map.insert("password", password.into());
 
         let jwt: Jwt = deserialize_response(
-            C::new(None)?
-                .post(url, &serde_json::to_string(&map)?)
+            ReqwestClient::new(None)?
+                .post(url.to_string(), &serde_json::to_string(&map)?)
                 .await?
                 .body(),
         )?;
@@ -375,8 +367,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// # Example
     /// ```rust
     /// use arangors::Connection;
-    /// # #[cfg_attr(any(feature="reqwest_async"), maybe_async::maybe_async, tokio::main)]
-    /// # #[cfg_attr(any(feature="surf_async"), maybe_async::maybe_async, async_std::main)]
+    /// # #[cfg_attr(not(feature="blocking"), maybe_async::maybe_async, tokio::main)]
     /// # #[cfg_attr(feature = "blocking", maybe_async::must_be_sync)]
     /// # async fn main() {
     /// let conn = Connection::establish_jwt("http://localhost:8529", "root", "KWNngteTps7XjrNv")
@@ -394,14 +385,14 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn create_database(&self, name: &str) -> Result<Database<C>, ClientError> {
+    pub async fn create_database(&self, name: &str) -> Result<Database, ClientError> {
         let mut map = HashMap::new();
         map.insert("name", name);
         let url = self.arango_url.join("/_api/database").unwrap();
 
         let resp = self
             .session
-            .post(url, &serde_json::to_string(&map)?)
+            .post(url.to_string(), &serde_json::to_string(&map)?)
             .await?;
 
         deserialize_response::<ArangoResult<bool>>(resp.body())?;
@@ -414,7 +405,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         &self,
         name: &str,
         options: CreateDatabaseOptions,
-    ) -> Result<Database<C>, ClientError> {
+    ) -> Result<Database, ClientError> {
         let url = self.arango_url.join("/_api/database").unwrap();
         let final_options = CreateDatabase::builder()
             .name(name)
@@ -423,7 +414,7 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
 
         let resp = self
             .session
-            .post(url, &serde_json::to_string(&final_options)?)
+            .post(url.to_string(), &serde_json::to_string(&final_options)?)
             .await?;
 
         deserialize_response::<ArangoResult<bool>>(resp.body())?;
@@ -439,13 +430,13 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
         let url_path = format!("/_api/database/{}", name);
         let url = self.arango_url.join(&url_path).unwrap();
 
-        let resp = self.session.delete(url, "").await?;
+        let resp = self.session.delete(url.to_string(), "").await?;
         deserialize_response::<ArangoResult<bool>>(resp.body())?;
         Ok(())
     }
 
     #[maybe_async]
-    pub async fn into_admin(self) -> Result<GenericConnection<C, Admin>, ClientError> {
+    pub async fn into_admin(self) -> Result<Connection<Admin>, ClientError> {
         let dbs = self.accessible_databases().await?;
         let db = dbs
             .get("_system")
@@ -463,15 +454,15 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
     }
 }
 
-impl<C: ClientExt> GenericConnection<C, Admin> {
-    pub fn into_normal(self) -> GenericConnection<C, Normal> {
+impl Connection<Admin> {
+    pub fn into_normal(self) -> Connection<Normal> {
         self.into()
     }
 }
 
-impl<C: ClientExt> From<GenericConnection<C, Normal>> for GenericConnection<C, Admin> {
-    fn from(conn: GenericConnection<C, Normal>) -> GenericConnection<C, Admin> {
-        GenericConnection {
+impl From<Connection<Normal>> for Connection<Admin> {
+    fn from(conn: Connection<Normal>) -> Connection<Admin> {
+        Connection {
             arango_url: conn.arango_url,
             session: conn.session,
             username: conn.username,
@@ -480,9 +471,9 @@ impl<C: ClientExt> From<GenericConnection<C, Normal>> for GenericConnection<C, A
     }
 }
 
-impl<C: ClientExt> From<GenericConnection<C, Admin>> for GenericConnection<C, Normal> {
-    fn from(conn: GenericConnection<C, Admin>) -> GenericConnection<C, Normal> {
-        GenericConnection {
+impl From<Connection<Admin>> for Connection<Normal> {
+    fn from(conn: Connection<Admin>) -> Connection<Normal> {
+        Connection {
             arango_url: conn.arango_url,
             session: conn.session,
             username: conn.username,

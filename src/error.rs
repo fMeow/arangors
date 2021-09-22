@@ -19,7 +19,17 @@ pub enum ClientError {
     #[error("Error from serde: {0}")]
     Serde(#[from] serde_json::error::Error),
     #[error("HTTP client error: {0}")]
-    HttpClient(#[from] uclient::ClientError),
+    HttpClient(#[from] HttpError),
+}
+
+#[derive(Error, Debug)]
+pub enum HttpError {
+    #[error("HTTP client error: {0}")]
+    HttpClient(String),
+    #[error("Invalid file. File not found or permission error")]
+    InvalidFile,
+    #[error("Payload Error")]
+    PayloadError,
 }
 
 #[derive(Deserialize, Debug, Error)]
