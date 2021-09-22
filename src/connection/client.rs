@@ -3,6 +3,11 @@ use reqwest::blocking::Client;
 #[cfg(not(feature = "blocking"))]
 use reqwest::Client;
 
+#[cfg(feature = "blocking")]
+type Reqwest = reqwest::blocking::Request;
+#[cfg(not(feature = "blocking"))]
+type Reqwest = reqwest::Request;
+
 use crate::error::HttpError;
 use crate::ClientError;
 use http::header::HeaderMap;
@@ -146,7 +151,7 @@ impl ReqwestClient {
             }
         }
 
-        let req = reqwest::Request::try_from(request).unwrap();
+        let req = Reqwest::try_from(request).unwrap();
         let resp = self
             .client
             .execute(req)
