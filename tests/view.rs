@@ -50,10 +50,7 @@ async fn create_view(
         .await
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_create_and_drop_view() {
     test_setup();
     let collection_name = "test_collection".to_string();

@@ -64,10 +64,7 @@ async fn create_ngram_analyzer(
     database.create_analyzer(info).await
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_create_and_drop_norm_analyzer() {
     test_setup();
     let analyzer_name = "test_analyzer_norm_create".to_string();
@@ -85,10 +82,7 @@ async fn test_create_and_drop_norm_analyzer() {
     assert_eq!(result.is_err(), false);
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_create_and_drop_ngram_analyzer() {
     test_setup();
     let analyzer_name = "test_analyzer_ngram_create".to_string();
@@ -106,10 +100,7 @@ async fn test_create_and_drop_ngram_analyzer() {
     assert_eq!(result.is_err(), false);
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_list_analyzer() {
     test_setup();
     let analyzer_name = "test_analyzer_list".to_string();
@@ -136,10 +127,7 @@ async fn test_list_analyzer() {
     assert_eq!(result.is_err(), false);
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_create_and_exists() {
     test_setup();
     let analyzer_name = "test_analyzer_exists".to_string();

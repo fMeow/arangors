@@ -35,10 +35,7 @@ async fn drop_graph(db: &Database, name: &str) {
     }
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_simple_graph() {
     test_setup();
     let conn = connection().await;
@@ -63,10 +60,7 @@ async fn test_simple_graph() {
     assert!(result.options.is_none());
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_complex_graph() {
     test_setup();
     let conn = connection().await;
@@ -107,10 +101,7 @@ async fn test_complex_graph() {
     // assert_eq!(options.smart_graph_attribute.unwrap(), "region".to_string());
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_graph_retrieval() {
     test_setup();
     let conn = connection().await;

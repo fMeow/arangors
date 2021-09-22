@@ -22,10 +22,7 @@ use std::{convert::TryInto, ptr::null};
 pub mod common;
 
 #[cfg(not(feature = "arango3_7"))]
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_post_create_document() {
     test_setup();
     let collection_name = "test_collection_create_document";
@@ -141,10 +138,7 @@ async fn test_post_create_document() {
 
 /// TODO need to use CI to validate this test
 #[cfg(any(feature = "arango3_7"))]
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_post_create_document_3_7() {
     test_setup();
     let collection_name = "test_collection_create_document_3_7";
@@ -322,10 +316,7 @@ async fn test_post_create_document_3_7() {
     coll.drop().await.expect("Should drop the collection");
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_get_read_document() {
     test_setup();
     let collection_name = "test_collection_read_document";
@@ -372,10 +363,7 @@ async fn test_get_read_document() {
     coll.drop().await.expect("Should drop the collection");
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_get_read_document_header() {
     test_setup();
     let collection_name = "test_collection_read_document_header";
@@ -448,10 +436,7 @@ async fn test_get_read_document_header() {
     coll.drop().await.expect("Should drop the collection");
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_patch_update_document() {
     test_setup();
     let collection_name = "test_collection_update_document";
@@ -524,10 +509,7 @@ async fn test_patch_update_document() {
     // todo do more test for merge objects and stuff
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_post_replace_document() {
     test_setup();
     let collection_name = "test_collection_replace_document";
@@ -635,10 +617,7 @@ async fn test_post_replace_document() {
     // todo do more test
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_delete_remove_document() {
     test_setup();
     let collection_name = "test_collection_remove_document";
@@ -752,10 +731,7 @@ async fn test_delete_remove_document() {
     // todo do more test
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_document_deserialization() {
     use serde::{Deserialize, Serialize};
     #[derive(Debug, Default, Serialize, Deserialize)]

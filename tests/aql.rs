@@ -17,10 +17,7 @@ struct User {
     pub password: String,
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_aql_str() {
     test_setup();
     let conn = connection().await;
@@ -33,10 +30,7 @@ async fn test_aql_str() {
     assert_eq!(result[0].document.password, "test2_pwd");
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_aql() {
     test_setup();
     let conn = connection().await;
@@ -49,10 +43,7 @@ async fn test_aql() {
     assert_eq!(result[0].document.password, "test2_pwd");
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_aql_bind_vars() {
     test_setup();
     let conn = connection().await;
@@ -67,10 +58,7 @@ async fn test_aql_bind_vars() {
     assert_eq!(result[0].document.password, "test2_pwd");
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_aql_try_bind() {
     test_setup();
     let conn = connection().await;

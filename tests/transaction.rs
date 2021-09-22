@@ -56,10 +56,7 @@ async fn create_document(tx: &Transaction) -> Result<String, ClientError> {
     Ok(_key.clone())
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_start_transaction() {
     test_setup();
     let conn = connection().await;
@@ -77,10 +74,7 @@ async fn test_start_transaction() {
     assert_eq!(status, TransactionStatus::Aborted);
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_abort_transaction() {
     test_setup();
     let conn = connection().await;
@@ -109,10 +103,7 @@ async fn test_abort_transaction() {
     assert_eq!(doc.is_err(), true);
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_commit_transaction() {
     test_setup();
     let conn = connection().await;

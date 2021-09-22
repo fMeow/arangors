@@ -55,10 +55,7 @@ pub async fn connection() -> arangors::Connection {
 }
 
 #[maybe_async::maybe_async]
-pub async fn collection<'a>(
-    conn: &'a arangors::Connection,
-    name: &str,
-) -> Collection {
+pub async fn collection<'a>(conn: &'a arangors::Connection, name: &str) -> Collection {
     let database = conn.db("test_db").await.unwrap();
 
     match database.drop_collection(name).await {

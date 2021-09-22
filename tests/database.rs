@@ -13,10 +13,7 @@ pub mod common;
 
 const NEW_DB_NAME: &str = "example";
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_create_and_drop_database() {
     test_setup();
     let host = get_arangodb_host();
@@ -42,10 +39,7 @@ async fn test_create_and_drop_database() {
     assert_eq!(result.is_err(), true);
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_fetch_current_database_info() {
     test_setup();
 
@@ -68,10 +62,7 @@ async fn test_fetch_current_database_info() {
     test_root_and_normal(fetch_current_database).await;
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_get_version() {
     test_setup();
     let conn = connection().await;

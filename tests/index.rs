@@ -19,10 +19,7 @@ use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup
 
 pub mod common;
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_persistent_index() {
     test_setup();
     let collection_name = "test_collection";
@@ -64,10 +61,7 @@ async fn test_persistent_index() {
     }
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_hash_index() {
     test_setup();
     let collection_name = "test_collection";
@@ -109,10 +103,7 @@ async fn test_hash_index() {
     }
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_skiplist_index() {
     test_setup();
     let collection_name = "test_collection";
@@ -154,10 +145,7 @@ async fn test_skiplist_index() {
     }
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_geo_index() {
     test_setup();
     let collection_name = "test_collection";
@@ -188,10 +176,7 @@ async fn test_geo_index() {
     }
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_ttl_index() {
     test_setup();
     let collection_name = "test_collection";
@@ -222,10 +207,7 @@ async fn test_ttl_index() {
     }
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_fulltext_index() {
     test_setup();
     let collection_name = "test_collection";
@@ -256,10 +238,7 @@ async fn test_fulltext_index() {
     }
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_list_indexes() {
     test_setup();
     let collection_name = "test_collection";

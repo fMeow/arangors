@@ -10,10 +10,7 @@ use common::{
 
 pub mod common;
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_list_databases() {
     test_setup();
     let conn = connection().await;
@@ -29,10 +26,7 @@ async fn test_list_databases() {
     };
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_get_url() {
     test_setup();
     let host = get_arangodb_host();
@@ -46,10 +40,7 @@ async fn test_get_url() {
     assert_eq!(url, host)
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_get_database() {
     test_setup();
     let conn = connection().await;
@@ -59,10 +50,7 @@ async fn test_get_database() {
     assert_eq!(database.is_err(), true);
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_basic_auth() {
     test_setup();
     let host = get_arangodb_host();
@@ -78,10 +66,7 @@ async fn test_basic_auth() {
     assert_eq!(headers.get("Server").unwrap(), "ArangoDB");
 }
 
-#[maybe_async::test(
-    feature = "blocking",
-    async(not(feature = "blocking"), tokio::test),
-)]
+#[maybe_async::test(feature = "blocking", async(not(feature = "blocking"), tokio::test))]
 async fn test_jwt() {
     test_setup();
     #[maybe_async::maybe_async]
