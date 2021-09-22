@@ -6,10 +6,8 @@ use reqwest::Client;
 use crate::error::HttpError;
 use crate::ClientError;
 use http::header::HeaderMap;
-use http::request::Parts;
 use http::{Request, Response};
-use reqwest::redirect::Policy;
-use std::io::{BufReader, Read};
+use std::convert::TryFrom;
 
 #[derive(Debug, Clone)]
 pub struct ReqwestClient {
@@ -37,7 +35,6 @@ impl ReqwestClient {
         };
 
         client
-            .redirect(Policy::none())
             .build()
             .map(|c| ReqwestClient { client: c, headers })
             .map_err(|e| ClientError::HttpClient(HttpError::HttpClient(format!("{:?}", e))))
@@ -138,28 +135,10 @@ impl ReqwestClient {
     }
 
     #[maybe_async::maybe_async]
-    pub async fn request(&self, request: Request<String>) -> Result<Response<String>, ClientError> {
-        self.request_bytes(request.map(|b| b.into_bytes())).await
-    }
-
-    #[maybe_async::maybe_async]
-    pub async fn request_bytes(
+    pub async fn request(
         &self,
-        request: Request<Vec<u8>>,
+        mut request: Request<String>,
     ) -> Result<Response<String>, ClientError> {
-        let req = request.map(|b| BufReader::new(std::io::Cursor::new(b)));
-        let res = self.request_reader(req).await?;
-        Ok(res)
-    }
-
-    #[maybe_async::maybe_async]
-    pub async fn request_reader<T>(
-        &self,
-        mut request: Request<T>,
-    ) -> Result<Response<String>, HttpError>
-    where
-        T: Read + Send + Sync + 'static,
-    {
         let headers = request.headers_mut();
         for (header, value) in self.headers.iter() {
             if !headers.contains_key(header) {
@@ -167,7 +146,7 @@ impl ReqwestClient {
             }
         }
 
-        let req = get_req(request);
+        let req = reqwest::Request::try_from(request).unwrap();
         let resp = self
             .client
             .execute(req)
@@ -187,94 +166,11 @@ impl ReqwestClient {
             build = build.header(header.0, header.1);
         }
 
-        build
+        let res = build
             .status(status_code)
             .version(version)
             .body(content)
-            .map_err(|e| HttpError::HttpClient(format!("{:?}", e)))
+            .map_err(|e| HttpError::HttpClient(format!("{:?}", e)))?;
+        Ok(res)
     }
-}
-
-#[maybe_async::async_impl]
-fn get_req<T>(req: Request<T>) -> reqwest::Request
-where
-    T: Read + Send + Sync + 'static,
-{
-    use futures::StreamExt;
-    use reqwest::Body;
-
-    let (parts, body) = req.into_parts();
-    let Parts {
-        method,
-        uri,
-        headers,
-        ..
-    } = parts;
-
-    let mut request = reqwest::Request::new(method, uri.to_string().parse().unwrap());
-
-    let mut prev_name = None;
-    for (key, value) in headers {
-        match key {
-            Some(key) => {
-                request.headers_mut().insert(key.clone(), value);
-                prev_name = Some(key);
-            }
-            None => match prev_name {
-                Some(ref key) => {
-                    request.headers_mut().append(key.clone(), value);
-                }
-                None => unreachable!("HeaderMap::into_iter yielded None first"),
-            },
-        }
-    }
-    let body_bytes = body.bytes();
-    let stream = futures::stream::iter(body_bytes).chunks(2048).map(|x| {
-        let len = x.len();
-        let out = x.into_iter().filter_map(|b| b.ok()).collect::<Vec<_>>();
-        if out.len() == len {
-            Ok(out)
-        } else {
-            Err(HttpError::PayloadError)
-        }
-    });
-    request.body_mut().replace(Body::wrap_stream(stream));
-
-    request
-}
-
-#[maybe_async::sync_impl]
-fn get_req<T>(req: Request<T>) -> reqwest::blocking::Request
-where
-    T: Read + Send + Sync + 'static,
-{
-    use reqwest::blocking::Body;
-
-    let (parts, body) = req.into_parts();
-    let Parts {
-        method,
-        uri,
-        headers,
-        ..
-    } = parts;
-    let mut request = reqwest::blocking::Request::new(method, uri.to_string().parse().unwrap());
-
-    let mut prev_name = None;
-    for (key, value) in headers {
-        match key {
-            Some(key) => {
-                request.headers_mut().insert(key.clone(), value);
-                prev_name = Some(key);
-            }
-            None => match prev_name {
-                Some(ref key) => {
-                    request.headers_mut().append(key.clone(), value);
-                }
-                None => unreachable!("HeaderMap::into_iter yielded None first"),
-            },
-        }
-    }
-    request.body_mut().replace(Body::new(body));
-
-    request
 }
