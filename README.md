@@ -314,6 +314,11 @@ println!("{:?}", resp);
 
 Contributions and feed back are welcome following Github workflow.
 
+Setup instructions:
+1. Install a local ArangoDB, port 8529
+2. Create a database "test_db"
+3. Create a user with "username" and password "password", or set `ARANGO_USER` and `ARANGO_PASSWORD`
+
 ### License
 
 `arangors` is provided under the MIT license. See [LICENSE](./LICENSE).
