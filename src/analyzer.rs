@@ -24,6 +24,14 @@ pub enum NgramStreamType {
     Utf8,
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum GeoJsonType {
+    Shape,
+    Centroid,
+    Point,
+}
+
 #[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 pub struct DelimiterAnalyzerProperties {
@@ -114,6 +122,17 @@ pub struct TextAnalyzerProperties {
     pub stemming: Option<bool>,
 }
 
+#[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
+#[builder(doc)]
+pub struct GeoJsonAnalyzerProperties {
+    /// Whether to index all GeoJSON geometry types, just the centroid, or just points
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default, setter(strip_option))]
+    pub r#type: Option<GeoJsonType>,
+
+    // Skip the options as they "generally should remain unchanged"
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum AnalyzerInfo {
@@ -172,6 +191,16 @@ pub enum AnalyzerInfo {
 
         #[serde(skip_serializing_if = "Option::is_none")]
         properties: Option<TextAnalyzerProperties>,
+    },
+
+    Geojson {
+        name: String,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        features: Option<Vec<AnalyzerFeature>>,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        properties: Option<GeoJsonAnalyzerProperties>,
     },
 }
 
