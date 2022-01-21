@@ -315,9 +315,8 @@ println!("{:?}", resp);
 Contributions and feed back are welcome following Github workflow.
 
 Setup instructions:
-1. Install a local ArangoDB, port 8529
-2. Create a database "test_db"
-3. Create a user with "username" and password "password", or set `ARANGO_USER` and `ARANGO_PASSWORD`
+1. Install a local ArangoDB, version 3.8 or above, port 8529.  Use `docker compose`.
+2. Run `tests/init_db.sh`
 
 ### License
 
