@@ -97,6 +97,7 @@ pub struct GenericConnection<C: ClientExt, S = Normal> {
     session: Arc<C>,
     arango_url: Url,
     username: String,
+    #[allow(dead_code)]
     state: S,
 }
 

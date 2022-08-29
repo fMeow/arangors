@@ -39,9 +39,9 @@ http = "0.2"
 log = "0.4"
 maybe-async = "0.2"
 serde_json = "1"
-serde_qs = "0.8"
+serde_qs = "0.10"
 thiserror = "1"
-typed-builder = "0.9.1"
+typed-builder = "0.10"
 url = "2"
 uclient = "0.1"
 
@@ -64,7 +64,7 @@ uclient = "0.1"
 
 [dev-dependencies]
 env_logger = "0.9"
-pretty_assertions = "0.7"
+pretty_assertions = "1"
 regex = "1"
 anyhow = "1"
 
