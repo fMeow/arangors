@@ -283,7 +283,6 @@ async fn test_get_revision_id() {
     let revision = coll.revision_id().await;
 
     let result = revision.unwrap();
-    assert_eq!(result.revision, "0");
     assert_eq!(result.info.name, collection_name);
     #[cfg(rocksdb)]
     assert_eq!(result.detail.cache_enabled, false);
@@ -426,6 +425,11 @@ async fn test_put_unload() {
     test_setup();
     let collection_name = "test_collection_unload";
     let conn = connection().await;
+
+    let db = conn.db("test_db").await.unwrap();
+    let version = db.arango_version().await.unwrap();
+
+    let re = regex::Regex::new(r"3\.(\d)\.\d+").unwrap();
     let coll = collection(&conn, collection_name).await;
 
     let unload = coll.unload().await;
@@ -435,12 +439,26 @@ async fn test_put_unload() {
     assert_eq!(result.name, collection_name);
     assert_eq!(result.is_system, false);
     assert_eq!(result.count, None);
-    assert_eq!(
-        result.status == Status::Unloaded || result.status == Status::Unloading,
-        true,
-        "wrong status: {:?}",
-        result.status
-    );
+    if re.captures(&version.version).unwrap()[1]
+        .parse::<i32>()
+        .unwrap()
+        < 9
+    {
+        assert!(
+            matches!(result.status, Status::Unloaded | Status::Unloading),
+            "wrong status: {:?}",
+            result.status
+        );
+    } else {
+        assert!(
+            matches!(
+                result.status,
+                Status::Unloaded | Status::Unloading | Status::Loaded
+            ),
+            "wrong status: {:?}",
+            result.status
+        );
+    }
     assert_eq!(result.collection_type, CollectionType::Document);
 
     coll.drop().await.expect("Should drop the collection");
