@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.1](https://github.com/fMeow/arangors/compare/v0.5.0...v0.5.1) (2022-08-31)
+
+
+### Features
+
+* re-export uclient ([#74](https://github.com/fMeow/arangors/issues/74)) ([a102412](https://github.com/fMeow/arangors/commit/a1024129df4f8bf6937bcfab1bd1835167245c37))
+
+
+### Bug Fixes
+
+* fix issue with typed builder on phantom data ([#80](https://github.com/fMeow/arangors/issues/80)) ([2c31587](https://github.com/fMeow/arangors/commit/2c31587dd136a9818097cc8d44002e358bb8529c))
+
 ## [0.5.0](https://github.com/fMeow/arangors/compare/v0.4.8...v0.5.0) (2021-05-01)
 
 
