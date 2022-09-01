@@ -10,7 +10,7 @@ use uclient::ClientExt;
 
 use arangors::analyzer::{
     AnalyzerCase, AnalyzerFeature, AnalyzerInfo, NgramAnalyzerProperties, NgramStreamType,
-    NormAnalyzerProperties,
+    NormAnalyzerProperties, GeoJsonAnalyzerProperties, GeoJsonType,
 };
 use arangors::{
     collection::{
@@ -65,6 +65,24 @@ async fn create_ngram_analyzer<C: ClientExt>(
     database.create_analyzer(info).await
 }
 
+#[maybe_async]
+async fn create_geo_analyzer<C: ClientExt>(
+    database: &Database<C>,
+    analyzer_name: String,
+) -> Result<AnalyzerInfo, ClientError> {
+    let info = AnalyzerInfo::Geojson {
+        name: analyzer_name,
+        features: Some(vec![AnalyzerFeature::Frequency, AnalyzerFeature::Norm]),
+        properties: Some(
+            GeoJsonAnalyzerProperties::builder()
+                .r#type(GeoJsonType::Centroid)
+                .build(),
+        ),
+    };
+
+    database.create_analyzer(info).await
+}
+
 #[maybe_async::test(
     any(feature = "reqwest_blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
@@ -99,6 +117,28 @@ async fn test_create_and_drop_ngram_analyzer() {
     let database = conn.db("test_db").await.unwrap();
 
     let analyzer = create_ngram_analyzer(&database, analyzer_name.clone()).await;
+
+    trace!("{:?}", analyzer);
+
+    assert_eq!(analyzer.is_err(), false);
+
+    let result = database.drop_analyzer(&analyzer_name).await;
+
+    assert_eq!(result.is_err(), false);
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_create_and_drop_geo_analyzer() {
+    test_setup();
+    let analyzer_name = "test_analyzer_geo_create".to_string();
+    let conn = connection().await;
+    let database = conn.db("test_db").await.unwrap();
+
+    let analyzer = create_geo_analyzer(&database, analyzer_name.clone()).await;
 
     trace!("{:?}", analyzer);
 

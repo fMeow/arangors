@@ -314,6 +314,10 @@ println!("{:?}", resp);
 
 Contributions and feed back are welcome following Github workflow.
 
+Setup instructions:
+1. Install a local ArangoDB, version 3.8 or above, port 8529.  Use `docker compose`.
+2. Run `tests/init_db.sh`
+
 ### License
 
 `arangors` is provided under the MIT license. See [LICENSE](./LICENSE).
