@@ -9,8 +9,8 @@ use std::collections::HashMap;
 use uclient::ClientExt;
 
 use arangors::analyzer::{
-    AnalyzerCase, AnalyzerFeature, AnalyzerInfo, NgramAnalyzerProperties, NgramStreamType,
-    NormAnalyzerProperties, GeoJsonAnalyzerProperties, GeoJsonType,
+    AnalyzerCase, AnalyzerFeature, AnalyzerInfo, GeoJsonAnalyzerProperties, GeoJsonType,
+    NgramAnalyzerProperties, NgramStreamType, NormAnalyzerProperties,
 };
 use arangors::{
     collection::{

@@ -129,7 +129,6 @@ pub struct GeoJsonAnalyzerProperties {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     pub r#type: Option<GeoJsonType>,
-
     // Skip the options as they "generally should remain unchanged"
 }
 
