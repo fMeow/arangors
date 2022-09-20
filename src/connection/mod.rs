@@ -173,7 +173,8 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
         Ok(result.unwrap())
     }
 
-    // Returns the role of a server in a cluster. The role is returned in the role attribute of the result
+    // Returns the role of a server in a cluster. The role is returned in the role
+    // attribute of the result
     ///
     /// Possible return values for role are:
     /// SINGLE: the server is a standalone server without clustering
@@ -181,7 +182,8 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
     /// PRIMARY: the server is a DB-Server in a cluster
     /// SECONDARY: this role is not used anymore
     /// AGENT: the server is an Agency node in a cluster
-    /// UNDEFINED: in a cluster, UNDEFINED is returned if the server role cannot be determined.
+    /// UNDEFINED: in a cluster, UNDEFINED is returned if the server role cannot
+    /// be determined.
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -194,7 +196,8 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
         Ok(result.get("role").unwrap().as_str().unwrap().to_owned())
     }
 
-    /// Returns the health of the cluster as assessed by the supervision (Agency)
+    /// Returns the health of the cluster as assessed by the supervision
+    /// (Agency)
     ///
     /// # Note
     /// this function would make a request to arango server.
