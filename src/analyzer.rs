@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use typed_builder::TypedBuilder;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum AnalyzerFeature {
     Frequency,
@@ -9,7 +9,7 @@ pub enum AnalyzerFeature {
     Position,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum AnalyzerCase {
     Lower,
@@ -17,14 +17,14 @@ pub enum AnalyzerCase {
     Upper,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum NgramStreamType {
     Binary,
     Utf8,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum GeoJsonType {
     Shape,
@@ -32,7 +32,7 @@ pub enum GeoJsonType {
     Point,
 }
 
-#[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 pub struct DelimiterAnalyzerProperties {
     /// The value will be used as delimiter to split text into tokens as specified
@@ -42,14 +42,14 @@ pub struct DelimiterAnalyzerProperties {
     pub delimiter: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 pub struct StemAnalyzerProperties {
     /// Format: `language[_COUNTRY][.encoding][@variant]`
     pub locale: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 pub struct NormAnalyzerProperties {
     /// Format: `language[_COUNTRY][.encoding][@variant]`
@@ -66,7 +66,7 @@ pub struct NormAnalyzerProperties {
     pub accent: Option<bool>,
 }
 
-#[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct NgramAnalyzerProperties {
@@ -85,7 +85,7 @@ pub struct NgramAnalyzerProperties {
     pub stream_type: Option<NgramStreamType>,
 }
 
-#[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct TextAnalyzerProperties {
@@ -122,7 +122,7 @@ pub struct TextAnalyzerProperties {
     pub stemming: Option<bool>,
 }
 
-#[derive(Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 pub struct GeoJsonAnalyzerProperties {
     /// Whether to index all GeoJSON geometry types, just the centroid, or just points
@@ -132,7 +132,14 @@ pub struct GeoJsonAnalyzerProperties {
     // Skip the options as they "generally should remain unchanged"
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
+#[builder(doc)]
+#[serde(rename_all = "camelCase")]
+pub struct PipelineAnalyzerProperties {
+    pub pipeline: Vec<PipelineAnalyzers>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum AnalyzerInfo {
     /// The `identity` Analyzer does not take additional properties.
@@ -201,9 +208,72 @@ pub enum AnalyzerInfo {
         #[serde(skip_serializing_if = "Option::is_none")]
         properties: Option<GeoJsonAnalyzerProperties>,
     },
+    Pipeline {
+        name: String,
+        properties: PipelineAnalyzerProperties,
+    },
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AnalyzerDescription {
     pub name: String,
+}
+
+//these are the exact same analyzer types , but customized to be used in a pipeline analyzer
+//since in pipeline analyzers `name` is not required for each sub-analyzer, the name filed is deleted
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase", tag = "type")]
+pub enum PipelineAnalyzers {
+    /// The `identity` Analyzer does not take additional properties.
+    Identity {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        features: Option<Vec<AnalyzerFeature>>,
+    },
+    Delimiter {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        features: Option<Vec<AnalyzerFeature>>,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        properties: Option<DelimiterAnalyzerProperties>,
+    },
+
+    Stem {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        features: Option<Vec<AnalyzerFeature>>,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        properties: Option<StemAnalyzerProperties>,
+    },
+
+    Norm {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        features: Option<Vec<AnalyzerFeature>>,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        properties: Option<NormAnalyzerProperties>,
+    },
+
+    Ngram {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        features: Option<Vec<AnalyzerFeature>>,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        properties: Option<NgramAnalyzerProperties>,
+    },
+
+    Text {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        features: Option<Vec<AnalyzerFeature>>,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        properties: Option<TextAnalyzerProperties>,
+    },
+
+    Geojson {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        features: Option<Vec<AnalyzerFeature>>,
+
+        #[serde(skip_serializing_if = "Option::is_none")]
+        properties: Option<GeoJsonAnalyzerProperties>,
+    },
 }

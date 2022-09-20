@@ -10,7 +10,8 @@ use uclient::ClientExt;
 
 use arangors::analyzer::{
     AnalyzerCase, AnalyzerFeature, AnalyzerInfo, GeoJsonAnalyzerProperties, GeoJsonType,
-    NgramAnalyzerProperties, NgramStreamType, NormAnalyzerProperties,
+    NgramAnalyzerProperties, NgramStreamType, NormAnalyzerProperties, PipelineAnalyzerProperties,
+    PipelineAnalyzers,
 };
 use arangors::{
     collection::{
@@ -83,6 +84,43 @@ async fn create_geo_analyzer<C: ClientExt>(
     database.create_analyzer(info).await
 }
 
+#[maybe_async]
+async fn create_pipeline_analyzer<C: ClientExt>(
+    database: &Database<C>,
+    analyzer_name: String,
+) -> Result<AnalyzerInfo, ClientError> {
+    let norm_analyzer = PipelineAnalyzers::Norm {
+        features: Some(vec![AnalyzerFeature::Frequency, AnalyzerFeature::Norm]),
+        properties: Some(
+            NormAnalyzerProperties::builder()
+                .locale("en.utf-8".to_string())
+                .case(AnalyzerCase::Lower)
+                .build(),
+        ),
+    };
+
+    let ngram_analyzer = PipelineAnalyzers::Ngram {
+        features: Some(vec![AnalyzerFeature::Frequency, AnalyzerFeature::Norm]),
+        properties: Some(
+            NgramAnalyzerProperties::builder()
+                .min(2)
+                .max(2)
+                .preserve_original(false)
+                .stream_type(NgramStreamType::Utf8)
+                .build(),
+        ),
+    };
+
+    let pipe = AnalyzerInfo::Pipeline {
+        name: analyzer_name,
+        properties: PipelineAnalyzerProperties::builder()
+            .pipeline(vec![norm_analyzer, ngram_analyzer])
+            .build(),
+    };
+
+    database.create_analyzer(pipe).await
+}
+
 #[maybe_async::test(
     any(feature = "reqwest_blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
@@ -139,6 +177,28 @@ async fn test_create_and_drop_geo_analyzer() {
     let database = conn.db("test_db").await.unwrap();
 
     let analyzer = create_geo_analyzer(&database, analyzer_name.clone()).await;
+
+    trace!("{:?}", analyzer);
+
+    assert_eq!(analyzer.is_err(), false);
+
+    let result = database.drop_analyzer(&analyzer_name).await;
+
+    assert_eq!(result.is_err(), false);
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_create_and_drop_pipeline_analyzer() {
+    test_setup();
+    let analyzer_name = "test_analyzer_pipeline_create".to_string();
+    let conn = connection().await;
+    let database = conn.db("test_db").await.unwrap();
+
+    let analyzer = create_pipeline_analyzer(&database, analyzer_name.clone()).await;
 
     trace!("{:?}", analyzer);
 
