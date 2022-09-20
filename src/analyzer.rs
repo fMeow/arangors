@@ -138,8 +138,17 @@ pub struct GeoJsonAnalyzerProperties {
 pub struct PipelineAnalyzerProperties {
     pub pipeline: Vec<PipelineAnalyzers>,
 }
+#[derive(Clone, Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
+#[builder(doc)]
+#[serde(rename_all = "camelCase")]
+pub struct StopwordsAnalyzerProperties {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[builder(default, setter(strip_option))]
+    pub hex: Option<bool>,
+    pub stopwords: Vec<String>,
+}
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum AnalyzerInfo {
     /// The `identity` Analyzer does not take additional properties.
@@ -208,6 +217,12 @@ pub enum AnalyzerInfo {
         #[serde(skip_serializing_if = "Option::is_none")]
         properties: Option<GeoJsonAnalyzerProperties>,
     },
+    Stopwords {
+        name: String,
+        properties: StopwordsAnalyzerProperties,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        features: Option<Vec<AnalyzerFeature>>,
+    },
     Pipeline {
         name: String,
         properties: PipelineAnalyzerProperties,
@@ -275,5 +290,10 @@ pub enum PipelineAnalyzers {
 
         #[serde(skip_serializing_if = "Option::is_none")]
         properties: Option<GeoJsonAnalyzerProperties>,
+    },
+    Stopwords {
+        properties: StopwordsAnalyzerProperties,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        features: Option<Vec<AnalyzerFeature>>,
     },
 }
