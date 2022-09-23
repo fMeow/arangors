@@ -1,6 +1,6 @@
 [package]
 name = "arangors"
-version = "0.5.2"
+version = "0.5.3"
 edition = "2021"
 authors = [ "Guoli Lyu <guoli-lv@hotmail.com>" ]
 readme = "README.md"
@@ -45,22 +45,22 @@ typed-builder = "0.10"
 url = "2"
 uclient = "0.1"
 
-[dependencies.serde]
-version = "1"
-features = [ "derive" ]
+  [dependencies.serde]
+  version = "1"
+  features = [ "derive" ]
 
-[dependencies.reqwest]
-version = "0.11"
-features = [ "gzip", "json" ]
-optional = true
+  [dependencies.reqwest]
+  version = "0.11"
+  features = [ "gzip", "json" ]
+  optional = true
 
-[dependencies.surf]
-version = "2"
-optional = true
+  [dependencies.surf]
+  version = "2"
+  optional = true
 
-[dependencies.http-types]
-version = "2.10"
-optional = true
+  [dependencies.http-types]
+  version = "2.10"
+  optional = true
 
 [dev-dependencies]
 env_logger = "0.9"
@@ -68,13 +68,13 @@ pretty_assertions = "1"
 regex = "1"
 anyhow = "1"
 
-[dev-dependencies.tokio]
-version = "1"
-features = [ "macros", "rt-multi-thread" ]
+  [dev-dependencies.tokio]
+  version = "1"
+  features = [ "macros", "rt-multi-thread" ]
 
-[dev-dependencies.async-std]
-version = "1"
-features = [ "attributes" ]
+  [dev-dependencies.async-std]
+  version = "1"
+  features = [ "attributes" ]
 
-[dev-dependencies.reqwest]
-version = "0.11"
+  [dev-dependencies.reqwest]
+  version = "0.11"

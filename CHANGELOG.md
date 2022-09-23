@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.3](https://github.com/fMeow/arangors/compare/v0.5.2...v0.5.3) (2022-09-23)
+
+
+### Features
+
+* Add nix flake ([#93](https://github.com/fMeow/arangors/issues/93)) ([01b009a](https://github.com/fMeow/arangors/commit/01b009ae646df64af7325f21a145c8c93e237963))
+* support pipeline analyzer ([#96](https://github.com/fMeow/arangors/issues/96)) ([#97](https://github.com/fMeow/arangors/issues/97)) ([71cb2dc](https://github.com/fMeow/arangors/commit/71cb2dc62d72f6ed891e94af70439f9ecf22e001))
+
 ### [0.5.2](https://github.com/fMeow/arangors/compare/v0.5.1...v0.5.2) (2022-09-01)
 
 
