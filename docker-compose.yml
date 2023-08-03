@@ -10,6 +10,10 @@ services:
     environment:
       - ARANGO_STORAGE_ENGINE=rocksdb
       - ARANGO_ROOT_PASSWORD=KWNngteTps7XjrNv
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
 
 volumes:
   data_arangors:

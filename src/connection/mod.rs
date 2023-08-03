@@ -36,6 +36,7 @@
 
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
+use base64::{engine::general_purpose, Engine as _};
 use http::header::{HeaderMap, AUTHORIZATION, SERVER};
 use log::{debug, trace};
 use maybe_async::maybe_async;
@@ -241,7 +242,8 @@ impl<C: ClientExt> GenericConnection<C, Normal> {
             Auth::Basic(cred) => {
                 username = String::from(cred.username);
 
-                let token = base64::encode(&format!("{}:{}", cred.username, cred.password));
+                let token = general_purpose::STANDARD_NO_PAD
+                    .encode(format!("{}:{}", cred.username, cred.password));
                 Some(format!("Basic {}", token))
             }
             Auth::Jwt(cred) => {

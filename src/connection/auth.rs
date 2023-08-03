@@ -18,20 +18,15 @@
 /// let no_auth = Auth::None;
 /// let no_auth = Auth::default();
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub(crate) enum Auth<'a> {
     /// Basic auth
     Basic(Credential<'a>),
     /// JSON Web Token (JWT) auth
     Jwt(Credential<'a>),
     /// no auth
+    #[default]
     None,
-}
-
-impl<'a> Default for Auth<'a> {
-    fn default() -> Auth<'static> {
-        Auth::None
-    }
 }
 
 impl<'a> Auth<'a> {
