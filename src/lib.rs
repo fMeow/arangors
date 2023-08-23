@@ -432,3 +432,4 @@ mod query;
 mod response;
 pub mod transaction;
 pub mod view;
+pub mod user;

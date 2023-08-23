@@ -36,6 +36,7 @@ use crate::{
     view::{View, ViewOptions},
     ClientError,
 };
+use crate::user::{DeleteUserResponse, User, UserResponse};
 
 #[derive(Debug, Clone)]
 pub struct Database<C: ClientExt> {
@@ -713,6 +714,99 @@ impl<'a, C: ClientExt> Database<C> {
 
         let result: AnalyzerDescription = deserialize_response(resp.body())?;
         Ok(result)
+    }
+
+    /// List available users
+    ///
+    /// Fetches data about all users. You need the Administrate server access level
+    /// in order to execute this REST call. Otherwise, you will only get information
+    /// about yourself.
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn users(
+        &self
+    ) -> Result<Vec<User>, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/user/"))
+            .unwrap();
+
+        let resp = self.session.get(url, "").await?;
+
+        let result: UserResponse = deserialize_response(resp.body())?;
+        Ok(result.result)
+    }
+
+    /// Create User
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn create_user(
+        &self,
+        user: User,
+    ) -> Result<User, ClientError> {
+        let url = self
+            .base_url
+            .join("_api/user")
+            .unwrap();
+
+        let resp = self
+            .session
+            .post(url, &serde_json::to_string(&user)?)
+            .await?;
+
+        let result = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Create User
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn update_user(
+        &self,
+        username: String,
+        user: User,
+    ) -> Result<User, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/user/{}", username))
+            .unwrap();
+
+        let resp = self
+            .session
+            .put(url, &serde_json::to_string(&user)?)
+            .await?;
+
+        let result = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Delete User
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn delete_user(
+        &self,
+        username: String,
+    ) -> Result<(), ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/user/{}", username))
+            .unwrap();
+
+        let resp = self
+            .session
+            .delete(url, "")
+            .await?;
+
+        let _: DeleteUserResponse = deserialize_response(resp.body())?;
+        Ok(())
     }
 }
 
