@@ -1,14 +1,18 @@
 #![allow(unused_imports)]
 #![allow(unused_parens)]
 
-use log::{info, trace};
+use log::{info, trace, warn};
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 use std::collections::HashMap;
 use uclient::ClientExt;
 
-use crate::common::root_connection;
-use arangors::{connection::Permission, user::User, ArangoError, Connection};
+use crate::common::{get_root_user, root_connection};
+use arangors::{
+    connection::Permission,
+    user::{User, UserAccessLevel},
+    ArangoError, Connection,
+};
 use common::{
     connection, get_arangodb_host, get_normal_password, get_normal_user, test_root_and_normal,
     test_setup,
@@ -52,6 +56,7 @@ async fn test_get_users() {
         }
     }
 }
+
 #[maybe_async::test(
     any(feature = "reqwest_blocking"),
     async(any(feature = "reqwest_async"), tokio::test),
@@ -135,4 +140,113 @@ async fn test_user_crud_operations() {
     // Cleanup: delete temporary user
     let delete_res = database.delete_user("creation_test_user".into()).await;
     assert_eq!(delete_res.is_ok(), true);
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_get_user_databases() {
+    test_setup();
+    let conn = root_connection().await;
+    let database = conn.db("test_db").await.unwrap();
+
+    // simple response
+    let resp = database.user_databases(get_normal_user(), false).await;
+    trace!("resp: {:?}", resp);
+    assert_eq!(resp.is_ok(), true);
+
+    // full response
+    let resp = database.user_databases(get_root_user(), true).await;
+    trace!("resp: {:?}", resp);
+    assert_eq!(resp.is_ok(), true);
+
+    // access-level for test_db
+    let resp = database
+        .user_db_access_level(get_root_user(), "test_db".into())
+        .await;
+    trace!("resp: {:?}", resp);
+    assert_eq!(resp.is_ok(), true);
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_user_db_access_put() {
+    test_setup();
+    let conn = root_connection().await;
+    let database = conn.db("test_db").await.unwrap();
+
+    let resp = database
+        .user_db_access_put(get_normal_user(), "test_db".into(), UserAccessLevel::None)
+        .await;
+    trace!("resp: {:?}", resp);
+    assert_eq!(resp.is_ok(), true);
+
+    let resp = database
+        .user_db_access_put(
+            get_normal_user(),
+            "test_db".into(),
+            UserAccessLevel::ReadWrite,
+        )
+        .await;
+    trace!("resp: {:?}", resp);
+    assert_eq!(resp.is_ok(), true);
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_user_db_collection_access_get() {
+    test_setup();
+    let conn = root_connection().await;
+    let database = conn.db("test_db").await.unwrap();
+
+    let resp = database
+        .user_db_collection_access(
+            get_normal_user(),
+            "test_db".into(),
+            "test_collection".into(),
+        )
+        .await;
+    trace!("resp: {:?}", resp);
+    assert_eq!(resp.is_ok(), true);
+}
+
+#[maybe_async::test(
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
+)]
+async fn test_user_db_collection_access_put() {
+    test_setup();
+    let conn = root_connection().await;
+    let database = conn.db("test_db").await.unwrap();
+
+    let resp = database
+        .user_db_collection_access_put(
+            get_normal_user(),
+            "test_db".into(),
+            "test_collection".into(),
+            UserAccessLevel::ReadOnly,
+        )
+        .await;
+    trace!("resp: {:?}", resp);
+    assert_eq!(resp.is_ok(), true);
+
+    let resp = database
+        .user_db_collection_access_put(
+            get_normal_user(),
+            "test_db".into(),
+            "test_collection".into(),
+            UserAccessLevel::ReadWrite,
+        )
+        .await;
+    trace!("resp: {:?}", resp);
+    assert_eq!(resp.is_ok(), true);
 }

@@ -26,7 +26,10 @@ use crate::{
         ArangoTransaction, Transaction, TransactionList, TransactionSettings, TransactionState,
         TRANSACTION_HEADER,
     },
-    user::{DeleteUserResponse, User, UserResponse},
+    user::{
+        access_level_enum_to_str, DeleteUserResponse, User, UserAccessLevel,
+        UserDatabasesGetResponse, UserResponse,
+    },
     view::{
         ArangoSearchViewProperties, ArangoSearchViewPropertiesOptions, View, ViewDescription,
         ViewOptions,
@@ -786,6 +789,132 @@ impl<'a, C: ClientExt> Database<C> {
 
         let _: DeleteUserResponse = deserialize_response(resp.body())?;
         Ok(())
+    }
+
+    /// Get user-accessible databases
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn user_databases(
+        &self,
+        username: String,
+        full: bool,
+    ) -> Result<UserDatabasesGetResponse, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/user/{username}/database/?full={full}"))
+            .unwrap();
+        let resp = self.session.get(url, "").await?;
+
+        let result = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Get user-accessible databases
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn user_db_access_level(
+        &self,
+        username: String,
+        db_name: String,
+    ) -> Result<UserDatabasesGetResponse, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/user/{username}/database/{db_name}"))
+            .unwrap();
+        let resp = self.session.get(url, "").await?;
+
+        let result = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Set user's databases access level
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn user_db_access_put(
+        &self,
+        username: String,
+        db_name: String,
+        access_level: UserAccessLevel,
+    ) -> Result<Value, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!("_api/user/{username}/database/{db_name}"))
+            .unwrap();
+        let resp = self
+            .session
+            .put(
+                url,
+                format!(
+                    "{{ \"grant\":\"{}\" }}",
+                    access_level_enum_to_str(access_level)
+                ),
+            )
+            .await?;
+
+        let result = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Set user's databases access level
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn user_db_collection_access(
+        &self,
+        username: String,
+        db_name: String,
+        collection: String,
+    ) -> Result<Value, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!(
+                "_api/user/{username}/database/{db_name}/{collection}"
+            ))
+            .unwrap();
+        let resp = self.session.get(url, "").await?;
+
+        let result = deserialize_response(resp.body())?;
+        Ok(result)
+    }
+
+    /// Set user's databases access level
+    ///
+    /// # Note
+    /// this function would make a request to arango server.
+    #[maybe_async]
+    pub async fn user_db_collection_access_put(
+        &self,
+        username: String,
+        db_name: String,
+        collection: String,
+        access_level: UserAccessLevel,
+    ) -> Result<Value, ClientError> {
+        let url = self
+            .base_url
+            .join(&format!(
+                "_api/user/{username}/database/{db_name}/{collection}"
+            ))
+            .unwrap();
+        let resp = self
+            .session
+            .put(
+                url,
+                format!(
+                    "{{ \"grant\":\"{}\" }}",
+                    access_level_enum_to_str(access_level)
+                ),
+            )
+            .await?;
+
+        let result = deserialize_response(resp.body())?;
+        Ok(result)
     }
 }
 
