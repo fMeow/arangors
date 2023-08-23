@@ -1,19 +1,18 @@
 #![allow(unused_imports)]
 #![allow(unused_parens)]
 
-use std::collections::HashMap;
 use log::{info, trace};
 use pretty_assertions::assert_eq;
 use serde_json::Value;
+use std::collections::HashMap;
 use uclient::ClientExt;
 
-use arangors::{connection::Permission, Connection, ArangoError};
-use arangors::user::User;
+use crate::common::root_connection;
+use arangors::{connection::Permission, user::User, ArangoError, Connection};
 use common::{
     connection, get_arangodb_host, get_normal_password, get_normal_user, test_root_and_normal,
     test_setup,
 };
-use crate::common::root_connection;
 
 pub mod common;
 
@@ -33,9 +32,9 @@ async fn test_get_users_non_root() {
 }
 
 #[maybe_async::test(
-any(feature = "reqwest_blocking"),
-async(any(feature = "reqwest_async"), tokio::test),
-async(any(feature = "surf_async"), async_std::test)
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
 async fn test_get_users() {
     test_setup();
@@ -43,7 +42,7 @@ async fn test_get_users() {
 
     let database = conn.db("test_db").await.unwrap();
     let users = database.users().await;
-    match users{
+    match users {
         Ok(users) => {
             assert_eq!(users.len(), 2);
         }
@@ -54,9 +53,9 @@ async fn test_get_users() {
     }
 }
 #[maybe_async::test(
-any(feature = "reqwest_blocking"),
-async(any(feature = "reqwest_async"), tokio::test),
-async(any(feature = "surf_async"), async_std::test)
+    any(feature = "reqwest_blocking"),
+    async(any(feature = "reqwest_async"), tokio::test),
+    async(any(feature = "surf_async"), async_std::test)
 )]
 async fn test_user_crud_operations() {
     test_setup();
@@ -64,21 +63,29 @@ async fn test_user_crud_operations() {
     let database = conn.db("test_db").await.unwrap();
 
     // Create the test user
-    let create_user_res = database.create_user(User::builder()
-        .username("creation_test_user".into())
-        .password(Some("test_password_123".into()))
-        .active(true)
-        .extra(None)
-        .build()
-    ).await;
+    let create_user_res = database
+        .create_user(
+            User::builder()
+                .username("creation_test_user".into())
+                .password(Some("test_password_123".into()))
+                .active(true)
+                .extra(None)
+                .build(),
+        )
+        .await;
     assert_eq!(create_user_res.is_ok(), true);
 
     // test if there are 3 users now
     let users = database.users().await;
-    match users{
+    match users {
         Ok(users) => {
             assert_eq!(users.len(), 3);
-            assert_eq!(users.iter().any(|user| user.username == "creation_test_user"), true);
+            assert_eq!(
+                users
+                    .iter()
+                    .any(|user| user.username == "creation_test_user"),
+                true
+            );
         }
         Err(err) => {
             println!("error: {:?}", err);
@@ -87,26 +94,36 @@ async fn test_user_crud_operations() {
     }
     // Update user
     let mut extra = HashMap::<String, Value>::new();
-    extra.insert("test_key".into(), serde_json::from_str("[ \"test_value\" ]").unwrap());
+    extra.insert(
+        "test_key".into(),
+        serde_json::from_str("[ \"test_value\" ]").unwrap(),
+    );
     let update_res = database
-        .update_user("creation_test_user".into(),
-                     User::builder()
-                        .username("creation_test_user".into())
-                        .password(Some("test_password_1234".into()))
-                        .active(true)
-                        .extra(Some(extra)).build()
-        ).await;
+        .update_user(
+            "creation_test_user".into(),
+            User::builder()
+                .username("creation_test_user".into())
+                .password(Some("test_password_1234".into()))
+                .active(true)
+                .extra(Some(extra))
+                .build(),
+        )
+        .await;
     assert_eq!(update_res.is_ok(), true);
-
 
     // test if there are 3 users now
     let users = database.users().await;
-    match users{
+    match users {
         Ok(users) => {
             // Still 3 users
             assert_eq!(users.len(), 3);
             // but now with updated username
-            assert_eq!(users.iter().any(|user| user.username == "creation_test_user"), true);
+            assert_eq!(
+                users
+                    .iter()
+                    .any(|user| user.username == "creation_test_user"),
+                true
+            );
             assert_eq!(users.iter().any(|user| user.extra.is_some()), true);
         }
         Err(err) => {

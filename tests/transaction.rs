@@ -14,8 +14,9 @@ use arangors::{
         CollectionType,
     },
     document::options::RemoveOptions,
-    transaction::Status as TransactionStatus,
-    transaction::{Transaction, TransactionCollections, TransactionSettings},
+    transaction::{
+        Status as TransactionStatus, Transaction, TransactionCollections, TransactionSettings,
+    },
     ClientError, Connection, Database, Document,
 };
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};

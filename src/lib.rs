@@ -431,5 +431,5 @@ pub mod index;
 mod query;
 mod response;
 pub mod transaction;
-pub mod view;
 pub mod user;
+pub mod view;

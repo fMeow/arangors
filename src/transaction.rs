@@ -1,9 +1,7 @@
 use maybe_async::maybe_async;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 use typed_builder::TypedBuilder;
 use uclient::ClientExt;
 use url::Url;
@@ -75,9 +73,9 @@ pub struct TransactionList {
 }
 
 /// Represents a [`Transaction`] in ArangoDB.
-/// allow you to perform a multi-document transaction with individual begin and commit / abort commands.
-/// This is similar to the way traditional RDBMS do it with BEGIN, COMMIT and ROLLBACK operations.
-/// # Example
+/// allow you to perform a multi-document transaction with individual begin and
+/// commit / abort commands. This is similar to the way traditional RDBMS do it
+/// with BEGIN, COMMIT and ROLLBACK operations. # Example
 /// ```
 /// # use arangors::Connection;
 /// # use arangors::Document;
@@ -163,7 +161,8 @@ where
 
     /// Tries to commit the transaction, consuming the current object.
     ///
-    /// On success all submitted operations will be written in the database and can no longer be aborted.
+    /// On success all submitted operations will be written in the database and
+    /// can no longer be aborted.
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -183,8 +182,9 @@ where
 
     /// Tries to commit the transaction.
     ///
-    /// On success all submitted operations will be written in the database and can no longer be aborted.
-    /// A transaction can be committed multiple times.
+    /// On success all submitted operations will be written in the database and
+    /// can no longer be aborted. A transaction can be committed multiple
+    /// times.
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -204,13 +204,15 @@ where
 
     /// Tries to abort the transaction.
     ///
-    /// On success all submitted operations will be cancelled and can no longer be committed.
-    /// A ransaction can be aborted multiple times without error.
+    /// On success all submitted operations will be cancelled and can no longer
+    /// be committed. A ransaction can be aborted multiple times without
+    /// error.
     ///
     /// # Warning
     ///
-    /// If the transaction is aborted, then it means deletion on the server side. The current object
-    /// can no longer be used for operations or commit.
+    /// If the transaction is aborted, then it means deletion on the server
+    /// side. The current object can no longer be used for operations or
+    /// commit.
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -230,8 +232,9 @@ where
 
     /// Get collection object with name.
     ///
-    /// The returned collection object will share its session with the transaction, meaning all
-    /// operations using the colleciton will be transactional and require a transaction commit to be writen
+    /// The returned collection object will share its session with the
+    /// transaction, meaning all operations using the colleciton will be
+    /// transactional and require a transaction commit to be writen
     /// in ArangoDB.
     ///
     /// # Note

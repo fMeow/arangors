@@ -3,8 +3,10 @@
 
 use anyhow::Error;
 
-use arangors::analyzer::{AnalyzerCase, AnalyzerFeature, AnalyzerInfo, NormAnalyzerProperties};
-use arangors::Connection;
+use arangors::{
+    analyzer::{AnalyzerCase, AnalyzerFeature, AnalyzerInfo, NormAnalyzerProperties},
+    Connection,
+};
 use std::collections::HashMap;
 
 const URL: &str = "http://localhost:8529";

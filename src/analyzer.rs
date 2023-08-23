@@ -35,8 +35,8 @@ pub enum GeoJsonType {
 #[derive(Clone, Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 pub struct DelimiterAnalyzerProperties {
-    /// The value will be used as delimiter to split text into tokens as specified
-    /// in RFC 4180, without starting new records on newlines.
+    /// The value will be used as delimiter to split text into tokens as
+    /// specified in RFC 4180, without starting new records on newlines.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     pub delimiter: Option<String>,
@@ -106,7 +106,8 @@ pub struct TextAnalyzerProperties {
     #[builder(default, setter(strip_option))]
     pub stopwords: Option<Vec<String>>,
 
-    /// Path with a `language` sub-directory containing files with words to omit.
+    /// Path with a `language` sub-directory containing files with words to
+    /// omit.
     ///
     /// Defaults to the path specified in the server-side environment variable
     /// IRESEARCH_TEXT_STOPWORD_PATH` or the current working directory of the
@@ -125,7 +126,8 @@ pub struct TextAnalyzerProperties {
 #[derive(Clone, Debug, Serialize, Deserialize, TypedBuilder, PartialEq)]
 #[builder(doc)]
 pub struct GeoJsonAnalyzerProperties {
-    /// Whether to index all GeoJSON geometry types, just the centroid, or just points
+    /// Whether to index all GeoJSON geometry types, just the centroid, or just
+    /// points
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     pub r#type: Option<GeoJsonType>,
@@ -234,8 +236,9 @@ pub struct AnalyzerDescription {
     pub name: String,
 }
 
-//these are the exact same analyzer types , but customized to be used in a pipeline analyzer
-//since in pipeline analyzers `name` is not required for each sub-analyzer, the name filed is deleted
+//these are the exact same analyzer types , but customized to be used in a
+// pipeline analyzer since in pipeline analyzers `name` is not required for each
+// sub-analyzer, the name filed is deleted
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", tag = "type")]
 pub enum PipelineAnalyzers {

@@ -11,7 +11,8 @@ use std::collections::HashMap;
 #[cfg(feature = "cluster")]
 pub struct CreateDatabaseOptions {
     /// The sharding method to use for new collections in this database.
-    /// Valid values are: “”, “flexible”, or “single”. The first two are equivalent
+    /// Valid values are: “”, “flexible”, or “single”. The first two are
+    /// equivalent
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     sharding: Option<String>,

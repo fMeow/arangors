@@ -10,9 +10,6 @@ use serde::{de::DeserializeOwned, Deserialize};
 use serde_json::value::Value;
 use url::Url;
 
-use crate::graph::{GraphCollection, GraphResponse, GHARIAL_API_PATH};
-use crate::index::INDEX_API_PATH;
-use crate::transaction::TRANSACTION_HEADER;
 use crate::{
     analyzer::{AnalyzerDescription, AnalyzerInfo},
     aql::{AqlQuery, Cursor},
@@ -22,21 +19,20 @@ use crate::{
         Collection, CollectionType,
     },
     connection::Version,
-    graph::Graph,
-    index::{DeleteIndexResponse, Index, IndexCollection},
+    graph::{Graph, GraphCollection, GraphResponse, GHARIAL_API_PATH},
+    index::{DeleteIndexResponse, Index, IndexCollection, INDEX_API_PATH},
     response::{deserialize_response, ArangoResult},
-    transaction::ArangoTransaction,
-    transaction::Transaction,
-    transaction::TransactionList,
-    transaction::TransactionSettings,
-    transaction::TransactionState,
-    view::ArangoSearchViewProperties,
-    view::ArangoSearchViewPropertiesOptions,
-    view::ViewDescription,
-    view::{View, ViewOptions},
+    transaction::{
+        ArangoTransaction, Transaction, TransactionList, TransactionSettings, TransactionState,
+        TRANSACTION_HEADER,
+    },
+    user::{DeleteUserResponse, User, UserResponse},
+    view::{
+        ArangoSearchViewProperties, ArangoSearchViewPropertiesOptions, View, ViewDescription,
+        ViewOptions,
+    },
     ClientError,
 };
-use crate::user::{DeleteUserResponse, User, UserResponse};
 
 #[derive(Debug, Clone)]
 pub struct Database<C: ClientExt> {
@@ -391,7 +387,8 @@ impl<'a, C: ClientExt> Database<C> {
     ///
     /// # Arguments
     /// * `graph` - The graph object to create, its name must be unique.
-    /// * `wait_for_sync` - define if the request should wait until everything is synced to disc.
+    /// * `wait_for_sync` - define if the request should wait until everything
+    ///   is synced to disc.
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -447,11 +444,13 @@ impl<'a, C: ClientExt> Database<C> {
         Ok(result)
     }
 
-    /// Drops an existing graph object by name. Optionally all collections not used by other graphs can be dropped as well.
+    /// Drops an existing graph object by name. Optionally all collections not
+    /// used by other graphs can be dropped as well.
     ///
     /// # Arguments
     /// * `name` - The name of the graph to drop
-    /// * `drop_collections`- if set to `true`, drops collections of this graph as well.
+    /// * `drop_collections`- if set to `true`, drops collections of this graph
+    ///   as well.
     /// Collections will only be dropped if they are not used in other graphs.
     ///
     /// # Note
@@ -516,7 +515,8 @@ impl<'a, C: ClientExt> Database<C> {
         ))
     }
 
-    /// Returns an object containing a listing of all Views in a database, regardless of their typ
+    /// Returns an object containing a listing of all Views in a database,
+    /// regardless of their typ
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -718,20 +718,15 @@ impl<'a, C: ClientExt> Database<C> {
 
     /// List available users
     ///
-    /// Fetches data about all users. You need the Administrate server access level
-    /// in order to execute this REST call. Otherwise, you will only get information
-    /// about yourself.
+    /// Fetches data about all users. You need the Administrate server access
+    /// level in order to execute this REST call. Otherwise, you will only
+    /// get information about yourself.
     ///
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn users(
-        &self
-    ) -> Result<Vec<User>, ClientError> {
-        let url = self
-            .base_url
-            .join(&format!("_api/user/"))
-            .unwrap();
+    pub async fn users(&self) -> Result<Vec<User>, ClientError> {
+        let url = self.base_url.join(&format!("_api/user/")).unwrap();
 
         let resp = self.session.get(url, "").await?;
 
@@ -744,14 +739,8 @@ impl<'a, C: ClientExt> Database<C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn create_user(
-        &self,
-        user: User,
-    ) -> Result<User, ClientError> {
-        let url = self
-            .base_url
-            .join("_api/user")
-            .unwrap();
+    pub async fn create_user(&self, user: User) -> Result<User, ClientError> {
+        let url = self.base_url.join("_api/user").unwrap();
 
         let resp = self
             .session
@@ -767,11 +756,7 @@ impl<'a, C: ClientExt> Database<C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn update_user(
-        &self,
-        username: String,
-        user: User,
-    ) -> Result<User, ClientError> {
+    pub async fn update_user(&self, username: String, user: User) -> Result<User, ClientError> {
         let url = self
             .base_url
             .join(&format!("_api/user/{}", username))
@@ -791,19 +776,13 @@ impl<'a, C: ClientExt> Database<C> {
     /// # Note
     /// this function would make a request to arango server.
     #[maybe_async]
-    pub async fn delete_user(
-        &self,
-        username: String,
-    ) -> Result<(), ClientError> {
+    pub async fn delete_user(&self, username: String) -> Result<(), ClientError> {
         let url = self
             .base_url
             .join(&format!("_api/user/{}", username))
             .unwrap();
 
-        let resp = self
-            .session
-            .delete(url, "")
-            .await?;
+        let resp = self.session.delete(url, "").await?;
 
         let _: DeleteUserResponse = deserialize_response(resp.body())?;
         Ok(())

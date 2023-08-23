@@ -356,9 +356,10 @@ impl<'a, C: ClientExt> Collection<C> {
     /// This call does not delete any documents. You can use the collection
     /// afterwards; in which case it will be loaded into memory, again.
     ///
-    /// **Warning**: The unload function is deprecated from version 3.8.0 onwards and is a no-op
-    /// from version 3.9.0 onwards. It should no longer be used, as it may be removed
-    /// in a future version of ArangoDB.
+    /// **Warning**: The unload function is deprecated from version 3.8.0
+    /// onwards and is a no-op from version 3.9.0 onwards. It should no
+    /// longer be used, as it may be removed in a future version of
+    /// ArangoDB.
     ///
     /// # Note
     /// this function would make a request to arango server.
@@ -772,7 +773,8 @@ impl<'a, C: ClientExt> Collection<C> {
         Ok(resp)
     }
 
-    /// Returns a new Collection with its `session` updated with the transaction id
+    /// Returns a new Collection with its `session` updated with the transaction
+    /// id
     pub fn clone_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
         let mut session = (*self.session).clone();
         session
