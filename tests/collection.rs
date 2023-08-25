@@ -429,7 +429,7 @@ async fn test_put_unload() {
     let db = conn.db("test_db").await.unwrap();
     let version = db.arango_version().await.unwrap();
 
-    let re = regex::Regex::new(r"3\.(\d)\.\d+").unwrap();
+    let re = regex::Regex::new(r"3\.(\d+)\.\d+").unwrap();
     let coll = collection(&conn, collection_name).await;
 
     let unload = coll.unload().await;

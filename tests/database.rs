@@ -84,6 +84,11 @@ async fn test_get_version() {
     assert_eq!(version.license, "community");
     assert_eq!(version.server, "arango");
 
-    let re = regex::Regex::new(r"3\.\d\.\d+").unwrap();
-    assert_eq!(re.is_match(&version.version), true);
+    let re = regex::Regex::new(r"3\.\d+\.\d+").unwrap();
+    assert_eq!(
+        re.is_match(&version.version),
+        true,
+        "version: {}",
+        version.version
+    );
 }
