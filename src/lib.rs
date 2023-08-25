@@ -1,6 +1,4 @@
-//! # arangors
-//!
-//! [![Build Status](https://github.com/fMeow/arangors/workflows/CI%20%28Linux%29/badge.svg?branch=master)](https://github.com/fMeow/arangors/actions)
+//! [![Build Status](https://github.com/fMeow/arangors/workflows/CI%20%28Linux%29/badge.svg?branch=main)](https://github.com/fMeow/arangors/actions)
 //! [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 //! [![Crates.io](https://img.shields.io/crates/v/arangors.svg)](https://crates.io/crates/arangors)
 //! [![arangors](https://docs.rs/arangors/badge.svg)](https://docs.rs/arangors)
@@ -12,7 +10,7 @@
 //! execute AQL query, manage ArangoDB in an easy and intuitive way,
 //! both `async` and plain synchronous code with any HTTP ecosystem you love.
 //!
-//! ## Philosophy of arangors
+//! # Philosophy of arangors
 //!
 //! `arangors` is targeted at ergonomic, intuitive and OOP-like API for
 //! ArangoDB, both top level and low level API for users' choice.
@@ -29,7 +27,7 @@
 //! Hierarchy of arangors:
 //! > connection -> databases -> collections -> documents/edges
 //!
-//! ## Features
+//! # Features
 //!
 //! By now, the available features of arangors are:
 //!
@@ -40,7 +38,7 @@
 //! - full featured AQL query
 //! - support both `async` and sync
 //!
-//! ## TODO
+//! # TODO
 //!
 //! - (Done) Milestone 0.1.x
 //!
@@ -72,9 +70,9 @@
 //!     In this stage, all operations available for database, collection and
 //!     document should be implemented.
 //!
-//! ## Glance
+//! # Glance
 //!
-//! ### Use Different HTTP Ecosystem, Regardless of Async or Sync
+//! ## Use Different HTTP Ecosystem, Regardless of Async or Sync
 //!
 //! You can switch to different HTTP ecosystem with a feature gate, or implement
 //! the Client yourself (see examples).
@@ -107,7 +105,7 @@
 //! Thanks to `maybe_async`, `arangors` can unify sync and async API and toggle
 //! with a feature gate. Arangors adopts async first policy.
 //!
-//! ### Connection
+//! ## Connection
 //!
 //! There is three way to establish connections:
 //! - jwt
@@ -144,7 +142,7 @@
 //! let conn = Connection::establish_without_auth("http://localhost:8529").await.unwrap();
 //! ```
 //!
-//! ### Database && Collection
+//! ## Database && Collection
 //!
 //! ```rust
 //! use arangors::Connection;
@@ -161,7 +159,7 @@
 //! # }
 //! ```
 //!
-//! ### AQL Query
+//! ## AQL Query
 //!
 //! All [AQL](https://www.arangodb.com/docs/stable/aql/index.html) query related functions are associated with database, as AQL query
 //! is performed at database level.
@@ -181,7 +179,7 @@
 //! This later ones provide a convenient high level API, whereas batch
 //! queries offer more control.
 //!
-//! #### Typed or Not Typed
+//! ### Typed or Not Typed
 //!
 //! Note that results from ArangoDB server, e.x. fetched documents, can be
 //! strong typed given deserializable struct, or arbitrary JSON object with
@@ -218,7 +216,7 @@
 //! # }
 //! ```
 //!
-//! #### Batch query
+//! ### Batch query
 //!
 //! `arangors` offers a way to manually handle batch query.
 //!
@@ -265,7 +263,7 @@
 //! # }
 //! ```
 //!
-//! #### Fetch All Results
+//! ### Fetch All Results
 //!
 //! There are three functions for AQL query that fetch all results from
 //! ArangoDB. These functions internally fetch batch results one after another
@@ -273,7 +271,7 @@
 //!
 //! The functions for fetching all results are listed as bellow:
 //!
-//! ##### `aql_str`
+//! #### `aql_str`
 //!
 //! This function only accept a AQL query string.
 //!
@@ -304,7 +302,7 @@
 //! # }
 //! ```
 //!
-//! ##### `aql_bind_vars`
+//! #### `aql_bind_vars`
 //!
 //! This function can be used to start a AQL query with bind variables.
 //!
@@ -341,7 +339,7 @@
 //! # }
 //! ```
 //!
-//! ##### `aql_query`
+//! #### `aql_query`
 //!
 //! This function offers all the options available to tweak a AQL query.
 //! Users have to construct a `AqlQuery` object first. And `AqlQuery` offer all
@@ -374,11 +372,11 @@
 //! # }
 //! ```
 //!
-//! ### Contributing
+//! ## Contributing
 //!
 //! Contributions and feed back are welcome following Github workflow.
 //!
-//! ### License
+//! ## License
 //!
 //! `arangors` is provided under the MIT license. See [LICENSE](./LICENSE).
 //! An ergonomic [ArangoDB](https://www.arangodb.com/) client for rust.

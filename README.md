@@ -1,8 +1,8 @@
-<!-- cargo-sync-readme start -->
+![Maintenance](https://img.shields.io/badge/maintenance-activly--developed-brightgreen.svg)
 
 # arangors
 
-[![Build Status](https://github.com/fMeow/arangors/workflows/CI%20%28Linux%29/badge.svg?branch=master)](https://github.com/fMeow/arangors/actions)
+[![Build Status](https://github.com/fMeow/arangors/workflows/CI%20%28Linux%29/badge.svg?branch=main)](https://github.com/fMeow/arangors/actions)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/arangors.svg)](https://crates.io/crates/arangors)
 [![arangors](https://docs.rs/arangors/badge.svg)](https://docs.rs/arangors)
@@ -137,10 +137,11 @@ let conn = Connection::establish_basic_auth("http://localhost:8529", "username",
 - Without authentication, only use in evaluation setting
 
 ``` rust, ignore
+## use arangors::Connection;
 let conn = Connection::establish_without_auth("http://localhost:8529").await.unwrap();
-```
+```rust
 
-### Database && Collection
+## Database && Collection
 
 ```rust
 use arangors::Connection;
@@ -314,13 +315,9 @@ println!("{:?}", resp);
 
 Contributions and feed back are welcome following Github workflow.
 
-Setup instructions:
-1. Install a local ArangoDB, version 3.8 or above, port 8529.  Use `docker compose`.
-2. Run `tests/init_db.sh`
-
 ### License
 
 `arangors` is provided under the MIT license. See [LICENSE](./LICENSE).
 An ergonomic [ArangoDB](https://www.arangodb.com/) client for rust.
 
-<!-- cargo-sync-readme end -->
+License: MIT
