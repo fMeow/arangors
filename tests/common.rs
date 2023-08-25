@@ -54,6 +54,17 @@ pub async fn connection() -> arangors::Connection {
         .unwrap()
 }
 
+#[maybe_async::maybe_async]
+pub async fn root_connection() -> arangors::Connection {
+    let host = get_arangodb_host();
+    let user = get_root_user();
+    let password = get_root_password();
+
+    Connection::establish_jwt(&host, &user, &password)
+        .await
+        .unwrap()
+}
+
 #[cfg(any(feature = "reqwest_async", feature = "reqwest_blocking"))]
 #[maybe_async::maybe_async]
 pub async fn collection<'a>(

@@ -8,12 +8,12 @@ use pretty_assertions::assert_eq;
 use std::collections::HashMap;
 use uclient::ClientExt;
 
-use arangors::analyzer::{
-    AnalyzerCase, AnalyzerFeature, AnalyzerInfo, GeoJsonAnalyzerProperties, GeoJsonType,
-    NgramAnalyzerProperties, NgramStreamType, NormAnalyzerProperties, PipelineAnalyzerProperties,
-    PipelineAnalyzers,
-};
 use arangors::{
+    analyzer::{
+        AnalyzerCase, AnalyzerFeature, AnalyzerInfo, GeoJsonAnalyzerProperties, GeoJsonType,
+        NgramAnalyzerProperties, NgramStreamType, NormAnalyzerProperties,
+        PipelineAnalyzerProperties, PipelineAnalyzers,
+    },
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
         response::Status,

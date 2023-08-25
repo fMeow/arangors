@@ -152,14 +152,15 @@ async fn test_graph_retrieval() {
     database.create_graph(graph3, true).await.unwrap();
 
     let count = database.graphs().await.unwrap();
-    log::trace!("received: {:?}", count);
+    trace!("received: {:?}", count);
     assert!(count.graphs.len() >= 3);
 
     let result = database.graph("test_graph2").await.unwrap();
     assert_eq!(result.name, "test_graph2");
 }
 
-// This tests the default value of `orphanCollections` which can't be optional but can be empty
+// This tests the default value of `orphanCollections` which can't be optional
+// but can be empty
 #[test]
 fn minimal_serialization_works() {
     let json = json!(

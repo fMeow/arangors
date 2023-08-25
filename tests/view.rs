@@ -8,14 +8,13 @@ use maybe_async::maybe_async;
 use pretty_assertions::assert_eq;
 use uclient::ClientExt;
 
-use arangors::view::{ArangoSearchViewLink, ArangoSearchViewPropertiesOptions, ViewOptions};
 use arangors::{
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
         response::Status,
         CollectionType,
     },
-    view::View,
+    view::{ArangoSearchViewLink, ArangoSearchViewPropertiesOptions, View, ViewOptions},
     ClientError, Connection, Database, Document,
 };
 use common::{get_arangodb_host, get_normal_password, get_normal_user, test_setup};
@@ -88,7 +87,8 @@ async fn test_create_and_drop_view() {
 //     let conn = connection().await;
 //     let database = conn.db("test_db").await.unwrap();
 
-//     let view = create_view(&database, view_name.clone(), collection_name.clone()).await;
+//     let view = create_view(&database, view_name.clone(),
+// collection_name.clone()).await;
 
 //     trace!("{:?}", view);
 
@@ -101,7 +101,8 @@ async fn test_create_and_drop_view() {
 
 //     let views_list = views.unwrap();
 
-//     let view_found = views_list.iter().find(|vd| vd.name == view_name.clone());
+//     let view_found = views_list.iter().find(|vd| vd.name ==
+// view_name.clone());
 
 //     assert_eq!(view_found.is_some(), true);
 
@@ -124,7 +125,8 @@ async fn test_create_and_drop_view() {
 //     let conn = connection().await;
 //     let database = conn.db("test_db").await.unwrap();
 
-//     let view = create_view(&database, view_name.clone(), collection_name.clone()).await;
+//     let view = create_view(&database, view_name.clone(),
+// collection_name.clone()).await;
 
 //     trace!("{:?}", view);
 

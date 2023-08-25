@@ -2,10 +2,9 @@
 #![allow(unused_parens)]
 
 use anyhow::Error;
-use arangors::Document;
 use arangors::{
     transaction::{TransactionCollections, TransactionSettings},
-    Connection,
+    Connection, Document,
 };
 use log::info;
 use serde_json::{json, Value};

@@ -62,8 +62,9 @@ pub struct ArangoSearchViewLink {
     #[builder(default, setter(strip_option))]
     pub include_all_fields: Option<bool>,
 
-    /// If set to `true`, the position of values in array values will be tracked,
-    /// otherwise all values in an array will be treated as equal alternatives.
+    /// If set to `true`, the position of values in array values will be
+    /// tracked, otherwise all values in an array will be treated as equal
+    /// alternatives.
     #[serde(skip_serializing_if = "Option::is_none")]
     #[builder(default, setter(strip_option))]
     pub track_list_positions: Option<bool>,
