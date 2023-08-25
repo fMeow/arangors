@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.4](https://github.com/fMeow/arangors/compare/v0.5.3...v0.5.4) (2023-08-25)
+
+
+### Features
+
+* Update base64 dependency ([#108](https://github.com/fMeow/arangors/issues/108)) ([690a0a3](https://github.com/fMeow/arangors/commit/690a0a3a4ffc96721e9e5b00bb3af86cc3273b9e))
+* User Management ([#110](https://github.com/fMeow/arangors/issues/110)) ([283d715](https://github.com/fMeow/arangors/commit/283d715245cb2640e45ea19b07bd2efe5e9dfa16))
+
 ### [0.5.3](https://github.com/fMeow/arangors/compare/v0.5.2...v0.5.3) (2022-09-23)
 
 
