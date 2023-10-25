@@ -46,14 +46,14 @@ By now, the available features of arangors are:
 
 - (Done) Milestone 0.1.x
 
-    Synchronous connection based on `reqwest` and full featured AQL query.
+    - [X] Synchronous connection based on `reqwest` and full featured AQL query.
 
 - (X) Milestone 0.2.x
 
     Fill the unimplemented API in `Connection`, `Database`, `Collection` and
     `Document`.
 
-    ~~In this stage, all operations available for database, collection and
+    - [X] ~~In this stage, all operations available for database, collection and
     document should be implemented.~~
 
     Well, I am too lazy to fill all API, as the AQL syntax suffices in most
@@ -61,18 +61,18 @@ By now, the available features of arangors are:
 
 - (Done) Milestone 0.3.x
 
-    Implement both sync and async client. Also, offers a way to use custom
+    - [X] Implement both sync and async client. Also, offers a way to use custom
     HTTP client ecosystem.
 
-- (WIP) Milestone 1.0.x
+- (Done) Milestone 1.0.x
 
     Provides the API related to:
-    - (X) Graph Management
-    - (X) Index Management
-    - ( ) User Management
+    - [X] Index Management (since 0.4.3)
+    - [X] Graph Management (since 0.4.5)
+    - [X] User Management (since 0.5.4)
 
-    In this stage, all operations available for database, collection and
-    document should be implemented.
+  In this stage, all operations available for database, collection and
+  document should be implemented.
 
 ## Glance
 
