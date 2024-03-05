@@ -117,9 +117,7 @@ jobs:
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        with:
-          command: test
-          args: --all --no-fail-fast --no-default-features --features "mmfiles cluster enterprise reqwest_blocking"
+        run: cargo test --all --no-fail-fast --no-default-features --features "mmfiles cluster enterprise reqwest_blocking"
 
   doc:
     runs-on: ubuntu-latest
@@ -141,6 +139,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+
       - name: login
         env:
           SUPER_SECRET: ${{ secrets.CARGO_TOKEN }}
