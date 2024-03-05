@@ -8,7 +8,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Start ArangoDB by docker-compose
         run: |
@@ -20,121 +21,83 @@ jobs:
         run: bash tests/init_db.sh
 
       - name: rustfmt
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
-        with:
-          command: fmt
-          args: --all -- --check
+        run: cargo fmt --all -- --check
 
       - name: check build (blocking)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
-        with:
-          command: check
-          args: --no-default-features --features "rocksdb cluster enterprise blocking" --lib
+        run: cargo check --no-default-features --features "rocksdb cluster enterprise blocking" --lib
 
       - name: test (blocking)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        with:
-          command: test
-          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise blocking" --lib
+        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise blocking" --lib
 
       - name: check build (reqwest_blocking)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
-        with:
-          command: check
-          args: --no-default-features --features "rocksdb cluster enterprise reqwest_blocking" --all
+        run: cargo check --no-default-features --features "rocksdb cluster enterprise reqwest_blocking" --all
 
       - name: test (reqwest_blocking)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        with:
-          command: test
-          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_blocking" --all
+        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_blocking" --all
 
       - name: check build (default features)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
-        with:
-          command: check
-          args: --all --bins --examples --tests
+        run: cargo check --all --bins --examples --tests
 
       - name: tests (default features)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        with:
-          command: test
-          args: --all --no-fail-fast -- --nocapture
+        run: cargo test --all --no-fail-fast -- --nocapture
 
       - name: check build (async)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
-        with:
-          command: check
-          args: --no-default-features --features "rocksdb cluster enterprise" --lib
+        run: cargo check --no-default-features --features "rocksdb cluster enterprise" --lib
 
       - name: test (async)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        with:
-          command: test
-          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise" --lib
+        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise" --lib
 
       - name: check build (reqwest_async)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
-        with:
-          command: check
-          args: --no-default-features --features "rocksdb cluster enterprise reqwest_async" --all
+        run: cargo check --no-default-features --features "rocksdb cluster enterprise reqwest_async" --all
 
       - name: test (reqwest_async)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        with:
-          command: test
-          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_async" --all
+        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_async" --all
 
       - name: check build (surf_async)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
-        with:
-          command: check
-          args: --no-default-features --features "rocksdb cluster enterprise surf_async" --all
+        run: cargo check --no-default-features --features "rocksdb cluster enterprise surf_async" --all
 
       - name: test (surf_async)
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        with:
-          command: test
-          args: --no-fail-fast --no-default-features --features "rocksdb cluster enterprise surf_async" --all
+        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise surf_async" --all
 
   mmfiles:
 
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Start ArangoDB by docker
         run: |
@@ -146,15 +109,11 @@ jobs:
         run: bash tests/init_db.sh
 
       - name: check build
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
-        with:
-          command: check
-          args: --all --bins --examples --tests --no-default-features --features "mmfiles cluster enterprise reqwest_blocking" --lib
+        run: cargo check --all --bins --examples --tests --no-default-features --features "mmfiles cluster enterprise reqwest_blocking" --lib
 
       - name: tests
-        uses: actions-rs/cargo@v1
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
@@ -166,15 +125,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: doc
-        uses: actions-rs/cargo@v1
         env:
           RUSTDOCFLAGS: -Dwarnings
-        with:
-          command: doc
-          args: --all --no-deps
+        run: cargo doc --all --no-deps
 
   publish:
     name: Publish Package
@@ -182,8 +139,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
       - name: login
         env:
           SUPER_SECRET: ${{ secrets.CARGO_TOKEN }}
@@ -191,6 +148,4 @@ jobs:
         shell: bash
 
       - name: publish
-        uses: actions-rs/cargo@v1
-        with:
-          command: publish
+        run: cargo publish
