@@ -5,7 +5,7 @@ use typed_builder::TypedBuilder;
 use std::collections::HashMap;
 
 /// Options for create a collection
-#[derive(Serialize, PartialEq, TypedBuilder)]
+#[derive(Serialize, PartialEq, TypedBuilder, Clone)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 #[cfg(feature = "cluster")]
