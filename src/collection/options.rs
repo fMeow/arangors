@@ -5,7 +5,7 @@ use typed_builder::TypedBuilder;
 use crate::collection::CollectionType;
 
 /// Options for create a collection
-#[derive(Serialize, PartialEq, TypedBuilder)]
+#[derive(Serialize, PartialEq, TypedBuilder, Clone)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateParameters {
@@ -39,7 +39,7 @@ where
     }
 }
 /// Options for create a collection
-#[derive(Serialize, PartialEq, TypedBuilder)]
+#[derive(Serialize, PartialEq, TypedBuilder, Clone)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateOptions<'a> {
@@ -221,7 +221,7 @@ fn is_true(x: &bool) -> bool {
     *x
 }
 
-#[derive(Debug, Deserialize, Serialize, TypedBuilder, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, TypedBuilder, PartialEq, Clone)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct KeyOptions {
@@ -263,7 +263,7 @@ impl Default for KeyOptions {
 }
 
 /// Options for checksum
-#[derive(Serialize, Deserialize, PartialEq, TypedBuilder)]
+#[derive(Serialize, Deserialize, PartialEq, TypedBuilder, Clone)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct ChecksumOptions {
@@ -290,7 +290,7 @@ impl Default for ChecksumOptions {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, TypedBuilder)]
+#[derive(Debug, Deserialize, Serialize, TypedBuilder, Clone)]
 #[builder(doc)]
 #[serde(rename_all = "camelCase")]
 pub struct PropertiesOptions {
