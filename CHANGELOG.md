@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.5](https://github.com/fMeow/arangors/compare/v0.5.4...v0.5.5) (2024-06-06)
+
+
+### Features
+
+* Implement Clone for option types ([#114](https://github.com/fMeow/arangors/issues/114)) ([84ef422](https://github.com/fMeow/arangors/commit/84ef422c36ee7d26d0f757290f19a012525969c5))
+
+
+### Bug Fixes
+
+* integer enum type serialization ([#112](https://github.com/fMeow/arangors/issues/112)) ([2fb9fa8](https://github.com/fMeow/arangors/commit/2fb9fa855a7485194e89f766afc9d644b76fccb9)), closes [#26](https://github.com/fMeow/arangors/issues/26)
+
 ### [0.5.4](https://github.com/fMeow/arangors/compare/v0.5.3...v0.5.4) (2023-08-25)
 
 
