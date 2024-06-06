@@ -1,6 +1,6 @@
 name: CI (Linux)
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 
 jobs:
   build_and_test:
@@ -13,9 +13,9 @@ jobs:
 
       - name: Start ArangoDB by docker-compose
         run: |
-          docker-compose up -d
+          docker compose -f tests/docker-compose.yml up -d
           sleep 30
-          docker-compose logs
+          docker compose logs
 
       - name: Set up ArangoDB for test
         run: bash tests/init_db.sh
@@ -34,7 +34,7 @@ jobs:
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise blocking" --lib
+        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise blocking" --lib -- --test-threads=1
 
       - name: check build (reqwest_blocking)
         env:
@@ -67,7 +67,7 @@ jobs:
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise" --lib
+        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise" --lib -- --test-threads=1
 
       - name: check build (reqwest_async)
         env:
@@ -78,7 +78,7 @@ jobs:
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_async" --all
+        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_async" --all -- --test-threads=1
 
       - name: check build (surf_async)
         env:
@@ -89,7 +89,7 @@ jobs:
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise surf_async" --all
+        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise surf_async" --all -- --test-threads=1
 
   mmfiles:
 
@@ -117,7 +117,7 @@ jobs:
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        run: cargo test --all --no-fail-fast --no-default-features --features "mmfiles cluster enterprise reqwest_blocking"
+        run: cargo test --all --no-fail-fast --no-default-features --features "mmfiles cluster enterprise reqwest_blocking" -- --test-threads=1
 
   doc:
     runs-on: ubuntu-latest

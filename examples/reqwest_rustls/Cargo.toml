@@ -1,7 +1,7 @@
 [package]
 name = "reqwest_rustls"
 version = "0.1.0"
-authors = ["Guoli Lyu <guoli-lv@hotmail.com>"]
+authors = [ "Guoli Lyu <guoli-lv@hotmail.com>" ]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -14,7 +14,10 @@ anyhow = "1"
 tokio = { version = "1", features = [ "macros", "rt-multi-thread" ] }
 
 # required dependencies for ReqwestClient
-reqwest = { version = "0.11", features = [ "gzip", "json", "rustls-tls" ], default-features = false }
+reqwest = { version = "0.11", features = [
+  "gzip",
+  "json",
+  "rustls-tls",
+], default-features = false }
 async-trait = "0.1"
 http = "0.2"
-

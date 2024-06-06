@@ -11,9 +11,9 @@ documentation = "https://docs.rs/arangors"
 keywords = [ "nosql", "database", "client", "driver", "arangoDB" ]
 exclude = [ ".gitignore", ".github", "tests/**/*" ]
 
-[package.metadata.docs.rs]
-all-features = false
-features = [ "rocksdb", "reqwest_async" ]
+  [package.metadata.docs.rs]
+  all-features = false
+  features = [ "rocksdb", "reqwest_async" ]
 
 [badges.maintenance]
 status = "actively-developed"
@@ -26,22 +26,22 @@ reqwest_async_rustls = [ "uclient/async_reqwest_rustls" ]
 reqwest_blocking = [ "uclient/blocking_reqwest", "blocking" ]
 reqwest_blocking_rustls = [ "uclient/blocking_reqwest_rustls", "blocking" ]
 surf_async = [ "uclient/async_surf", "http-types" ]
-cluster = [ ]
-enterprise = [ ]
-mmfiles = [ ]
-rocksdb = [ ]
-arango3_7 = [ ]
+cluster = [  ]
+enterprise = [  ]
+mmfiles = [  ]
+rocksdb = [  ]
+arango3_7 = [  ]
 
 [dependencies]
 async-trait = "0.1"
-base64 = "0.21.2"
+base64 = "0.22"
 http = "0.2"
 log = "0.4"
 maybe-async = "0.2"
 serde_json = "1"
-serde_qs = "0.10"
+serde_qs = "0.13"
 thiserror = "1"
-typed-builder = "0.10"
+typed-builder = "0.18"
 url = "2"
 uclient = "0.1"
 serde_repr = "0.1"
