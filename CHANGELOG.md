@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.6.0](https://github.com/fMeow/arangors/compare/v0.5.5...v0.6.0) (2024-06-06)
+
 ### [0.5.5](https://github.com/fMeow/arangors/compare/v0.5.4...v0.5.5) (2024-06-06)
 
 

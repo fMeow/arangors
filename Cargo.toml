@@ -1,6 +1,6 @@
 [package]
 name = "arangors"
-version = "0.5.5"
+version = "0.6.0"
 edition = "2021"
 authors = [ "Guoli Lyu <guoli-lv@hotmail.com>" ]
 readme = "README.md"
@@ -20,12 +20,10 @@ status = "actively-developed"
 
 [features]
 default = [ "rocksdb", "reqwest_async" ]
-
 blocking = [ "maybe-async/is_sync" ]
 reqwest_async = [ "reqwest" ]
 reqwest_blocking = [ "reqwest/blocking", "blocking" ]
 surf_async = [ "http-types", "surf" ]
-
 cluster = [ ]
 enterprise = [ ]
 mmfiles = [ ]
