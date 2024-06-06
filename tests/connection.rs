@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 #![allow(unused_parens)]
+use arangors::client::ClientExt;
 use pretty_assertions::assert_eq;
-use uclient::ClientExt;
 
 use arangors::{connection::Permission, Connection};
 use common::{

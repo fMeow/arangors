@@ -4,10 +4,10 @@ use log::trace;
 use maybe_async::maybe_async;
 use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
-use uclient::ClientExt;
 
 use crate::common::{collection, connection};
 use arangors::{
+    client::ClientExt,
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
         response::Status,

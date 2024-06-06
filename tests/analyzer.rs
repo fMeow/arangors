@@ -6,7 +6,6 @@ use log::{info, trace};
 use maybe_async::maybe_async;
 use pretty_assertions::assert_eq;
 use std::collections::HashMap;
-use uclient::ClientExt;
 
 use arangors::{
     analyzer::{
@@ -14,6 +13,7 @@ use arangors::{
         NgramAnalyzerProperties, NgramStreamType, NormAnalyzerProperties,
         PipelineAnalyzerProperties, PipelineAnalyzers,
     },
+    client::ClientExt,
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
         response::Status,

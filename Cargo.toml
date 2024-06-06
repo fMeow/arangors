@@ -20,12 +20,12 @@ status = "actively-developed"
 
 [features]
 default = [ "rocksdb", "reqwest_async" ]
-blocking = [ "maybe-async/is_sync", "uclient/blocking" ]
-reqwest_async = [ "uclient/async_reqwest" ]
-reqwest_async_rustls = [ "uclient/async_reqwest_rustls" ]
-reqwest_blocking = [ "uclient/blocking_reqwest", "blocking" ]
-reqwest_blocking_rustls = [ "uclient/blocking_reqwest_rustls", "blocking" ]
-surf_async = [ "uclient/async_surf", "http-types" ]
+
+blocking = [ "maybe-async/is_sync" ]
+reqwest_async = [ "reqwest" ]
+reqwest_blocking = [ "reqwest/blocking", "blocking" ]
+surf_async = [ "http-types", "surf" ]
+
 cluster = [ ]
 enterprise = [ ]
 mmfiles = [ ]
@@ -35,7 +35,7 @@ arango3_7 = [ ]
 [dependencies]
 async-trait = "0.1"
 base64 = "0.22"
-http = "0.2"
+http = "1"
 log = "0.4"
 maybe-async = "0.2"
 serde_json = "1"
@@ -43,7 +43,6 @@ serde_qs = "0.13"
 thiserror = "1"
 typed-builder = "0.18"
 url = "2"
-uclient = "0.1"
 serde_repr = "0.1"
 
   [dependencies.serde]
@@ -51,7 +50,7 @@ serde_repr = "0.1"
   features = [ "derive" ]
 
   [dependencies.reqwest]
-  version = "0.11"
+  version = "0.12"
   features = [ "gzip", "json" ]
   optional = true
 
@@ -78,4 +77,4 @@ anyhow = "1"
   features = [ "attributes" ]
 
   [dev-dependencies.reqwest]
-  version = "0.11"
+  version = "0.12"

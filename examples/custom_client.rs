@@ -12,10 +12,10 @@
 //! Several implementations are provided: async `reqwest`, blocking `reqwest`,
 //! `surf`(async-std) and later `awc`.
 use anyhow::Error;
+use arangors::{client::ClientExt, ClientError};
 use http::{HeaderMap, HeaderValue, Method};
 #[cfg(feature = "reqwest_async")]
 use reqwest::Client;
-use uclient::{ClientError, ClientExt};
 use url::Url;
 
 use arangors::GenericConnection;
@@ -32,7 +32,7 @@ pub struct ReqwestClient(pub Client, HeaderMap);
 /// Also, the API of reqwest is almost the same for async and sync. You can also
 /// use maybe_async::maybe_async to remove async/await keyword in need, and just
 /// import reqwesat::Client and rewest::blocking::Client respectively in async
-/// and sync implementation. See `uclient::reqwest` source code.
+/// and sync implementation. See `arangors::client::reqwest` source code.
 // This cfg is only to make rust compiler happy in Github Action, you can just ignore it
 #[cfg(feature = "reqwest_async")]
 #[async_trait::async_trait]

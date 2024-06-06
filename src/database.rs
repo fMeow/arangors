@@ -2,7 +2,6 @@
 //!
 //! AQL query are all executed in database level, so Database offers AQL query.
 use std::{collections::HashMap, fmt::Debug, sync::Arc};
-use uclient::ClientExt;
 
 use log::trace;
 use maybe_async::maybe_async;
@@ -13,6 +12,7 @@ use url::Url;
 use crate::{
     analyzer::{AnalyzerDescription, AnalyzerInfo},
     aql::{AqlQuery, Cursor},
+    client::ClientExt,
     collection::{
         options::{CreateOptions, CreateParameters},
         response::{Info, Properties},

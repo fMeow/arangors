@@ -1,11 +1,11 @@
 #![allow(unused_imports)]
 #![allow(unused_parens)]
 
+use arangors::client::ClientExt;
 use log::{info, trace, warn};
 use pretty_assertions::assert_eq;
 use serde_json::Value;
 use std::collections::HashMap;
-use uclient::ClientExt;
 
 use crate::common::{get_root_user, root_connection};
 use arangors::{

@@ -4,9 +4,9 @@
 use log::trace;
 use pretty_assertions::assert_eq;
 use serde_json::{json, Value};
-use uclient::ClientExt;
 
 use arangors::{
+    client::ClientExt,
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
         response::Status,

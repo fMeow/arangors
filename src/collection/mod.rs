@@ -8,13 +8,13 @@ use http::Request;
 use maybe_async::maybe_async;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::json;
-use uclient::ClientExt;
 use url::Url;
 
 use options::*;
 use response::*;
 
 use crate::{
+    client::ClientExt,
     document::{
         options::{InsertOptions, ReadOptions, RemoveOptions, ReplaceOptions, UpdateOptions},
         response::DocumentResponse,

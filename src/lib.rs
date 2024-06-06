@@ -415,10 +415,10 @@ pub use crate::{
     document::Document,
     error::{ArangoError, ClientError},
 };
-pub use uclient;
 
 pub mod analyzer;
 pub mod aql;
+pub mod client;
 pub mod collection;
 pub mod connection;
 pub mod database;

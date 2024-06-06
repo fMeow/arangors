@@ -1,25 +1,26 @@
 //! Reqwest HTTP client
 use std::convert::TryInto;
 
+#[cfg(any(feature = "reqwest_blocking"))]
+use ::reqwest::blocking::Client;
+
+#[cfg(any(feature = "reqwest_async"))]
 use ::reqwest::Client;
+
 use http::header::HeaderMap;
 
-use arangors::client::ClientExt;
-use arangors::transaction::TRANSACTION_HEADER;
-use arangors::ClientError;
+use super::ClientExt;
+use crate::ClientError;
+use http::HeaderValue;
 
 #[derive(Debug, Clone)]
 pub struct ReqwestClient {
     pub client: Client,
-    pub headers: HeaderMap,
+    headers: HeaderMap,
 }
 
-#[async_trait::async_trait]
+#[maybe_async::maybe_async]
 impl ClientExt for ReqwestClient {
-    fn headers(&mut self) -> &mut HeaderMap<HeaderValue> {
-        &mut self.headers
-    }
-
     fn new<U: Into<Option<HeaderMap>>>(headers: U) -> Result<Self, ClientError> {
         let client = Client::builder().gzip(true);
         let headers = match headers.into() {
@@ -28,26 +29,25 @@ impl ClientExt for ReqwestClient {
         };
 
         client
-            .default_headers(headers.clone())
             .build()
             .map(|c| ReqwestClient { client: c, headers })
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
     }
 
-    fn clone_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
-        let mut headers = HeaderMap::new();
-        for (name, value) in self.headers.iter() {
-            headers.insert(name, value.clone());
-        }
-
-        headers.insert(TRANSACTION_HEADER, transaction_id.parse().unwrap());
-        ReqwestClient::new(headers)
+    fn headers(&mut self) -> &mut HeaderMap<HeaderValue> {
+        &mut self.headers
     }
 
     async fn request(
         &self,
-        request: http::Request<String>,
+        mut request: http::Request<String>,
     ) -> Result<http::Response<String>, ClientError> {
+        let headers = request.headers_mut();
+        for (header, value) in self.headers.iter() {
+            if !headers.contains_key(header) {
+                headers.insert(header, value.clone());
+            }
+        }
         let req = request.try_into().unwrap();
 
         let resp = self

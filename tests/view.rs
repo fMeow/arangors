@@ -6,9 +6,9 @@ use crate::common::{collection, connection};
 use log::{info, trace};
 use maybe_async::maybe_async;
 use pretty_assertions::assert_eq;
-use uclient::ClientExt;
 
 use arangors::{
+    client::ClientExt,
     collection::{
         options::{ChecksumOptions, PropertiesOptions},
         response::Status,
