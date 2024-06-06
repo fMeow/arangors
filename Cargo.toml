@@ -44,6 +44,7 @@ thiserror = "1"
 typed-builder = "0.10"
 url = "2"
 uclient = "0.1"
+serde_repr = "0.1"
 
   [dependencies.serde]
   version = "1"

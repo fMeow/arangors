@@ -6,7 +6,7 @@ use std::{convert::TryFrom, sync::Arc};
 
 use http::Request;
 use maybe_async::maybe_async;
-use serde::{de::DeserializeOwned, Deserialize, Deserializer, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::json;
 use uclient::ClientExt;
 use url::Url;
@@ -806,27 +806,9 @@ fn make_header_from_options(
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[repr(u8)]
 pub enum CollectionType {
-    #[serde(rename = "2")]
     Document = 2,
-    #[serde(rename = "3")]
     Edge = 3,
-}
-
-impl<'de> Deserialize<'de> for CollectionType {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let value = u8::deserialize(deserializer)?;
-        match value {
-            2 => Ok(CollectionType::Document),
-            3 => Ok(CollectionType::Edge),
-            _ => Err(serde::de::Error::custom(
-                "Undefined behavior. If the crate breaks after an upgrade of ArangoDB, please \
-                 contact the author.",
-            )),
-        }
-    }
 }
