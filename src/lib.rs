@@ -107,14 +107,18 @@
 //! # }
 //! ```
 //!
-//! - Without authentication, only use in evaluation setting
+//! - Without authentication
+//!
+//! **Only use in evaluation setting**.
 //!
 //! ``` rust, ignore
-//! # use arangors::Connection;
+//! use arangors::Connection;
 //! let conn = Connection::establish_without_auth("http://localhost:8529").await.unwrap();
 //! ```
 //!
 //! ## Database && Collection
+//!
+//! To get info or operate on database or collections:
 //!
 //! ```rust
 //! use arangors::Connection;
@@ -206,7 +210,6 @@
 //! #     .await
 //! #     .unwrap();
 //! # let db = conn.db("test_db").await.unwrap();
-//!
 //! let aql = AqlQuery::builder()
 //!     .query("FOR u IN @@collection LIMIT 3 RETURN u")
 //!     .bind_var("@collection", "test_collection")

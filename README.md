@@ -31,23 +31,16 @@ HTTP headers.
 Hierarchy of arangors:
 > connection -> databases -> collections -> documents/edges
 
-## Features
+## Features & TODO
 
-By now, the available features of arangors are:
-
-- make connection to ArangoDB
-- get list of databases and collections
-- fetch database and collection info
-- create and delete database or collections
-- full featured AQL query
-- support both `async` and sync
-
-## Abilities & TODO
-
+- [X] make connection to ArangoDB
+- [X] get list of databases and collections
+- [X] fetch database and collection info
+- [X] create and delete database or collections
+- [X] full featured AQL query
 - [X] Synchronous connection based on `reqwest` and full featured AQL query.
-- [X] Fill the unimplemented API in `Connection`, `Database`, `Collection` and
-`Document`.
-- [X] Implement both sync and async client.
+- [X] Fill the unimplemented API in `Connection`, `Database`, `Collection` and `Document`.
+- [X] support both `async` and sync client
 - [X] Offers a way to use custom HTTP client ecosystem.
 - [X] Index Management (since 0.4.3)
 - [X] Graph Management (since 0.4.5)
@@ -113,14 +106,18 @@ let conn = Connection::establish_basic_auth("http://localhost:8529", "username",
     .unwrap();
 ```
 
-- Without authentication, only use in evaluation setting
+- Without authentication
 
-``` rust, ignore
-## use arangors::Connection;
+**Only use in evaluation setting**.
+
+``` rust
+use arangors::Connection;
 let conn = Connection::establish_without_auth("http://localhost:8529").await.unwrap();
-```rust
+```
 
 ## Database && Collection
+
+To get info or operate on database or collections:
 
 ```rust
 use arangors::Connection;
@@ -183,7 +180,6 @@ Use `aql_query_batch` to get a cursor, and use `aql_next_batch` to fetch
 next batch and update cursor with the cursor.
 
 ```rust
-
 
 let aql = AqlQuery::builder()
     .query("FOR u IN @@collection LIMIT 3 RETURN u")
