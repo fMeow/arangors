@@ -27,23 +27,16 @@
 //! Hierarchy of arangors:
 //! > connection -> databases -> collections -> documents/edges
 //!
-//! # Features
+//! # Features & TODO
 //!
-//! By now, the available features of arangors are:
-//!
-//! - make connection to ArangoDB
-//! - get list of databases and collections
-//! - fetch database and collection info
-//! - create and delete database or collections
-//! - full featured AQL query
-//! - support both `async` and sync
-//!
-//! # Abilities & TODO
-//!
+//! - [X] make connection to ArangoDB
+//! - [X] get list of databases and collections
+//! - [X] fetch database and collection info
+//! - [X] create and delete database or collections
+//! - [X] full featured AQL query
 //! - [X] Synchronous connection based on `reqwest` and full featured AQL query.
-//! - [X] Fill the unimplemented API in `Connection`, `Database`, `Collection` and
-//! `Document`.
-//! - [X] Implement both sync and async client.
+//! - [X] Fill the unimplemented API in `Connection`, `Database`, `Collection` and `Document`.
+//! - [X] support both `async` and sync client
 //! - [X] Offers a way to use custom HTTP client ecosystem.
 //! - [X] Index Management (since 0.4.3)
 //! - [X] Graph Management (since 0.4.5)
