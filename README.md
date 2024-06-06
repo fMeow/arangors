@@ -42,37 +42,16 @@ By now, the available features of arangors are:
 - full featured AQL query
 - support both `async` and sync
 
-## TODO
+## Abilities & TODO
 
-- (Done) Milestone 0.1.x
-
-    - [X] Synchronous connection based on `reqwest` and full featured AQL query.
-
-- (X) Milestone 0.2.x
-
-    Fill the unimplemented API in `Connection`, `Database`, `Collection` and
-    `Document`.
-
-    - [X] ~~In this stage, all operations available for database, collection and
-    document should be implemented.~~
-
-    Well, I am too lazy to fill all API, as the AQL syntax suffices in most
-    cases. Maybe fulfill this goal in 0.4.x .
-
-- (Done) Milestone 0.3.x
-
-    - [X] Implement both sync and async client. Also, offers a way to use custom
-    HTTP client ecosystem.
-
-- (Done) Milestone 1.0.x
-
-    Provides the API related to:
-    - [X] Index Management (since 0.4.3)
-    - [X] Graph Management (since 0.4.5)
-    - [X] User Management (since 0.5.4)
-
-  In this stage, all operations available for database, collection and
-  document should be implemented.
+- [X] Synchronous connection based on `reqwest` and full featured AQL query.
+- [X] Fill the unimplemented API in `Connection`, `Database`, `Collection` and
+`Document`.
+- [X] Implement both sync and async client.
+- [X] Offers a way to use custom HTTP client ecosystem.
+- [X] Index Management (since 0.4.3)
+- [X] Graph Management (since 0.4.5)
+- [X] User Management (since 0.5.4)
 
 ## Glance
 
@@ -91,7 +70,7 @@ connect with ArangoDB. You can switch other ecosystem in feature gate:
 
 ```toml
 [dependencies]
-arangors = { version = "0.4", features = ["surf_async"], default-features = false }
+arangors = { version = "0.6", features = ["surf_async"], default-features = false }
 ```
 
 Or if you want to stick with other ecosystem that are not listed in the
@@ -101,9 +80,9 @@ dependency:
 ```toml
 [dependencies]
 ## This one is async
-arangors = { version = "0.4", default-features = false }
+arangors = { version = "0.6", default-features = false }
 ## This one is synchronous
-arangors = { version = "0.4", features = ["blocking"], default-features = false }
+arangors = { version = "0.6", features = ["blocking"], default-features = false }
 ```
 
 Thanks to `maybe_async`, `arangors` can unify sync and async API and toggle
