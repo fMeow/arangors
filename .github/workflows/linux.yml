@@ -15,7 +15,7 @@ jobs:
         run: |
           docker compose -f tests/docker-compose.yml up -d
           sleep 30
-          docker compose logs
+          docker compose -f tests/docker-compose.yml logs
 
       - name: Set up ArangoDB for test
         run: bash tests/init_db.sh
