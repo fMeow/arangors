@@ -806,7 +806,9 @@ fn make_header_from_options(
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Copy, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
+)]
 #[repr(u8)]
 pub enum CollectionType {
     Document = 2,
