@@ -45,7 +45,7 @@ jobs:
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_blocking" --all
+        run: cargo test --no-fail-fast --no-default-features --features "rocksdb cluster enterprise reqwest_blocking" --all -- --test-threads=1
 
       - name: check build (default features)
         env:
@@ -56,7 +56,7 @@ jobs:
         env:
           RUST_LOG: arangors=trace
         timeout-minutes: 40
-        run: cargo test --all --no-fail-fast -- --nocapture
+        run: cargo test --all --no-fail-fast -- --nocapture -- --test-threads=1
 
       - name: check build (async)
         env:
