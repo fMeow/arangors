@@ -19,10 +19,14 @@ features = [ "rocksdb", "reqwest_async" ]
 status = "actively-developed"
 
 [features]
-default = [ "rocksdb", "reqwest_async" ]
+default = [ "rocksdb", "reqwest_async", "reqwest_default-tls" ]
 blocking = [ "maybe-async/is_sync" ]
-reqwest_async = [ "reqwest" ]
+reqwest_async = [ "dep:reqwest" ]
 reqwest_blocking = [ "reqwest/blocking", "blocking" ]
+reqwest_default-tls = [ "reqwest/default-tls" ]
+reqwest_rustls-tls = [ "reqwest/rustls-tls" ]
+reqwest_macos-system-configuration = [ "reqwest/macos-system-configuration" ]
+
 surf_async = [ "http-types", "surf" ]
 cluster = [ ]
 enterprise = [ ]
@@ -49,7 +53,8 @@ serde_repr = "0.1"
 
   [dependencies.reqwest]
   version = "0.12"
-  features = [ "gzip", "json" ]
+  default_features = false
+  features = [ "charset", "http2", "gzip", "json" ]
   optional = true
 
   [dependencies.surf]
