@@ -1,11 +1,11 @@
 //! Reqwest HTTP client
 use std::convert::TryInto;
 
+use ::reqwest::header::HeaderValue;
 use ::reqwest::Client;
 use http::header::HeaderMap;
 
 use arangors::client::ClientExt;
-use arangors::transaction::TRANSACTION_HEADER;
 use arangors::ClientError;
 
 #[derive(Debug, Clone)]
@@ -32,16 +32,6 @@ impl ClientExt for ReqwestClient {
             .build()
             .map(|c| ReqwestClient { client: c, headers })
             .map_err(|e| ClientError::HttpClient(format!("{:?}", e)))
-    }
-
-    fn clone_with_transaction(&self, transaction_id: String) -> Result<Self, ClientError> {
-        let mut headers = HeaderMap::new();
-        for (name, value) in self.headers.iter() {
-            headers.insert(name, value.clone());
-        }
-
-        headers.insert(TRANSACTION_HEADER, transaction_id.parse().unwrap());
-        ReqwestClient::new(headers)
     }
 
     async fn request(
