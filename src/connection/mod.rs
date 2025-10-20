@@ -120,7 +120,12 @@ impl<S, C: ClientExt> GenericConnection<C, S> {
                 if server_value.eq_ignore_ascii_case("ArangoDB") {
                     trace!("Validate arangoDB server done.");
                     Ok(())
-                } else {
+                }
+                else if server_value.eq_ignore_ascii_case("arangodb-oasis") {
+                    trace!("Validate arangoDB Oasis server done.");
+                    Ok(())
+                }
+                else {
                     Err(ClientError::InvalidServer(server_value.to_owned()))
                 }
             }
