@@ -205,7 +205,7 @@ async fn test_get_document_count() {
     let result = count.unwrap();
     assert_eq!(result.info.count, Some(0));
     assert_eq!(result.info.name, collection_name);
-    #[cfg(rocksdb)]
+    #[cfg(features = "rocksdb")]
     assert_eq!(result.detail.cache_enabled, false);
     assert_eq!(result.info.is_system, false);
     assert_eq!(result.detail.wait_for_sync, false);
@@ -246,7 +246,7 @@ async fn test_get_statistics() {
     let result = statistics.unwrap();
     assert_eq!(result.count, Some(0), "count");
     assert_eq!(result.info.name, collection_name);
-    #[cfg(rocksdb)]
+    #[cfg(feature = "rocksdb")]
     assert_eq!(result.detail.cache_enabled, false);
     assert_eq!(result.info.is_system, false);
     assert_eq!(result.detail.wait_for_sync, false, "wait for sync");
@@ -284,7 +284,7 @@ async fn test_get_revision_id() {
 
     let result = revision.unwrap();
     assert_eq!(result.info.name, collection_name);
-    #[cfg(rocksdb)]
+    #[cfg(feature = "rocksdb")]
     assert_eq!(result.detail.cache_enabled, false);
     assert_eq!(result.info.is_system, false);
     assert_eq!(result.detail.wait_for_sync, false);
@@ -499,7 +499,7 @@ async fn test_put_changes_properties() {
 
     let result = updated_properties.unwrap();
     assert_eq!(result.info.name, collection_name);
-    #[cfg(rocksdb)]
+    #[cfg(feature = "rocksdb")]
     assert_eq!(result.detail.cache_enabled, false);
     assert_eq!(result.info.is_system, false);
     assert_eq!(result.detail.wait_for_sync, true);
