@@ -65,17 +65,17 @@ pub struct Details {
     pub key_options: KeyOptions,
     pub wait_for_sync: bool,
     pub write_concern: u16,
-    #[cfg(rocksdb)]
+    #[cfg(feature = "rocksdb")]
     pub cache_enabled: bool,
-    #[cfg(rocksdb)]
+    #[cfg(feature = "rocksdb")]
     pub object_id: String,
-    #[cfg(mmfiles)]
+    #[cfg(feature = "mmfiles")]
     pub is_volatile: bool,
-    #[cfg(mmfiles)]
+    #[cfg(feature = "mmfiles")]
     pub do_compact: bool,
-    #[cfg(mmfiles)]
+    #[cfg(feature = "mmfiles")]
     pub journal_size: usize,
-    #[cfg(mmfiles)]
+    #[cfg(feature = "mmfiles")]
     pub index_buckets: usize,
 }
 

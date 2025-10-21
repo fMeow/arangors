@@ -165,11 +165,11 @@ async fn test_get_properties() {
     let result = properties.unwrap();
 
     assert_eq!(result.info.name, collection_name);
-    #[cfg(rocksdb)]
+    #[cfg(feature = "rocksdb")]
     {
         assert_eq!(result.detail.cache_enabled, false);
     }
-    #[cfg(mmfiles)]
+    #[cfg(feature = "mmfiles")]
     {
         assert_eq!(result.detail.is_volatile, false);
         assert_eq!(result.detail.do_compact, true);
